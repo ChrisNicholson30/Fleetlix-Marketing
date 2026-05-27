@@ -13,9 +13,57 @@ import InterestForm from "../components/InterestForm";
 import CtaFooter from "../components/CtaFooter.astro";
 import SiteFooter from "../components/SiteFooter.astro";
 import { SHOW_CONTACT, SHOW_PRICING } from "../config/featureFlags";
+
+const softwareJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  name: "Fleetlix",
+  applicationCategory: "BusinessApplication",
+  applicationSubCategory: "Waste management software",
+  operatingSystem: "Web, iOS, Android",
+  description:
+    "Operations platform for UK waste, skip-hire, and haulage firms. One Progressive Web App covering driver walk-around checks, yard dispatch, office workflows, and automated Waste Transfer Notes.",
+  url: "https://fleetlix.com",
+  image: "https://fleetlix.com/Hero.jpg",
+  offers: {
+    "@type": "Offer",
+    priceCurrency: "GBP",
+    price: "79.00",
+    priceSpecification: {
+      "@type": "UnitPriceSpecification",
+      price: "79.00",
+      priceCurrency: "GBP",
+      unitText: "MONTH",
+      referenceQuantity: { "@type": "QuantitativeValue", value: 1, unitCode: "MON" },
+    },
+    availability: "https://schema.org/PreOrder",
+    eligibleRegion: { "@type": "Country", name: "United Kingdom" },
+  },
+  publisher: {
+    "@type": "Organization",
+    name: "CN-DESIGN LTD",
+    url: "https://cn-design.co.uk",
+  },
+  audience: {
+    "@type": "BusinessAudience",
+    audienceType:
+      "Skip hire, waste management, and haulage operators — fleets of 1 to 80+ vehicles, United Kingdom",
+  },
+  featureList: [
+    "DVSA-compliant driver walk-around checks",
+    "Real-time dispatch and job tracking",
+    "Automated Waste Transfer Notes (WTN)",
+    "Office, yard, driver, and maintenance roles in one app",
+    "Works offline, installs as a PWA on any device",
+    "UK GDPR compliant data handling",
+  ],
+};
 ---
 
-<Base>
+<Base
+  title="Fleetlix — Waste & haulage software for UK skip-hire and fleet operators"
+  description="UK-built operations software for waste, skip-hire, and haulage firms. One PWA covering driver, yard, and office workflows: DVSA walk-around checks, real-time dispatch, automated Waste Transfer Notes. Replaces spreadsheets and £18k legacy systems."
+>
   <Header />
   <main>
     <Hero />
@@ -29,6 +77,7 @@ import { SHOW_CONTACT, SHOW_PRICING } from "../config/featureFlags";
     {SHOW_CONTACT && <CtaFooter />}
   </main>
   <SiteFooter />
+  <script type="application/ld+json" set:html={JSON.stringify(softwareJsonLd)} />
 </Base>
 
 <script>

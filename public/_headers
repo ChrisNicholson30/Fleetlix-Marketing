@@ -1,13 +1,21 @@
 # script-src hashes whitelist the page's inline <script> snippets:
-#   1+2) Astro's bootstraps — IntersectionObserver loader for client:visible
-#        + astro-island custom element.
-#   3)   the homepage's cinematic behaviour bundle (scroll-reveal IO + lazy
-#        hero aerial loop), which Astro inlines because it has no imports.
-# Regenerate after an Astro version bump OR after editing src/scripts/cinematic.ts:
+#   1) Organization JSON-LD (every page, sitewide in Base.astro)
+#   2) Astro's IntersectionObserver loader (client:visible bootstrap)
+#   3) Astro's astro-island custom-element registration
+#   4) SoftwareApplication JSON-LD (homepage only, in index.astro)
+#   5) the homepage's cinematic behaviour bundle (scroll-reveal IO + lazy
+#      hero aerial loop), which Astro inlines because it has no imports.
+# Regenerate after an Astro version bump OR after editing any of:
+#   - src/scripts/cinematic.ts
+#   - src/layouts/Base.astro (the Organization JSON-LD)
+#   - src/pages/index.astro (the SoftwareApplication JSON-LD)
+# One-liner that prints the unique hashes across all built pages:
 #   pnpm build && node -e 'const fs=require("fs"),c=require("crypto");
-#   [...fs.readFileSync("dist/index.html","utf8").matchAll(
-#     /<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/g)].forEach(m=>
-#     console.log("sha256-"+c.createHash("sha256").update(m[1]).digest("base64")));'
+#   const files=["dist/index.html","dist/privacy/index.html","dist/cookies/index.html","dist/thank-you/index.html"];
+#   const h=new Set();
+#   for(const f of files){[...fs.readFileSync(f,"utf8").matchAll(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/g)]
+#     .forEach(m=>h.add("sha256-"+c.createHash("sha256").update(m[1]).digest("base64")));}
+#   [...h].forEach(x=>console.log(x));'
 /*
   Strict-Transport-Security: max-age=31536000; includeSubDomains
   X-Content-Type-Options: nosniff
@@ -15,7 +23,7 @@
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()
   Cross-Origin-Opener-Policy: same-origin
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'sha256-Q2BPg90ZMplYY+FSdApNErhpWafg2hcRRbndmvxuL/Q=' 'sha256-SaCkFfPruIdTXT8/97JArQmGxiJAL2o4bBDvSgJ5y3Q=' 'sha256-tt1tFGUFxQtvEg1jnRcz3VIk/4LyXdL8qHxwyuZr2EM='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; form-action 'self'; base-uri 'self'; object-src 'none'
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'sha256-vNPyZc8sIg3kLQREezconGe21t2V8oPxVJ9dG+l8VAg=' 'sha256-Q2BPg90ZMplYY+FSdApNErhpWafg2hcRRbndmvxuL/Q=' 'sha256-SaCkFfPruIdTXT8/97JArQmGxiJAL2o4bBDvSgJ5y3Q=' 'sha256-E1WEExVaZTtBeupcMeA7krqHuBCRm5uduzqH6K3BpT4=' 'sha256-tt1tFGUFxQtvEg1jnRcz3VIk/4LyXdL8qHxwyuZr2EM='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; form-action 'self'; base-uri 'self'; object-src 'none'
 
 /fonts/*
   Cache-Control: public, max-age=31536000, immutable

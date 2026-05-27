@@ -4,12 +4,44 @@ import "../styles/global.css";
 interface Props {
   title?: string;
   description?: string;
+  ogImage?: string;
+  noindex?: boolean;
 }
 
 const {
-  title = "Fleetlix — Operations platform for modern waste and haulage firms",
-  description = "One Progressive Web App covering driver, yard, and office workflows. DVSA-compliant walk-around checks, real-time dispatch, automated Waste Transfer Notes. Built for skip-hire, haulage, and waste operators in the UK.",
+  title = "Fleetlix — Waste & haulage software for UK skip-hire and fleet operators",
+  description = "Fleetlix is UK-built operations software for waste, skip-hire, and haulage firms. One PWA replaces spreadsheets and £18k legacy systems: DVSA walk-around checks, real-time dispatch, automated Waste Transfer Notes.",
+  ogImage = "/Hero.jpg",
+  noindex = false,
 } = Astro.props;
+
+const canonical = new URL(Astro.url.pathname, Astro.site).toString();
+const ogImageUrl = new URL(ogImage, Astro.site).toString();
+
+const organizationJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "Fleetlix",
+  url: "https://fleetlix.com",
+  logo: "https://fleetlix.com/fleetlix-logo-primary.svg",
+  description:
+    "UK-built operations software for waste, skip-hire, and haulage firms.",
+  parentOrganization: {
+    "@type": "Organization",
+    name: "CN-DESIGN LTD",
+    url: "https://cn-design.co.uk",
+    address: {
+      "@type": "PostalAddress",
+      streetAddress: "Office 1, Technology House, 9 Newton Place",
+      addressLocality: "Glasgow",
+      addressRegion: "Scotland",
+      postalCode: "G3 7PR",
+      addressCountry: "GB",
+    },
+    identifier: "SC885094",
+  },
+  sameAs: ["https://cn-design.co.uk"],
+};
 ---
 
 <!doctype html>
@@ -17,7 +49,26 @@ const {
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
     <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    {noindex && <meta name="robots" content="noindex,nofollow" />}
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Fleetlix" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImageUrl} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:locale" content="en_GB" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImageUrl} />
+
     <meta name="theme-color" content="#1A1D21" />
     <link rel="icon" type="image/svg+xml" href="/fleetlix-logo-icon.svg" />
     <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
@@ -25,7 +76,8 @@ const {
     <link rel="preload" href="/fonts/space-grotesk/SpaceGrotesk-700.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="/fonts/inter/Inter-400.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="stylesheet" href="/fonts/fleetlix-fonts.css" />
-    <title>{title}</title>
+
+    <script type="application/ld+json" set:html={JSON.stringify(organizationJsonLd)} />
   </head>
   <body>
     <slot />

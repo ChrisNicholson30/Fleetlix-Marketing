@@ -119,16 +119,30 @@ A Cloudflare **Redirect Rule** (Rules → Redirect Rules, *"Redirect from WWW to
 
 Cloudflare **Email Routing** has one route: `contact@fleetlix.com` → `chris@cn-design.co.uk` (Verified). Disable Email Routing only when a real fleetlix.com mailbox provider is being set up — the MX records can't be shared.
 
+## SEO
+
+- **`Base.astro`** sets canonical, Open Graph, and Twitter Card meta tags on every page. The default `ogImage` is `/Hero.jpg`. To opt a page out of indexing, pass `noindex={true}` (already done for `/thank-you`).
+- **`@astrojs/sitemap`** generates `dist/sitemap-index.xml` and `dist/sitemap-0.xml` at build time. The filter in `astro.config.mjs` excludes `/thank-you` from the sitemap.
+- **`public/robots.txt`** allows everything and points at the sitemap.
+- **Structured data (JSON-LD):**
+  - `Base.astro` emits a sitewide **Organization** entity in `<head>` (Fleetlix + parent CN-DESIGN LTD with Glasgow postal address + SC885094).
+  - `src/pages/index.astro` emits a **SoftwareApplication** entity before `</body>` describing the product, pricing, audience, and feature list.
+- **Target keywords:** the homepage `<title>` and `<meta description>` lead with "waste & haulage software" / "UK skip-hire and fleet operators". When you write new homepage copy, keep these phrases findable without it reading like SEO sludge.
+
+Both JSON-LD scripts contribute to the CSP `script-src` hash list — see below.
+
 ## CSP and security headers
 
 `public/_headers` ships strict headers on every response. Two parts deserve care:
 
-**`script-src` whitelists exactly three inline-script SHA-256 hashes:**
-1. Astro's `client:visible` IntersectionObserver bootstrap
-2. Astro's `astro-island` custom-element registration
-3. The homepage's `cinematic.ts` bundle (Astro inlines it because it has no imports)
+**`script-src` whitelists exactly five inline-script SHA-256 hashes:**
+1. Sitewide Organization JSON-LD (every page, from `Base.astro`)
+2. Astro's `client:visible` IntersectionObserver bootstrap
+3. Astro's `astro-island` custom-element registration
+4. Homepage SoftwareApplication JSON-LD (from `src/pages/index.astro`)
+5. The homepage's `cinematic.ts` bundle (Astro inlines it because it has no imports)
 
-**Regenerate the hashes after an Astro version bump OR after editing `src/scripts/cinematic.ts`.** The exact one-liner is in the comment at the top of `_headers`. If the hashes drift the homepage's scroll behaviour silently breaks in production.
+**Regenerate the hashes after** an Astro version bump **or** after editing `src/scripts/cinematic.ts`, `src/layouts/Base.astro`'s JSON-LD, or `src/pages/index.astro`'s JSON-LD. The exact one-liner is in the comment at the top of `_headers`. If the hashes drift, the offending inline script is silently blocked in production.
 
 **`style-src 'self' 'unsafe-inline'`** — React style props, the modal's `<style>` block, and various `style="…"` attributes from Astro components all need this. We've traded style-XSS hardening for not having to hash every inline style. Don't tighten this without first rewriting the inline styles out.
 
