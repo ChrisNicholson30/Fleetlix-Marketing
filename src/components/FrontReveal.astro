@@ -1,0 +1,46 @@
+---
+import { Picture } from "astro:assets";
+import front from "../assets/hero/front.png";
+
+// NOTE: the source frame's sun-visor lettering and number plate are
+// AI-garbled. We crop the top of the cab out (object-[center_78%]) and keep
+// the image darkened (brightness filter + heavy gradient) so the garbled
+// detail is never shown large or sharp.
+---
+
+<section class="relative isolate overflow-clip bg-[color:var(--color-graphite)] text-white">
+  <div class="absolute inset-0 -z-10" data-reveal="scale">
+    <Picture
+      src={front}
+      formats={["avif", "webp"]}
+      widths={[420, 768, 1280, 1920]}
+      sizes="100vw"
+      alt="A truck on a Highland road at dusk, headlights lit, mountains silhouetted against a fading amber sky."
+      loading="lazy"
+      decoding="async"
+      class="h-full w-full object-cover object-[center_78%] brightness-[0.5]"
+    />
+    <div aria-hidden="true" class="absolute inset-0 bg-gradient-to-t from-[color:var(--color-graphite)] via-[color:var(--color-graphite)]/55 to-[color:var(--color-graphite)]/85"></div>
+  </div>
+
+  <div class="mx-auto max-w-7xl px-6 py-28 md:py-40 flex flex-col items-center text-center">
+    <p class="text-xs font-semibold tracking-[0.18em] uppercase text-[color:var(--color-amber)]" data-reveal>
+      Nothing slips through
+    </p>
+    <h2
+      class="mt-4 max-w-3xl font-[family-name:var(--font-display)] font-extrabold text-3xl md:text-5xl lg:text-6xl tracking-tight leading-[1.06] text-white [text-wrap:balance] [--stagger:120ms]"
+      data-reveal
+    >
+      Every vehicle, every check, every ticket —
+      <span class="text-[color:var(--color-amber)]">on one record.</span>
+    </h2>
+    <p
+      class="mt-6 max-w-xl text-lg md:text-xl text-white/80 leading-relaxed [--stagger:240ms]"
+      data-reveal
+    >
+      Defects raised in the cab reach the workshop instantly. Vehicles flag
+      themselves off-road when they need to. The office sees the whole fleet,
+      live, without a single phone call.
+    </p>
+  </div>
+</section>

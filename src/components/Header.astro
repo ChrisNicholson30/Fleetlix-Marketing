@@ -1,0 +1,34 @@
+---
+import { SHOW_CONTACT, SHOW_PRICING } from "../config/featureFlags";
+
+const nav = [
+  { href: "#product", label: "Product" },
+  { href: "#why-pwa", label: "Why a PWA" },
+  { href: "#who", label: "Who it's for" },
+  SHOW_PRICING ? { href: "#pricing", label: "Pricing" } : null,
+  SHOW_CONTACT ? { href: "#contact", label: "Contact" } : null,
+].filter((item): item is { href: string; label: string } => item !== null);
+---
+
+<header class="sticky top-0 z-40 backdrop-blur bg-[color:var(--color-offwhite)]/85 border-b border-[color:var(--color-mist)]">
+  <div class="mx-auto max-w-7xl px-6 py-4 flex items-center justify-between">
+    <a href="/" class="inline-flex items-center" aria-label="Fleetlix home">
+      <img src="/fleetlix-logo-primary.svg" alt="Fleetlix" class="h-9 w-auto" />
+    </a>
+    <nav class="hidden md:flex items-center gap-8 text-sm font-medium text-[color:var(--color-slate)]">
+      {nav.map((item) => (
+        <a href={item.href} class="hover:text-[color:var(--color-graphite)] transition-colors">
+          {item.label}
+        </a>
+      ))}
+    </nav>
+    {SHOW_CONTACT && (
+      <a
+        href="#contact"
+        class="inline-flex items-center rounded-lg bg-[color:var(--color-cyan)] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:brightness-110 transition"
+      >
+        Book a demo
+      </a>
+    )}
+  </div>
+</header>

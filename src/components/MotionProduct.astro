@@ -1,0 +1,74 @@
+---
+import { Picture } from "astro:assets";
+import wheel from "../assets/hero/wheel.png";
+
+const cards = [
+  {
+    title: "Live tracking",
+    body: "Every job and vehicle on one live map. The office knows where the fleet is without picking up the phone.",
+  },
+  {
+    title: "Walk-around checks",
+    body: "DVSA-compliant checks completed in the cab, time-stamped, with photos. Defects route straight to the workshop.",
+  },
+  {
+    title: "Work orders",
+    body: "A failed check becomes a work order in a tap — driver's name snapshotted, vehicle flagged off-road if needed.",
+  },
+];
+
+// Literal stagger classes so Tailwind's JIT picks them up.
+const stagger = ["[--stagger:0ms]", "[--stagger:130ms]", "[--stagger:260ms]"];
+---
+
+<section id="motion" class="relative bg-[color:var(--color-graphite)] text-white">
+  <!-- Scroll track gives the pinned panel room to linger. -->
+  <div class="relative h-[200vh]">
+    <div class="sticky top-0 h-[100svh] overflow-clip flex items-center">
+      <!-- Pinned wheel backdrop -->
+      <div class="absolute inset-0 -z-10">
+        <Picture
+          src={wheel}
+          formats={["avif", "webp"]}
+          widths={[420, 768, 1280, 1920]}
+          sizes="100vw"
+          alt="Low-angle view of a truck's spinning drive wheel and curtain-side trailer, the road blurring with speed."
+          loading="lazy"
+          decoding="async"
+          class="h-full w-full object-cover object-center"
+        />
+        <div aria-hidden="true" class="absolute inset-0 bg-[color:var(--color-graphite)]/72"></div>
+        <div aria-hidden="true" class="absolute inset-0 bg-gradient-to-r from-[color:var(--color-graphite)] via-transparent to-[color:var(--color-graphite)]/40"></div>
+      </div>
+
+      <div class="mx-auto max-w-7xl w-full px-6 py-16">
+        <div class="max-w-2xl">
+          <p class="text-xs font-semibold tracking-[0.18em] uppercase text-[color:var(--color-amber)]" data-reveal>
+            Always moving
+          </p>
+          <h2
+            class="mt-3 font-[family-name:var(--font-display)] font-extrabold text-3xl md:text-5xl tracking-tight leading-[1.06] text-white [--stagger:100ms]"
+            data-reveal
+          >
+            The whole operation, in real time.
+          </h2>
+        </div>
+
+        <div class="mt-10 md:mt-14 grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          {cards.map((c, i) => (
+            <article
+              class={`rounded-2xl border border-white/15 bg-white/8 p-6 backdrop-blur-md ${stagger[i]}`}
+              data-reveal
+            >
+              <div class="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-[color:var(--color-amber)]/20 text-[color:var(--color-amber)]">
+                <span class="block h-3 w-3 rounded-sm bg-[color:var(--color-amber)]"></span>
+              </div>
+              <h3 class="mt-4 font-[family-name:var(--font-display)] font-bold text-xl text-white">{c.title}</h3>
+              <p class="mt-2 text-white/75 leading-relaxed">{c.body}</p>
+            </article>
+          ))}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

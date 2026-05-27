@@ -1,0 +1,36 @@
+---
+import Base from "../layouts/Base.astro";
+import Header from "../components/Header.astro";
+import Hero from "../components/Hero.astro";
+import BuiltForRoad from "../components/BuiltForRoad.astro";
+import FrontReveal from "../components/FrontReveal.astro";
+import MotionProduct from "../components/MotionProduct.astro";
+import FeatureGrid from "../components/FeatureGrid.astro";
+import WhyPwa from "../components/WhyPwa.astro";
+import WhoFor from "../components/WhoFor.astro";
+import PricingSection from "../components/PricingSection";
+import InterestForm from "../components/InterestForm";
+import CtaFooter from "../components/CtaFooter.astro";
+import SiteFooter from "../components/SiteFooter.astro";
+import { SHOW_CONTACT, SHOW_PRICING } from "../config/featureFlags";
+---
+
+<Base>
+  <Header />
+  <main>
+    <Hero />
+    <BuiltForRoad />
+    <FrontReveal />
+    <MotionProduct />
+    <FeatureGrid />
+    <WhyPwa />
+    <WhoFor />
+    {SHOW_PRICING ? <PricingSection client:visible /> : <InterestForm client:visible />}
+    {SHOW_CONTACT && <CtaFooter />}
+  </main>
+  <SiteFooter />
+</Base>
+
+<script>
+  import "../scripts/cinematic.ts";
+</script>

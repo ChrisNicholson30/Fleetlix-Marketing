@@ -1,0 +1,46 @@
+---
+const points = [
+  {
+    n: "01",
+    title: "No app-store dance",
+    body: "Drivers don't download anything. There's nothing for IT to provision, approve, or refuse. Opening a link is something every driver already knows how to do.",
+  },
+  {
+    n: "02",
+    title: "Updates ship instantly",
+    body: "Push a fix at 09:00, every device runs it before lunch. No \"old version stuck on Bob's phone\" problem. No version skew between roles.",
+  },
+  {
+    n: "03",
+    title: "One codebase, every device",
+    body: "iOS, Android, Windows, macOS, ChromeOS — and the yard's dusty kiosk PC. Less native overhead means packages start at £79/month.",
+  },
+];
+---
+
+<section id="why-pwa" class="relative bg-[color:var(--color-graphite)] text-white">
+  <div class="mx-auto max-w-7xl px-6 py-20 md:py-28">
+    <div class="max-w-2xl">
+      <p class="text-xs font-semibold tracking-[0.18em] uppercase text-[color:var(--color-amber)]">Why a PWA</p>
+      <h2 class="mt-3 font-[family-name:var(--font-display)] font-extrabold text-3xl md:text-4xl tracking-tight">
+        Adoption friction near-zero. By design.
+      </h2>
+      <p class="mt-4 text-white/70 text-lg">
+        The Progressive Web App delivery model is the foundational design choice Fleetlix is built around.
+        Every other decision flows from it.
+      </p>
+    </div>
+
+    <div class="mt-14 grid md:grid-cols-3 gap-8">
+      {points.map((p) => (
+        <div class="relative">
+          <span class="font-[family-name:var(--font-display)] font-extrabold text-7xl text-[color:var(--color-amber)]/70 leading-none">
+            {p.n}
+          </span>
+          <h3 class="mt-4 font-[family-name:var(--font-display)] font-bold text-2xl text-white">{p.title}</h3>
+          <p class="mt-3 text-white/70 leading-relaxed">{p.body}</p>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>

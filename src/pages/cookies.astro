@@ -1,0 +1,113 @@
+---
+import Base from "../layouts/Base.astro";
+import Header from "../components/Header.astro";
+import SiteFooter from "../components/SiteFooter.astro";
+
+const lastUpdated = "16 May 2026";
+---
+
+<Base
+  title="Cookies Policy — Fleetlix"
+  description="Cookies and similar technologies used on the fleetlix.com marketing site, in line with UK GDPR and the Privacy and Electronic Communications Regulations (PECR)."
+>
+  <Header />
+  <main class="bg-[color:var(--color-offwhite)]">
+    <article class="mx-auto max-w-3xl px-6 py-16 md:py-24">
+      <p class="text-xs font-semibold tracking-[0.18em] uppercase text-[color:var(--color-amber)]">Legal</p>
+      <h1 class="mt-3 font-[family-name:var(--font-display)] font-extrabold text-4xl md:text-5xl tracking-tight text-[color:var(--color-graphite)]">
+        Cookies Policy
+      </h1>
+      <p class="mt-3 text-sm text-[color:var(--color-slate)]">Last updated: {lastUpdated}</p>
+
+      <div class="mt-10 space-y-8 text-[color:var(--color-slate)] leading-relaxed">
+        <section>
+          <h2 class="font-[family-name:var(--font-display)] font-bold text-2xl text-[color:var(--color-graphite)]">1. What this page covers</h2>
+          <p class="mt-3">
+            This page explains how cookies and similar storage technologies are used on the Fleetlix marketing website (<a href="https://fleetlix.com" class="underline hover:text-[color:var(--color-graphite)]">fleetlix.com</a>). It complements our <a href="/privacy" class="underline hover:text-[color:var(--color-graphite)]">Privacy Policy</a>.
+          </p>
+        </section>
+
+        <section>
+          <h2 class="font-[family-name:var(--font-display)] font-bold text-2xl text-[color:var(--color-graphite)]">2. What cookies are</h2>
+          <p class="mt-3">
+            A cookie is a small text file that a website asks your browser to store on your device. Cookies are widely used to make websites work, to remember preferences, and (less benignly) to track people across sites for advertising. Under UK law — the Privacy and Electronic Communications Regulations (PECR), as supplemented by UK GDPR — non-essential cookies require your consent. Strictly necessary cookies, used to deliver a service you have asked for, do not.
+          </p>
+        </section>
+
+        <section>
+          <h2 class="font-[family-name:var(--font-display)] font-bold text-2xl text-[color:var(--color-graphite)]">3. Cookies used on this website</h2>
+          <p class="mt-3">
+            <strong>Fleetlix sets no first-party cookies on this marketing site.</strong> We do not use analytics, marketing, advertising, or behavioural-tracking cookies of any kind. There is no Google Analytics, no Meta Pixel, no LinkedIn Insight Tag, no advertising network, and no third-party widgets that would set their own cookies.
+          </p>
+          <p class="mt-3">
+            Our hosting provider, Cloudflare, may set a small number of <em>strictly necessary</em> cookies for site security and bot management when their protection services are active:
+          </p>
+          <div class="mt-4 overflow-x-auto">
+            <table class="w-full text-sm border border-[color:var(--color-mist)] rounded-lg overflow-hidden">
+              <thead class="bg-[color:var(--color-mist)]/40 text-left text-[color:var(--color-graphite)]">
+                <tr>
+                  <th class="px-4 py-3 font-semibold">Cookie</th>
+                  <th class="px-4 py-3 font-semibold">Set by</th>
+                  <th class="px-4 py-3 font-semibold">Purpose</th>
+                  <th class="px-4 py-3 font-semibold">Lifetime</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-[color:var(--color-mist)]">
+                <tr>
+                  <td class="px-4 py-3 align-top"><code>__cf_bm</code></td>
+                  <td class="px-4 py-3 align-top">Cloudflare</td>
+                  <td class="px-4 py-3 align-top">Distinguishes humans from bots to protect the site against malicious automated traffic. Strictly necessary; not used for tracking or advertising.</td>
+                  <td class="px-4 py-3 align-top">30 minutes</td>
+                </tr>
+                <tr>
+                  <td class="px-4 py-3 align-top"><code>cf_clearance</code></td>
+                  <td class="px-4 py-3 align-top">Cloudflare</td>
+                  <td class="px-4 py-3 align-top">Records that a visitor has successfully passed a Cloudflare security challenge, so they aren't repeatedly challenged. Strictly necessary.</td>
+                  <td class="px-4 py-3 align-top">Up to 1 year</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="mt-3 text-sm">
+            Cloudflare's full list of cookies and their privacy practices is documented at <a href="https://developers.cloudflare.com/fundamentals/reference/policies-compliances/cloudflare-cookies/" class="underline hover:text-[color:var(--color-graphite)]" rel="noopener" target="_blank">developers.cloudflare.com/fundamentals/reference/policies-compliances/cloudflare-cookies</a>.
+          </p>
+        </section>
+
+        <section>
+          <h2 class="font-[family-name:var(--font-display)] font-bold text-2xl text-[color:var(--color-graphite)]">4. Why we don't show a cookie banner</h2>
+          <p class="mt-3">
+            UK law (PECR) only requires consent for cookies that are <em>not</em> strictly necessary. Because this site uses no analytics, no marketing or advertising cookies, and no other non-essential storage, there is nothing to ask consent for. If that changes — for example, if we add product analytics in future — we will introduce a proper consent mechanism and update this page before the cookies are set.
+          </p>
+        </section>
+
+        <section>
+          <h2 class="font-[family-name:var(--font-display)] font-bold text-2xl text-[color:var(--color-graphite)]">5. Managing cookies in your browser</h2>
+          <p class="mt-3">
+            You can block or delete cookies through your browser settings. Blocking strictly necessary cookies may prevent parts of the site from working as intended — for example, you may be repeatedly shown a security challenge. Instructions for the major browsers:
+          </p>
+          <ul class="mt-3 space-y-2 list-disc pl-6">
+            <li><a href="https://support.google.com/chrome/answer/95647" class="underline hover:text-[color:var(--color-graphite)]" rel="noopener" target="_blank">Google Chrome</a></li>
+            <li><a href="https://support.apple.com/guide/safari/manage-cookies-sfri11471/mac" class="underline hover:text-[color:var(--color-graphite)]" rel="noopener" target="_blank">Apple Safari</a></li>
+            <li><a href="https://support.mozilla.org/en-US/kb/cookies-information-websites-store-on-your-computer" class="underline hover:text-[color:var(--color-graphite)]" rel="noopener" target="_blank">Mozilla Firefox</a></li>
+            <li><a href="https://support.microsoft.com/en-us/microsoft-edge/delete-cookies-in-microsoft-edge-63947406-40ac-c3b8-57b9-2a946a29ae09" class="underline hover:text-[color:var(--color-graphite)]" rel="noopener" target="_blank">Microsoft Edge</a></li>
+          </ul>
+        </section>
+
+        <section>
+          <h2 class="font-[family-name:var(--font-display)] font-bold text-2xl text-[color:var(--color-graphite)]">6. Changes to this policy</h2>
+          <p class="mt-3">
+            We will update this page if our use of cookies changes. The "Last updated" date above always reflects the most recent revision.
+          </p>
+        </section>
+
+        <section>
+          <h2 class="font-[family-name:var(--font-display)] font-bold text-2xl text-[color:var(--color-graphite)]">7. Contact</h2>
+          <p class="mt-3">
+            Questions about cookies or anything else in this policy? Email <a href="mailto:contact@fleetlix.com" class="underline hover:text-[color:var(--color-graphite)]">contact@fleetlix.com</a>.
+          </p>
+        </section>
+      </div>
+    </article>
+  </main>
+  <SiteFooter />
+</Base>

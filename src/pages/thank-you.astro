@@ -1,0 +1,129 @@
+---
+import Base from "../layouts/Base.astro";
+import Header from "../components/Header.astro";
+import SiteFooter from "../components/SiteFooter.astro";
+---
+
+<Base
+  title="Thank you — Fleetlix"
+  description="Thank you for your business."
+>
+  <Header />
+  <main class="relative isolate overflow-hidden bg-[color:var(--color-graphite)] text-white">
+
+    <div aria-hidden="true" class="pointer-events-none absolute inset-0 -z-10">
+      <div class="absolute -top-48 left-1/2 h-[640px] w-[640px] -translate-x-1/2 rounded-full bg-[color:var(--color-cyan)]/25 blur-[120px]"></div>
+      <div class="absolute top-1/3 -left-32 h-[420px] w-[420px] rounded-full bg-[color:var(--color-amber)]/12 blur-[110px]"></div>
+      <div class="absolute -bottom-40 right-0 h-[480px] w-[480px] rounded-full bg-[color:var(--color-success)]/10 blur-[120px]"></div>
+      <svg class="absolute inset-0 h-full w-full opacity-[0.05]" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <pattern id="thanks-grid" width="44" height="44" patternUnits="userSpaceOnUse">
+            <path d="M 44 0 L 0 0 0 44" fill="none" stroke="white" stroke-width="1"/>
+          </pattern>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#thanks-grid)"/>
+      </svg>
+    </div>
+
+    <section class="relative mx-auto flex min-h-[calc(100vh-180px)] max-w-3xl flex-col items-center justify-center px-6 py-20 text-center">
+
+      <div class="relative mb-10 reveal reveal-1">
+        <div class="absolute inset-0 rounded-full bg-[color:var(--color-cyan)]/40 blur-3xl"></div>
+        <div class="badge-pop relative flex h-28 w-28 items-center justify-center rounded-full bg-[color:var(--color-cyan)] shadow-[0_20px_60px_-15px_rgba(0,166,200,0.6)] ring-1 ring-white/20">
+          <svg viewBox="0 0 52 52" class="h-14 w-14" aria-hidden="true">
+            <circle class="check-circle" cx="26" cy="26" r="24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"/>
+            <path class="check-path" fill="none" stroke="white" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" d="M14 27 l8 8 l16 -18"/>
+          </svg>
+        </div>
+      </div>
+
+      <p class="reveal reveal-2 text-xs font-semibold uppercase tracking-[0.22em] text-[color:var(--color-amber)]">
+        Payment successful
+      </p>
+
+      <h1 class="reveal reveal-3 mt-5 font-[family-name:var(--font-display)] text-5xl font-extrabold leading-[1.05] tracking-tight md:text-7xl">
+        Thank you for<br/>
+        <span class="bg-gradient-to-r from-white via-white to-[color:var(--color-cyan)] bg-clip-text text-transparent">
+          your business.
+        </span>
+      </h1>
+
+      <p class="reveal reveal-4 mt-8 max-w-xl text-lg leading-relaxed text-white/70 md:text-xl">
+        We don't take this lightly. You've just backed a UK-built platform that's out to change how fleets run — and we'll do right by you.
+      </p>
+
+      <div class="reveal reveal-5 mt-12 flex flex-col gap-3 sm:flex-row">
+        <a
+          href="https://app.fleetlix.com"
+          class="inline-flex items-center justify-center gap-2 rounded-lg bg-[color:var(--color-cyan)] px-7 py-3.5 text-sm font-semibold text-white shadow-lg shadow-[color:var(--color-cyan)]/30 transition hover:-translate-y-0.5 hover:brightness-110"
+        >
+          Open the app
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4" aria-hidden="true">
+            <path d="M5 12h14"/><path d="M13 5l7 7-7 7"/>
+          </svg>
+        </a>
+        <a
+          href="mailto:contact@fleetlix.com"
+          class="inline-flex items-center justify-center rounded-lg border border-white/15 bg-white/5 px-7 py-3.5 text-sm font-semibold text-white backdrop-blur transition hover:bg-white/10"
+        >
+          Get in touch
+        </a>
+      </div>
+
+      <div class="reveal reveal-6 mt-20 flex items-center gap-3 text-sm text-white/45">
+        <span class="h-px w-12 bg-white/20"></span>
+        <span class="font-[family-name:var(--font-display)] italic">Chris · founder, Fleetlix · Glasgow</span>
+        <span class="h-px w-12 bg-white/20"></span>
+      </div>
+    </section>
+  </main>
+  <SiteFooter />
+
+  <style>
+    .reveal {
+      opacity: 0;
+      transform: translateY(12px);
+      animation-duration: 0.7s;
+      animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+      animation-fill-mode: forwards;
+      animation-name: reveal;
+    }
+    .reveal-1 { animation-delay: 0ms; }
+    .reveal-2 { animation-delay: 200ms; }
+    .reveal-3 { animation-delay: 300ms; }
+    .reveal-4 { animation-delay: 500ms; }
+    .reveal-5 { animation-delay: 700ms; }
+    .reveal-6 { animation-delay: 900ms; }
+    .badge-pop {
+      animation: badgePop 0.6s 100ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    }
+    .check-circle {
+      stroke-dasharray: 160;
+      stroke-dashoffset: 160;
+      animation: draw 0.6s 500ms ease-out forwards;
+    }
+    .check-path {
+      stroke-dasharray: 50;
+      stroke-dashoffset: 50;
+      animation: draw 0.4s 1000ms ease-out forwards;
+    }
+    @keyframes reveal {
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes badgePop {
+      0% { opacity: 0; transform: scale(0.4); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+    @keyframes draw {
+      to { stroke-dashoffset: 0; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .reveal, .badge-pop, .check-circle, .check-path {
+        animation: none;
+        opacity: 1;
+        transform: none;
+        stroke-dashoffset: 0;
+      }
+    }
+  </style>
+</Base>

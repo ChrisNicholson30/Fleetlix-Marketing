@@ -1,0 +1,69 @@
+---
+import { Picture } from "astro:assets";
+import road from "../assets/hero/road.png";
+
+const points = [
+  "Daily run sheet on any phone — no install, no app store.",
+  "DVSA walk-around checks with photo and signature capture.",
+  "Proof of delivery syncs back to the office the moment there's signal.",
+];
+
+// Literal stagger classes — Tailwind's JIT only sees static strings.
+const stagger = ["[--stagger:120ms]", "[--stagger:210ms]", "[--stagger:300ms]"];
+---
+
+<section id="built" class="relative overflow-clip bg-[color:var(--color-offwhite)] border-y border-[color:var(--color-mist)]">
+  <div class="mx-auto max-w-7xl px-6 py-20 md:py-28 grid md:grid-cols-12 gap-10 md:gap-12 items-center">
+    <div class="md:col-span-5" data-reveal="left">
+      <p class="text-xs font-semibold tracking-[0.18em] uppercase text-[color:var(--color-cyan)]">
+        Built for the road
+      </p>
+      <h2 class="mt-3 font-[family-name:var(--font-display)] font-extrabold text-3xl md:text-4xl lg:text-5xl text-[color:var(--color-graphite)] tracking-tight leading-[1.08]">
+        Where the work actually happens.
+      </h2>
+      <p class="mt-5 text-[color:var(--color-slate)] text-lg leading-relaxed">
+        Drivers spend their day in the cab, not at a desk. Fleetlix is designed
+        for a phone propped on the dash — big tap targets, offline-first, and
+        everything a driver needs for the run in front of them.
+      </p>
+      <ul class="mt-8 space-y-4">
+        {points.map((p, i) => (
+          <li
+            class={`flex items-start gap-3 text-[color:var(--color-graphite)] ${stagger[i]}`}
+            data-reveal
+          >
+            <span class="mt-1 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[color:var(--color-cyan)]/15 text-[color:var(--color-cyan)]">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+            </span>
+            <span class="leading-snug">{p}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+
+    <div class="md:col-span-7" data-reveal="scale">
+      <div class="relative rounded-2xl overflow-hidden shadow-2xl ring-1 ring-[color:var(--color-mist)] aspect-[16/10]">
+        <Picture
+          src={road}
+          formats={["avif", "webp"]}
+          widths={[420, 768, 1280]}
+          sizes="(min-width: 768px) 58vw, 100vw"
+          alt="A silver articulated truck travelling along a single-track Highland road, low sun flaring over the hills to the left."
+          loading="lazy"
+          decoding="async"
+          class="absolute inset-0 h-full w-full object-cover"
+        />
+        <div aria-hidden="true" class="absolute inset-0 bg-gradient-to-t from-[color:var(--color-graphite)]/35 via-transparent to-transparent"></div>
+        <div class="absolute left-5 bottom-5 right-5 flex items-center justify-between text-white">
+          <span class="text-xs uppercase tracking-[0.18em] opacity-90">On-route · Central Scotland</span>
+          <span class="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs">
+            <span class="h-2 w-2 rounded-full bg-[color:var(--color-success)]"></span>
+            Live
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

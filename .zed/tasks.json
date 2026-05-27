@@ -1,0 +1,24 @@
+[
+  {
+    "label": "Dev server",
+    "command": "pnpm",
+    "args": ["dev"],
+    "use_new_terminal": false,
+    "allow_concurrent_runs": false,
+    "reveal": "always"
+  },
+  {
+    "label": "Build",
+    "command": "pnpm",
+    "args": ["build"],
+    "allow_concurrent_runs": false,
+    "reveal": "always"
+  },
+  {
+    "label": "Preview built site",
+    "command": "pnpm",
+    "args": ["preview"],
+    "allow_concurrent_runs": false,
+    "reveal": "always"
+  }
+]

@@ -1,0 +1,130 @@
+---
+import { Picture } from "astro:assets";
+import glen from "../assets/hero/glen.png";
+import { SHOW_CONTACT, SHOW_PRICING } from "../config/featureFlags";
+
+// Cinematic hero. The glen still is the LCP image (eager, high priority).
+// A short muted aerial loop is attached lazily after load (see the
+// hero-video script in index.astro) so it never competes with the LCP.
+---
+
+<section class="relative isolate overflow-clip min-h-[70svh] md:min-h-[72svh] flex items-center text-white">
+  <!-- Media layer -->
+  <div class="absolute inset-0 -z-10 bg-[color:var(--color-graphite)]">
+    <Picture
+      src={glen}
+      formats={["avif", "webp"]}
+      widths={[420, 768, 1280, 1920]}
+      sizes="100vw"
+      alt="Aerial view of a Highland glen at golden hour, a single-track road winding through the valley toward distant mountains."
+      loading="eager"
+      decoding="async"
+      fetchpriority="high"
+      class="h-full w-full object-cover object-center"
+    />
+    <video
+      class="hero-video pointer-events-none absolute inset-0 h-full w-full object-cover object-center"
+      data-hero-video
+      data-src="/hero/hero.webm"
+      muted
+      loop
+      playsinline
+      preload="none"
+      aria-hidden="true"
+    ></video>
+    <!-- Legibility scrims: darken top-left for headline, base for footer cue -->
+    <div
+      aria-hidden="true"
+      class="absolute inset-0 bg-gradient-to-br from-[color:var(--color-graphite)]/85 via-[color:var(--color-graphite)]/35 to-transparent"
+    >
+    </div>
+    <div
+      aria-hidden="true"
+      class="absolute inset-0 bg-gradient-to-t from-[color:var(--color-graphite)]/75 via-transparent to-transparent"
+    >
+    </div>
+  </div>
+
+  <div
+    class="mx-auto max-w-7xl w-full px-6 pt-20 pb-12 md:pt-20 md:pb-16 pb-[max(3rem,env(safe-area-inset-bottom))]"
+  >
+    <div class="max-w-2xl">
+      <p
+        class="hero-rise [--stagger:60ms] inline-flex items-center gap-2 text-xs font-semibold tracking-[0.18em] uppercase text-[color:var(--color-amber)]"
+      >
+        <span class="inline-block h-2 w-2 rounded-full bg-[color:var(--color-amber)]"></span>
+        Operations platform for waste &amp; haulage
+      </p>
+
+      <h1
+        class="hero-rise [--stagger:140ms] mt-4 font-[family-name:var(--font-display)] font-extrabold text-[2rem] sm:text-5xl md:text-5xl lg:text-6xl leading-[1.02] tracking-tight text-white [text-wrap:balance]"
+      >
+        Run the yard, the office, and every driver
+        <span class="text-[color:var(--color-amber)]">from one</span>
+        <span class="text-[color:var(--color-cyan)]">PWA.</span>
+      </h1>
+
+      <p
+        class="hero-rise [--stagger:240ms] mt-4 text-base sm:text-lg md:text-lg text-white/85 max-w-xl leading-relaxed"
+      >
+        Fleetlix replaces the spreadsheets, paper tickets, and £18k legacy
+        software that small-to-medium waste and haulage firms run on today.
+        One database, role-based access, real-time dispatch, automated
+        compliance.
+      </p>
+
+      <div
+        class="hero-rise [--stagger:340ms] mt-6 flex flex-wrap items-center gap-3 sm:gap-4"
+      >
+        {SHOW_CONTACT && (
+          <a
+            href="#contact"
+            class="inline-flex items-center justify-center rounded-xl bg-[color:var(--color-cyan)] px-6 py-3 text-base font-semibold text-white shadow-lg shadow-black/20 hover:brightness-110 transition"
+          >
+            Book a demo
+          </a>
+        )}
+        <a
+          href="#register-interest"
+          class="inline-flex items-center justify-center rounded-xl bg-[color:var(--color-amber)] px-6 py-3 text-base font-semibold text-[color:var(--color-graphite)] shadow-lg shadow-black/20 hover:brightness-105 transition"
+        >
+          {SHOW_PRICING ? "Prices from £79/month" : "Register interest"}
+        </a>
+        <a
+          href="#built"
+          class="inline-flex items-center justify-center rounded-xl border border-white/30 bg-white/5 px-6 py-3 text-base font-semibold text-white backdrop-blur-sm hover:bg-white/10 hover:border-white/50 transition"
+        >
+          See how it works
+        </a>
+      </div>
+
+      <dl
+        class="hero-rise [--stagger:440ms] mt-6 grid grid-cols-3 gap-6 max-w-md"
+      >
+        <div>
+          <dt class="text-[11px] uppercase tracking-wider text-white/60">Install step</dt>
+          <dd class="mt-0.5 font-[family-name:var(--font-display)] font-bold text-xl text-white">None</dd>
+        </div>
+        <div>
+          <dt class="text-[11px] uppercase tracking-wider text-white/60">Devices</dt>
+          <dd class="mt-0.5 font-[family-name:var(--font-display)] font-bold text-xl text-white">Any</dd>
+        </div>
+        <div>
+          <dt class="text-[11px] uppercase tracking-wider text-white/60">Live in</dt>
+          <dd class="mt-0.5 font-[family-name:var(--font-display)] font-bold text-xl text-white">Scotland</dd>
+        </div>
+      </dl>
+    </div>
+  </div>
+
+  <!-- Scroll cue -->
+  <a
+    href="#built"
+    aria-label="Scroll to see how it works"
+    class="hero-fade [--stagger:640ms] absolute left-1/2 -translate-x-1/2 bottom-[max(1.25rem,env(safe-area-inset-bottom))] hidden sm:flex h-11 w-11 items-center justify-center rounded-full border border-white/30 bg-white/5 text-white/80 backdrop-blur-sm hover:bg-white/10 transition"
+  >
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M12 5v14M6 13l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+    </svg>
+  </a>
+</section>

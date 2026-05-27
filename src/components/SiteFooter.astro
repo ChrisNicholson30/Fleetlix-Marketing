@@ -1,0 +1,22 @@
+---
+import { SHOW_CONTACT } from "../config/featureFlags";
+
+const year = new Date().getFullYear();
+---
+
+<footer class="border-t border-[color:var(--color-mist)] bg-[color:var(--color-offwhite)]">
+  <div class="mx-auto max-w-7xl px-6 py-10 flex flex-col md:flex-row md:items-center md:justify-between gap-4 text-sm text-[color:var(--color-slate)]">
+    <div class="flex items-center gap-3">
+      <img src="/fleetlix-logo-icon.svg" alt="" class="h-6 w-6" />
+      <span>&copy; {year} CN-DESIGN LTD · Fleetlix is a registered product of CN-DESIGN LTD.</span>
+    </div>
+    <div class="flex flex-wrap items-center gap-x-6 gap-y-2">
+      <a href="/privacy" class="hover:text-[color:var(--color-graphite)]">Privacy</a>
+      <a href="/cookies" class="hover:text-[color:var(--color-graphite)]">Cookies</a>
+      {SHOW_CONTACT && (
+        <a href="mailto:contact@fleetlix.com" class="hover:text-[color:var(--color-graphite)]">contact@fleetlix.com</a>
+      )}
+      <span class="opacity-60">Glasgow, Scotland · SC885094 · ICO CSN2072529</span>
+    </div>
+  </div>
+</footer>
