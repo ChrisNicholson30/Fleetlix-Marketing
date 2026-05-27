@@ -1,0 +1,25 @@
+# Local-dev Compose for the Fleetlix marketing site.
+# Joins the existing `fleetlix` OrbStack project (where the operations app
+# already lives) so both services appear under the same group in OrbStack.
+
+name: fleetlix
+
+services:
+  marketing:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    image: fleetlix-marketing:latest
+    container_name: fleetlix-marketing
+    ports:
+      - "4321:4321"
+    volumes:
+      # Bind the source so file edits trigger HMR.
+      - .:/app
+      # Anonymous volume preserves the container's node_modules — the host
+      # may have macOS sharp binaries that won't load inside a Linux container.
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+    tty: true
+    stdin_open: true

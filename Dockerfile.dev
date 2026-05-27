@@ -1,0 +1,29 @@
+# Local-dev image for the Fleetlix marketing site.
+# Tracks Cloudflare Pages' Node 22 runtime. Cloudflare's NODE_VERSION env
+# var is set to 22.12.0, but the package.json only requires >=22.12.0 and
+# pnpm itself now requires Node 22.13, so we use 22.13 here.
+# Production builds still happen on Cloudflare — this image is for `pnpm dev`.
+
+FROM node:22.13-slim
+
+WORKDIR /app
+
+# Pin pnpm to the version that produced pnpm-lock.yaml.
+RUN npm install -g pnpm@11.0.8
+
+# Install deps first so the layer caches well when only source changes.
+# .npmrc + pnpm-workspace.yaml carry the only-built-dependencies allow-list
+# for esbuild and sharp — without them, pnpm refuses to run those scripts.
+COPY package.json pnpm-lock.yaml .npmrc pnpm-workspace.yaml ./
+RUN pnpm install --frozen-lockfile
+
+# Source comes in via a bind mount at runtime (see compose.yaml).
+# Copying here gives the image a sensible default for `docker run` use.
+COPY . .
+
+EXPOSE 4321
+
+# --host binds Astro/Vite to 0.0.0.0 so the dev server is reachable
+# through the published port. Without it, the server listens on
+# localhost inside the container only and the host can't connect.
+CMD ["pnpm", "dev", "--host", "0.0.0.0"]

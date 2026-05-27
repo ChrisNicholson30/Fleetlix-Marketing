@@ -34,6 +34,24 @@ pnpm build       # production build → dist/
 pnpm preview     # serve the build locally
 ```
 
+### Docker / OrbStack
+
+A `Dockerfile.dev` + `compose.yaml` run the dev server in a container, useful when you don't want pnpm/Node installed on the host.
+
+```bash
+docker compose up -d        # build (first time) + start in the background
+docker compose logs -f      # follow logs
+docker compose down         # stop and remove the container
+```
+
+The service is named `marketing`, image `fleetlix-marketing:latest`, container `fleetlix-marketing`. The compose project is set to `fleetlix` so it appears under the same group as the operations app in OrbStack.
+
+Notes:
+- Source is bind-mounted; HMR works.
+- `node_modules` lives in an anonymous volume so the container keeps its Linux binaries (sharp/esbuild are platform-specific).
+- The image pins Node 22.13-slim and pnpm 11.0.8 — Cloudflare Pages still builds production with `NODE_VERSION=22.12.0`, but pnpm 11.0.8 was retroactively bumped to require Node ≥ 22.13, so the dev image is one minor ahead.
+- The Cloudflare Pages Function at `/api/register-interest` is **not** served by `pnpm dev`. To test the form's API end-to-end locally, use `wrangler pages dev` (not currently wired into the container).
+
 ## Repo shape
 
 ```
