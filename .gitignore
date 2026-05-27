@@ -22,3 +22,6 @@ pnpm-debug.log*
 
 # jetbrains setting folder
 .idea/
+
+# high-res OG source PNG (optimised copy is committed at public/og-image.jpg)
+public/og-image-source.png
