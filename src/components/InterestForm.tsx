@@ -22,6 +22,23 @@ type FormState = {
   consent: boolean;
 };
 
+const CONTACT_EMAIL = "contact@fleetlix.com";
+
+function buildMailto(state: FormState): string {
+  const subject = `Register interest · ${state.name}${state.company ? ` · ${state.company}` : ""}`;
+  const lines = [
+    `Name: ${state.name}`,
+    `Email: ${state.email}`,
+    state.company ? `Company: ${state.company}` : null,
+    state.fleet_size ? `Fleet size: ${state.fleet_size}` : null,
+    state.role ? `Role: ${state.role}` : null,
+    state.message ? `\nMessage:\n${state.message}` : null,
+    "",
+    "— Sent from the Register interest form on fleetlix.com",
+  ].filter((line): line is string => line !== null);
+  return `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(lines.join("\n"))}`;
+}
+
 const EMPTY: FormState = {
   name: "",
   email: "",
@@ -53,10 +70,7 @@ export default function InterestForm() {
   const [open, setOpen] = useState(false);
   const [state, setState] = useState<FormState>(EMPTY);
   const [errors, setErrors] = useState<FieldErrors>({});
-  const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">(
-    "idle",
-  );
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [status, setStatus] = useState<"idle" | "success">("idle");
 
   const dialogRef = useRef<HTMLDivElement | null>(null);
   const firstFieldRef = useRef<HTMLInputElement | null>(null);
@@ -90,7 +104,6 @@ export default function InterestForm() {
     setState(EMPTY);
     setErrors({});
     setStatus("idle");
-    setErrorMessage(null);
   }
 
   function close() {
@@ -98,55 +111,29 @@ export default function InterestForm() {
     window.setTimeout(reset, 220);
   }
 
-  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+  function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    const clientErrors = validateClient(state);
+    const trimmed: FormState = {
+      ...state,
+      name: state.name.trim(),
+      email: state.email.trim(),
+      company: state.company.trim(),
+      message: state.message.trim(),
+    };
+    const clientErrors = validateClient(trimmed);
     if (Object.keys(clientErrors).length) {
       setErrors(clientErrors);
       return;
     }
     setErrors({});
-    setStatus("submitting");
-    setErrorMessage(null);
-
-    try {
-      const res = await fetch("/api/register-interest", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          name: state.name.trim(),
-          email: state.email.trim(),
-          company: state.company.trim() || undefined,
-          fleet_size: state.fleet_size || undefined,
-          role: state.role || undefined,
-          message: state.message.trim() || undefined,
-          consent: state.consent,
-        }),
-      });
-
-      if (!res.ok) {
-        const data = (await res.json().catch(() => ({}))) as {
-          error?: string;
-          fieldErrors?: Record<string, string>;
-        };
-        if (data.fieldErrors) setErrors(data.fieldErrors as FieldErrors);
-        setStatus("error");
-        setErrorMessage(data.error || "Something went wrong. Please try again.");
-        return;
-      }
-
-      setStatus("success");
-    } catch {
-      setStatus("error");
-      setErrorMessage("Couldn't reach the server. Check your connection and retry.");
-    }
+    window.location.href = buildMailto(trimmed);
+    setStatus("success");
   }
 
   const fieldBase =
     "w-full rounded-lg bg-white/[0.04] border border-white/10 px-3.5 py-2.5 text-white placeholder:text-white/30 focus:outline-none focus:border-[color:var(--color-amber)] focus:bg-white/[0.06] transition";
   const labelBase = "block text-xs font-semibold tracking-[0.14em] uppercase text-white/60";
   const errorText = "mt-1.5 text-xs text-[color:var(--color-error)]";
-  const submitting = status === "submitting";
 
   return (
     <>
@@ -238,7 +225,7 @@ export default function InterestForm() {
                     id={headingId}
                     className="mt-2 font-[family-name:var(--font-display)] font-extrabold text-2xl tracking-tight text-white"
                   >
-                    {status === "success" ? "You're on the list." : "Tell us about your operation."}
+                    {status === "success" ? "Your email is ready to send." : "Tell us about your operation."}
                   </h3>
                 </div>
                 <button
@@ -256,11 +243,22 @@ export default function InterestForm() {
 
               {status === "success" ? (
                 <div className="mt-6">
-                  <div className="rounded-xl border border-[color:var(--color-success)]/40 bg-[color:var(--color-success)]/10 p-4">
-                    <p className="text-sm text-emerald-200">
-                      Thanks — we've got your details. You'll hear from us at{" "}
-                      <span className="font-semibold text-white">{state.email}</span>{" "}
-                      the moment Fleetlix is ready to demo.
+                  <div className="rounded-xl border border-[color:var(--color-success)]/40 bg-[color:var(--color-success)]/10 p-4 space-y-3 text-sm text-emerald-200">
+                    <p>
+                      Your mail app should have opened with everything pre-filled.
+                      Just hit <span className="font-semibold text-white">Send</span>{" "}
+                      and we'll get it at{" "}
+                      <span className="font-semibold text-white">{CONTACT_EMAIL}</span>.
+                    </p>
+                    <p className="text-emerald-200/80">
+                      Nothing happened? Email us directly at{" "}
+                      <a
+                        href={buildMailto(state)}
+                        className="font-semibold text-white underline underline-offset-2 hover:text-white"
+                      >
+                        {CONTACT_EMAIL}
+                      </a>
+                      .
                     </p>
                   </div>
                   <button
@@ -394,12 +392,6 @@ export default function InterestForm() {
                   </label>
                   {errors.consent && <p id="if-consent-err" className={errorText}>{errors.consent}</p>}
 
-                  {status === "error" && errorMessage && (
-                    <div className="rounded-lg border border-[color:var(--color-error)]/40 bg-[color:var(--color-error)]/10 p-3 text-sm text-red-200">
-                      {errorMessage}
-                    </div>
-                  )}
-
                   <div className="pt-2 flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-3">
                     <button
                       type="button"
@@ -411,21 +403,10 @@ export default function InterestForm() {
                     </button>
                     <button
                       type="submit"
-                      disabled={submitting}
-                      className="inline-flex items-center justify-center gap-2 rounded-xl bg-[color:var(--color-amber)] px-5 py-2.5 text-sm font-semibold text-[color:var(--color-graphite)] shadow hover:brightness-110 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--color-amber)] transition disabled:opacity-60 disabled:cursor-not-allowed"
+                      className="inline-flex items-center justify-center gap-2 rounded-xl bg-[color:var(--color-amber)] px-5 py-2.5 text-sm font-semibold text-[color:var(--color-graphite)] shadow hover:brightness-110 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--color-amber)] transition"
                       style={{ transitionTimingFunction: EASING }}
                     >
-                      {submitting ? (
-                        <>
-                          <svg className="h-4 w-4 motion-safe:animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                            <circle cx="12" cy="12" r="9" stroke="currentColor" strokeOpacity="0.25" strokeWidth="3" />
-                            <path d="M21 12a9 9 0 0 0-9-9" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
-                          </svg>
-                          Sending…
-                        </>
-                      ) : (
-                        "Register interest"
-                      )}
+                      Open in mail app
                     </button>
                   </div>
                 </form>
