@@ -87,7 +87,27 @@ fleetlix-marketing/
 
 - **Header.** Desktop nav at `sm:` and up. On mobile (`<sm`), a `<details>`/`<summary>` hamburger opens a drop-down panel (no JS for the disclosure itself; a small inline script closes it on link tap or outside click). When `SHOW_CONTACT` is off, the header's right-side CTA defaults to "Register interest" (amber) → `#register-interest`.
 - **Hero.** Primary amber "Register your interest" CTA → `#register-interest` is the load-bearing above-the-fold action. "See how it works" → `#built` sits beside it as a tertiary outline button.
-- **Interest form.** At `lg:` and up the form renders inline next to its copy (no modal click). Below `lg:` a single "Register your interest" trigger opens the bottom-sheet modal. Both paths share a single `FormBody` subcomponent inside `src/components/InterestForm.tsx`.
+- **Interest form.** Always rendered inline (no modal, no trigger click). Below `lg:` the copy stacks above the form card; at `lg:` and up the copy sits to the left of the form. The submit button is the only action.
+
+## Responsive breakpoints
+
+Tailwind 4 defaults, declared explicitly in `@theme` (`src/styles/global.css`) so the design system has a single source of truth:
+
+| Modifier | Min width | What it targets |
+|---|---|---|
+| *(default)* | 0 | Phones in portrait |
+| `sm:` | 640px | Large phones, phones in landscape |
+| `md:` | 768px | Tablets in portrait (iPad Mini) |
+| `lg:` | 1024px | Tablets in landscape, small laptops |
+| `xl:` | 1280px | Standard desktops |
+| `2xl:` | 1536px | Large desktops / monitors |
+
+Layout decisions that depend on these:
+- Header nav: hamburger below `sm:`, inline anchors at `sm:` and up.
+- Hero typography: steps up at `sm:`, again at `lg:`.
+- Interest form: stacked below `lg:`, two-column at `lg:` and up.
+
+Always test at **375px (iPhone SE)** before merge — that's the narrowest target we support.
 
 ## Feature flags — `src/config/featureFlags.ts`
 
