@@ -11,24 +11,108 @@ const nav = [
 ---
 
 <header class="sticky top-0 z-40 backdrop-blur bg-[color:var(--color-offwhite)]/85 border-b border-[color:var(--color-mist)]">
-  <div class="mx-auto max-w-7xl px-6 py-4 flex items-center justify-between">
+  <div class="mx-auto max-w-7xl px-6 py-4 flex items-center justify-between gap-4">
     <a href="/" class="inline-flex items-center" aria-label="Fleetlix home">
       <img src="/fleetlix-logo-primary.svg" alt="Fleetlix" class="h-9 w-auto" />
     </a>
-    <nav class="hidden md:flex items-center gap-8 text-sm font-medium text-[color:var(--color-slate)]">
+
+    <!-- Desktop nav: sm and up -->
+    <nav class="hidden sm:flex items-center gap-6 md:gap-8 text-sm font-medium text-[color:var(--color-slate)]">
       {nav.map((item) => (
         <a href={item.href} class="hover:text-[color:var(--color-graphite)] transition-colors">
           {item.label}
         </a>
       ))}
     </nav>
-    {SHOW_CONTACT && (
-      <a
-        href="#contact"
-        class="inline-flex items-center rounded-lg bg-[color:var(--color-cyan)] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:brightness-110 transition"
-      >
-        Book a demo
-      </a>
-    )}
+
+    <div class="flex items-center gap-3">
+      {SHOW_CONTACT && (
+        <a
+          href="#contact"
+          class="inline-flex items-center rounded-lg bg-[color:var(--color-cyan)] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:brightness-110 transition"
+        >
+          Book a demo
+        </a>
+      )}
+
+      {!SHOW_CONTACT && (
+        <a
+          href="#register-interest"
+          class="hidden sm:inline-flex items-center rounded-lg bg-[color:var(--color-amber)] px-4 py-2 text-sm font-semibold text-[color:var(--color-graphite)] shadow-sm hover:brightness-110 transition"
+        >
+          Register interest
+        </a>
+      )}
+
+      <!--
+        Mobile nav: <details>/<summary> for a CSP-clean, JS-free disclosure.
+        Hidden at sm and up because the inline nav is visible there.
+      -->
+      <details class="mobile-menu relative sm:hidden">
+        <summary
+          aria-label="Open menu"
+          class="list-none cursor-pointer p-3 -mr-3 rounded-lg text-[color:var(--color-graphite)] hover:bg-[color:var(--color-mist)]/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[color:var(--color-graphite)]/30 transition"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" class="mobile-menu-icon-open h-6 w-6" aria-hidden="true">
+            <line x1="4" y1="7" x2="20" y2="7" />
+            <line x1="4" y1="12" x2="20" y2="12" />
+            <line x1="4" y1="17" x2="20" y2="17" />
+          </svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" class="mobile-menu-icon-close h-6 w-6" aria-hidden="true">
+            <line x1="6" y1="6" x2="18" y2="18" />
+            <line x1="6" y1="18" x2="18" y2="6" />
+          </svg>
+        </summary>
+        <div
+          class="absolute right-0 top-full mt-2 w-56 rounded-xl border border-[color:var(--color-mist)] bg-[color:var(--color-offwhite)] shadow-lg shadow-black/5 p-1.5"
+        >
+          {nav.map((item) => (
+            <a
+              href={item.href}
+              class="block rounded-lg px-3 py-2.5 text-sm font-medium text-[color:var(--color-slate)] hover:bg-[color:var(--color-mist)]/60 hover:text-[color:var(--color-graphite)] transition-colors"
+            >
+              {item.label}
+            </a>
+          ))}
+          {!SHOW_CONTACT && (
+            <a
+              href="#register-interest"
+              class="mt-1 block rounded-lg bg-[color:var(--color-amber)] px-3 py-2.5 text-sm font-semibold text-[color:var(--color-graphite)] text-center hover:brightness-105 transition"
+            >
+              Register interest
+            </a>
+          )}
+        </div>
+      </details>
+    </div>
   </div>
 </header>
+
+<style>
+  /* Hide the default details disclosure marker across browsers. */
+  .mobile-menu > summary { list-style: none; }
+  .mobile-menu > summary::-webkit-details-marker { display: none; }
+  .mobile-menu > summary::marker { content: ""; }
+
+  /* Swap hamburger / close glyph based on open state. */
+  .mobile-menu .mobile-menu-icon-close { display: none; }
+  .mobile-menu[open] .mobile-menu-icon-open { display: none; }
+  .mobile-menu[open] .mobile-menu-icon-close { display: block; }
+</style>
+
+<script>
+  // Close the mobile nav <details> on (a) anchor-link tap and (b) outside
+  // click. Without this, the menu would stay open after navigation,
+  // overlapping the section the user just scrolled to.
+  document.addEventListener("click", (event) => {
+    const target = event.target as Element | null;
+    if (!target) return;
+    const menu = document.querySelector<HTMLDetailsElement>("details.mobile-menu[open]");
+    if (!menu) return;
+    if (target.closest("a[href]")) {
+      menu.open = false;
+    } else if (!menu.contains(target)) {
+      menu.open = false;
+    }
+  });
+</script>

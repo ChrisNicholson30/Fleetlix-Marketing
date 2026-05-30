@@ -30,6 +30,11 @@
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
     overflow-x: clip;
+    /* Header is sticky at ~72px tall — push every #anchor target down so
+       the section heading isn't hidden behind the bar. */
+    scroll-padding-top: 5.5rem;
+    /* Smooth in-page nav jumps; honours prefers-reduced-motion by default. */
+    scroll-behavior: smooth;
   }
 
   body {

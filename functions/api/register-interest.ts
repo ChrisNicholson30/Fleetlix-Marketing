@@ -232,6 +232,130 @@ async function sendEmail(env: Env, payload: ParsedPayload, meta: {
   }
 }
 
+function renderConfirmation(payload: ParsedPayload) {
+  const firstName = payload.name.trim().split(/\s+/)[0] || payload.name;
+  const summaryRows: Array<[string, string]> = [];
+  if (payload.company) summaryRows.push(["Company", escapeHtml(payload.company)]);
+  if (payload.fleet_size) {
+    const formatted =
+      payload.fleet_size === "Not sure"
+        ? payload.fleet_size
+        : `${payload.fleet_size} vehicles`;
+    summaryRows.push(["Fleet size", escapeHtml(formatted)]);
+  }
+  if (payload.role) summaryRows.push(["Role", escapeHtml(payload.role)]);
+
+  const summaryHtml = summaryRows.length
+    ? `<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-top:18px;border-top:1px solid #EDEAE3;">
+        ${summaryRows
+          .map(
+            ([label, value], i) => {
+              const border = i === summaryRows.length - 1 ? "" : "border-bottom:1px solid #EDEAE3;";
+              return `<tr><td style="padding:12px 16px 12px 0;${border}vertical-align:top;width:38%;font-family:'Inter',Helvetica,Arial,sans-serif;font-size:11px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:#8A8F96;">${escapeHtml(label)}</td><td style="padding:12px 0;${border}vertical-align:top;font-family:'Inter',Helvetica,Arial,sans-serif;font-size:14px;line-height:1.45;color:#1A1D21;">${value}</td></tr>`;
+            },
+          )
+          .join("")}
+      </table>`
+    : "";
+
+  const textLines = [
+    `Hi ${firstName},`,
+    "",
+    "Thanks for registering interest in Fleetlix. Your details have landed safely and we'll be in touch the moment there's something real to show you — typically when we open the pilot programme.",
+    "",
+    "What you sent us:",
+    `  Name:  ${payload.name}`,
+    `  Email: ${payload.email}`,
+    payload.company ? `  Company: ${payload.company}` : null,
+    payload.fleet_size ? `  Fleet size: ${payload.fleet_size}` : null,
+    payload.role ? `  Role: ${payload.role}` : null,
+    "",
+    "If anything looks wrong, just reply to this email and we'll fix it.",
+    "",
+    "— Chris",
+    "Founder, Fleetlix",
+    "Glasgow, Scotland",
+  ].filter((line): line is string => line !== null);
+
+  const html = `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Thanks for registering interest in Fleetlix</title>
+</head>
+<body style="margin:0;padding:0;background-color:#F7F5F0;-webkit-font-smoothing:antialiased;">
+  <div style="display:none;font-size:1px;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;mso-hide:all;color:#F7F5F0;">We've received your interest in Fleetlix — confirmation inside.</div>
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color:#F7F5F0;">
+    <tr>
+      <td align="center" style="padding:32px 16px;">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="600" style="max-width:600px;width:100%;background-color:#FFFFFF;border:1px solid #E5E2DB;border-radius:14px;overflow:hidden;box-shadow:0 1px 2px rgba(26,29,33,0.04);">
+          <tr>
+            <td style="background-color:#1A1D21;padding:26px 32px;">
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+                <tr>
+                  <td style="font-family:'Space Grotesk','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:22px;font-weight:700;letter-spacing:0.14em;color:#FFFFFF;">FLEETLIX</td>
+                  <td align="right" style="font-family:'Inter',Helvetica,Arial,sans-serif;font-size:11px;font-weight:600;letter-spacing:0.18em;text-transform:uppercase;color:#FF8A00;">Confirmation</td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr><td style="height:3px;background-color:#FF8A00;line-height:3px;font-size:0;">&nbsp;</td></tr>
+          <tr>
+            <td style="padding:32px;">
+              <h1 style="margin:0 0 14px 0;font-family:'Space Grotesk','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:24px;line-height:1.2;letter-spacing:-0.01em;color:#1A1D21;font-weight:700;">Thanks, ${escapeHtml(firstName)} — you're on the list.</h1>
+              <p style="margin:0 0 16px 0;font-family:'Inter',Helvetica,Arial,sans-serif;font-size:15px;line-height:1.55;color:#3D434A;">Your details have landed safely. We'll be in touch the moment there's something real to show you — typically when the pilot programme opens to its first five operators.</p>
+              <p style="margin:0;font-family:'Inter',Helvetica,Arial,sans-serif;font-size:15px;line-height:1.55;color:#3D434A;">No marketing lists, no third parties, no chasing — that's a promise.</p>
+              ${summaryHtml}
+              <p style="margin:28px 0 0 0;font-family:'Inter',Helvetica,Arial,sans-serif;font-size:13px;line-height:1.5;color:#3D434A;">If anything above looks wrong, just hit Reply and we'll fix it.</p>
+              <p style="margin:24px 0 0 0;font-family:'Inter',Helvetica,Arial,sans-serif;font-size:14px;line-height:1.5;color:#1A1D21;">— Chris<br><span style="color:#8A8F96;">Founder, Fleetlix · Glasgow, Scotland</span></p>
+            </td>
+          </tr>
+          <tr>
+            <td style="background-color:#F7F5F0;padding:18px 32px;border-top:1px solid #E5E2DB;font-family:'Inter',Helvetica,Arial,sans-serif;font-size:11px;line-height:1.7;color:#8A8F96;">
+              Fleetlix is a product of CN-DESIGN LTD (Scotland · SC885094 · ICO CSN2072529).<br>You're receiving this because you registered interest at <a href="https://fleetlix.com" style="color:#8A8F96;text-decoration:underline;">fleetlix.com</a>.
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+
+  return {
+    subject: "Thanks for registering interest in Fleetlix",
+    text: textLines.join("\n"),
+    html,
+  };
+}
+
+async function sendConfirmation(env: Env, payload: ParsedPayload) {
+  const { subject, text, html } = renderConfirmation(payload);
+
+  const res = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      authorization: `Bearer ${env.RESEND_API_KEY}`,
+    },
+    body: JSON.stringify({
+      from: env.INTEREST_FROM_EMAIL,
+      to: [payload.email],
+      reply_to: env.INTEREST_TO_EMAIL,
+      subject,
+      html,
+      text,
+    }),
+  });
+
+  if (!res.ok) {
+    const detail = await res.text().catch(() => "");
+    throw new Error(`Resend ${res.status}: ${detail}`);
+  }
+}
+
 export const onRequestPost = async ({ request, env }: Ctx): Promise<Response> => {
   if (!env.RESEND_API_KEY || !env.INTEREST_TO_EMAIL || !env.INTEREST_FROM_EMAIL) {
     console.error("register-interest: missing required env vars");
@@ -279,6 +403,15 @@ export const onRequestPost = async ({ request, env }: Ctx): Promise<Response> =>
   } catch (err) {
     console.error("register-interest: send failed", err);
     return json(502, { error: "Couldn't deliver the message. Try again shortly." });
+  }
+
+  // Acknowledgement to the registrant. Best-effort: a delivery failure here
+  // must not surface as an error to the user, because the lead-to-contact
+  // email has already succeeded above. Log and move on.
+  try {
+    await sendConfirmation(env, parsed.data);
+  } catch (err) {
+    console.error("register-interest: confirmation send failed", err);
   }
 
   return json(200, { ok: true });

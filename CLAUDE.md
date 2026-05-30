@@ -83,6 +83,12 @@ fleetlix-marketing/
 | `/cookies` | PECR cookie policy. Asserts "no first-party cookies, no analytics". |
 | `/thank-you` | Post-payment landing. Links to `https://app.fleetlix.com` (not yet live). |
 
+### Conversion path
+
+- **Header.** Desktop nav at `sm:` and up. On mobile (`<sm`), a `<details>`/`<summary>` hamburger opens a drop-down panel (no JS for the disclosure itself; a small inline script closes it on link tap or outside click). When `SHOW_CONTACT` is off, the header's right-side CTA defaults to "Register interest" (amber) → `#register-interest`.
+- **Hero.** Primary amber "Register your interest" CTA → `#register-interest` is the load-bearing above-the-fold action. "See how it works" → `#built` sits beside it as a tertiary outline button.
+- **Interest form.** At `lg:` and up the form renders inline next to its copy (no modal click). Below `lg:` a single "Register your interest" trigger opens the bottom-sheet modal. Both paths share a single `FormBody` subcomponent inside `src/components/InterestForm.tsx`.
+
 ## Feature flags — `src/config/featureFlags.ts`
 
 - **`SHOW_PRICING`** (currently `false`) — when off: Pricing nav link, `PricingSection`, and hero "Prices from £79/month" CTA are hidden. The homepage renders `InterestForm` in PricingSection's slot.

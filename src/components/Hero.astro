@@ -65,7 +65,7 @@ import { SHOW_CONTACT, SHOW_PRICING } from "../config/featureFlags";
       </h1>
 
       <p
-        class="hero-rise [--stagger:240ms] mt-4 text-base sm:text-lg md:text-lg text-white/85 max-w-xl leading-relaxed"
+        class="hero-rise [--stagger:240ms] mt-4 text-base sm:text-lg md:text-lg text-white/90 max-w-xl leading-relaxed"
       >
         Fleetlix replaces the spreadsheets, paper tickets, and £18k legacy
         software that small-to-medium waste and haulage firms run on today.
@@ -79,20 +79,24 @@ import { SHOW_CONTACT, SHOW_PRICING } from "../config/featureFlags";
         {SHOW_CONTACT && (
           <a
             href="#contact"
-            class="inline-flex items-center justify-center rounded-xl bg-[color:var(--color-cyan)] px-6 py-3 text-base font-semibold text-white shadow-lg shadow-black/20 hover:brightness-110 transition"
+            class="inline-flex items-center justify-center rounded-xl bg-[color:var(--color-cyan)] px-6 py-3.5 text-base font-semibold text-white shadow-lg shadow-black/30 ring-1 ring-white/10 hover:brightness-110 transition"
           >
             Book a demo
           </a>
         )}
         <a
           href="#register-interest"
-          class="inline-flex items-center justify-center rounded-xl bg-[color:var(--color-amber)] px-6 py-3 text-base font-semibold text-[color:var(--color-graphite)] shadow-lg shadow-black/20 hover:brightness-105 transition"
+          class="inline-flex items-center justify-center gap-2 rounded-xl bg-[color:var(--color-amber)] px-6 py-3.5 text-base sm:text-lg font-semibold text-[color:var(--color-graphite)] shadow-lg shadow-black/30 ring-1 ring-[color:var(--color-amber)]/40 hover:brightness-105 transition"
         >
-          {SHOW_PRICING ? "Prices from £79/month" : "Register interest"}
+          {SHOW_PRICING ? "Prices from £79/month" : "Register your interest"}
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4" aria-hidden="true">
+            <path d="M5 12h14" />
+            <path d="m13 5 7 7-7 7" />
+          </svg>
         </a>
         <a
           href="#built"
-          class="inline-flex items-center justify-center rounded-xl border border-white/30 bg-white/5 px-6 py-3 text-base font-semibold text-white backdrop-blur-sm hover:bg-white/10 hover:border-white/50 transition"
+          class="inline-flex items-center justify-center rounded-xl border border-white/30 bg-white/5 px-6 py-3.5 text-base font-semibold text-white backdrop-blur-sm hover:bg-white/10 hover:border-white/50 transition"
         >
           See how it works
         </a>
@@ -102,15 +106,15 @@ import { SHOW_CONTACT, SHOW_PRICING } from "../config/featureFlags";
         class="hero-rise [--stagger:440ms] mt-6 grid grid-cols-3 gap-6 max-w-md"
       >
         <div>
-          <dt class="text-[11px] uppercase tracking-wider text-white/60">Install step</dt>
+          <dt class="text-[11px] uppercase tracking-wider text-white/75">Install step</dt>
           <dd class="mt-0.5 font-[family-name:var(--font-display)] font-bold text-xl text-white">None</dd>
         </div>
         <div>
-          <dt class="text-[11px] uppercase tracking-wider text-white/60">Devices</dt>
+          <dt class="text-[11px] uppercase tracking-wider text-white/75">Devices</dt>
           <dd class="mt-0.5 font-[family-name:var(--font-display)] font-bold text-xl text-white">Any</dd>
         </div>
         <div>
-          <dt class="text-[11px] uppercase tracking-wider text-white/60">Live in</dt>
+          <dt class="text-[11px] uppercase tracking-wider text-white/75">Live in</dt>
           <dd class="mt-0.5 font-[family-name:var(--font-display)] font-bold text-xl text-white">Scotland</dd>
         </div>
       </dl>
