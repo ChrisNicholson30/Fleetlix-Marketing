@@ -22,9 +22,12 @@ const stagger = ["[--stagger:0ms]", "[--stagger:130ms]", "[--stagger:260ms]"];
 ---
 
 <section id="motion" class="relative bg-[color:var(--color-graphite)] text-white">
-  <!-- Scroll track gives the pinned panel room to linger. -->
-  <div class="relative h-[200vh]">
-    <div class="sticky top-0 h-[100svh] overflow-clip flex items-center">
+  <!-- Scroll track gives the pinned panel room to linger. Desktop only: on
+       mobile the heading + stacked cards are taller than one viewport, so a
+       pinned 100svh panel with overflow-clip cuts the cards off (and flickers
+       as the browser address bar changes svh). Below md we flow normally. -->
+  <div class="relative md:h-[200vh]">
+    <div class="relative flex items-center md:sticky md:top-0 md:h-[100svh] md:overflow-clip">
       <!-- Pinned wheel backdrop -->
       <div class="absolute inset-0 -z-10">
         <Picture
