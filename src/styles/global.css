@@ -85,9 +85,18 @@
  * driven by an IntersectionObserver that adds `.is-visible`; the hero
  * entrance is pure CSS (no JS dependency) so the LCP text never waits
  * on a script. No inline styles — keeps the strict CSP intact.
+ *
+ * Scroll reveals are MD-and-up only. On phones the IntersectionObserver's
+ * threshold/rootMargin can leave stacked cards stuck mid-reveal (one
+ * tile visible, the next half-faded) because each card briefly straddles
+ * the trigger boundary as the user scrolls. The cards still mount with
+ * `data-reveal` and the JS still toggles `.is-visible`, but with no
+ * matching CSS rules at <md the toggle is a no-op and the cards just
+ * appear. Desktop keeps the cinematic effect where the trigger is
+ * predictable.
  * ------------------------------------------------------------------ */
 @layer base {
-  @media (prefers-reduced-motion: no-preference) {
+  @media (prefers-reduced-motion: no-preference) and (min-width: 768px) {
     /* Scroll-reveal primitives (hidden until observed) */
     [data-reveal] {
       opacity: 0;
@@ -105,6 +114,9 @@
       opacity: 1;
       transform: none;
     }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
 
     /* Hero entrance — runs on load, no observer needed */
     .hero-rise {
