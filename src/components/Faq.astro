@@ -1,0 +1,59 @@
+---
+import { faqItems } from "../config/faq";
+
+// FAQ accordion. Uses native <details>/<summary> for a JS-free, CSP-clean
+// disclosure (same pattern as the mobile menu in Header.astro) — no inline
+// script, so no new script-src hash. Every answer is in the DOM at render,
+// so crawlers and the FAQPage JSON-LD in index.astro see identical content.
+---
+
+<section id="faq" class="bg-[color:var(--color-offwhite)] border-y border-[color:var(--color-mist)]">
+  <div class="mx-auto max-w-4xl px-6 py-20 md:py-28">
+    <div class="max-w-2xl" data-reveal>
+      <p class="text-xs font-semibold tracking-[0.18em] uppercase text-[color:var(--color-cyan)]">
+        Questions
+      </p>
+      <h2 class="mt-3 font-[family-name:var(--font-display)] font-extrabold text-3xl md:text-4xl text-[color:var(--color-graphite)] tracking-tight">
+        Waste &amp; haulage software, answered.
+      </h2>
+      <p class="mt-4 text-[color:var(--color-slate)] text-lg">
+        What Fleetlix is, who it's for, and how the day-to-day actually works.
+      </p>
+    </div>
+
+    <div class="mt-10 md:mt-12 divide-y divide-[color:var(--color-mist)] border-y border-[color:var(--color-mist)]">
+      {faqItems.map((item) => (
+        <details class="faq-item group">
+          <summary
+            class="flex cursor-pointer list-none items-center justify-between gap-4 py-5 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--color-cyan)]"
+          >
+            <h3 class="font-[family-name:var(--font-display)] font-bold text-lg md:text-xl text-[color:var(--color-graphite)]">
+              {item.question}
+            </h3>
+            <span
+              aria-hidden="true"
+              class="faq-icon mt-1 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[color:var(--color-mist)] bg-white text-[color:var(--color-cyan)] transition-transform"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5">
+                <path d="M12 5v14M5 12h14" />
+              </svg>
+            </span>
+          </summary>
+          <p class="-mt-1 pb-6 pr-12 text-[color:var(--color-slate)] leading-relaxed">
+            {item.answer}
+          </p>
+        </details>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  /* Hide the default disclosure marker across browsers. */
+  .faq-item > summary { list-style: none; }
+  .faq-item > summary::-webkit-details-marker { display: none; }
+  .faq-item > summary::marker { content: ""; }
+
+  /* Rotate the plus into a minus when the item is open. */
+  .faq-item[open] .faq-icon { transform: rotate(45deg); }
+</style>

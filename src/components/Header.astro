@@ -5,6 +5,7 @@ const nav = [
   { href: "#product", label: "Product" },
   { href: "#why-pwa", label: "Why a PWA" },
   { href: "#who", label: "Who it's for" },
+  { href: "#faq", label: "FAQ" },
   SHOW_PRICING ? { href: "#pricing", label: "Pricing" } : null,
   SHOW_CONTACT ? { href: "#contact", label: "Contact" } : null,
 ].filter((item): item is { href: string; label: string } => item !== null);

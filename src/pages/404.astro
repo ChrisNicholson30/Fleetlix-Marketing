@@ -1,0 +1,55 @@
+---
+import Base from "../layouts/Base.astro";
+import Header from "../components/Header.astro";
+import SiteFooter from "../components/SiteFooter.astro";
+
+// Astro emits this as dist/404.html; Cloudflare Pages serves it automatically
+// for unmatched routes. noindex so the soft-404 never enters the index.
+const links = [
+  { href: "/#product", label: "What you get" },
+  { href: "/#who", label: "Who it's for" },
+  { href: "/#faq", label: "FAQ" },
+  { href: "/#register-interest", label: "Register interest" },
+];
+---
+
+<Base
+  title="Page not found | Fleetlix"
+  description="That page doesn't exist. Head back to the Fleetlix homepage."
+  noindex={true}
+>
+  <Header />
+  <main class="bg-[color:var(--color-offwhite)]">
+    <section class="mx-auto flex min-h-[calc(100vh-220px)] max-w-3xl flex-col items-center justify-center px-6 py-24 text-center">
+      <p class="text-xs font-semibold uppercase tracking-[0.22em] text-[color:var(--color-cyan)]">
+        Error 404
+      </p>
+      <h1 class="mt-4 font-[family-name:var(--font-display)] text-5xl font-extrabold tracking-tight text-[color:var(--color-graphite)] md:text-7xl">
+        Page not found
+      </h1>
+      <p class="mt-5 max-w-lg text-lg leading-relaxed text-[color:var(--color-slate)]">
+        The page you're after has moved or never existed. The road's still here, though —
+        pick up where you left off.
+      </p>
+
+      <a
+        href="/"
+        class="mt-9 inline-flex items-center justify-center gap-2 rounded-xl bg-[color:var(--color-amber)] px-7 py-3.5 text-base font-semibold text-[color:var(--color-graphite)] shadow-lg shadow-black/10 transition hover:brightness-105"
+      >
+        Back to home
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4" aria-hidden="true">
+          <path d="M5 12h14" /><path d="m13 5 7 7-7 7" />
+        </svg>
+      </a>
+
+      <nav class="mt-12 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm font-medium text-[color:var(--color-slate)]">
+        {links.map((link) => (
+          <a href={link.href} class="hover:text-[color:var(--color-graphite)] transition-colors">
+            {link.label}
+          </a>
+        ))}
+      </nav>
+    </section>
+  </main>
+  <SiteFooter />
+</Base>

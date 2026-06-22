@@ -9,8 +9,8 @@ interface Props {
 }
 
 const {
-  title = "Fleetlix — Waste & haulage software for UK skip-hire and fleet operators",
-  description = "Fleetlix is UK-built operations software for waste, skip-hire, and haulage firms. One PWA replaces spreadsheets and £18k legacy systems: DVSA walk-around checks, real-time dispatch, automated Waste Transfer Notes.",
+  title = "Waste & Haulage Software for UK Fleet Operators | Fleetlix",
+  description = "UK-built operations software for waste, skip-hire & haulage firms. One PWA for DVSA checks, live dispatch & automated Waste Transfer Notes. From £79/mo.",
   ogImage = "/og-image.jpg",
   noindex = false,
 } = Astro.props;
@@ -21,11 +21,20 @@ const ogImageUrl = new URL(ogImage, Astro.site).toString();
 const organizationJsonLd = {
   "@context": "https://schema.org",
   "@type": "Organization",
+  "@id": "https://fleetlix.com/#organization",
   name: "Fleetlix",
   url: "https://fleetlix.com",
   logo: "https://fleetlix.com/fleetlix-logo-primary.svg",
   description:
     "UK-built operations software for waste, skip-hire, and haulage firms.",
+  areaServed: { "@type": "Country", name: "United Kingdom" },
+  contactPoint: {
+    "@type": "ContactPoint",
+    contactType: "sales",
+    email: "contact@fleetlix.com",
+    areaServed: "GB",
+    availableLanguage: "English",
+  },
   parentOrganization: {
     "@type": "Organization",
     name: "CN-DESIGN LTD",

@@ -8,61 +8,88 @@ import MotionProduct from "../components/MotionProduct.astro";
 import FeatureGrid from "../components/FeatureGrid.astro";
 import WhyPwa from "../components/WhyPwa.astro";
 import WhoFor from "../components/WhoFor.astro";
+import Faq from "../components/Faq.astro";
 import PricingSection from "../components/PricingSection";
 import InterestForm from "../components/InterestForm";
 import CtaFooter from "../components/CtaFooter.astro";
 import SiteFooter from "../components/SiteFooter.astro";
 import { SHOW_CONTACT, SHOW_PRICING } from "../config/featureFlags";
+import { faqItems } from "../config/faq";
 
-const softwareJsonLd = {
+// Homepage structured data as a single @graph so the page emits ONE inline
+// JSON-LD <script> (one CSP hash) rather than one per entity. @id values
+// cross-link the entities and reference the sitewide Organization defined in
+// Base.astro (#organization) — Google merges all JSON-LD on the page, so the
+// cross-document @id reference resolves.
+const homepageJsonLd = {
   "@context": "https://schema.org",
-  "@type": "SoftwareApplication",
-  name: "Fleetlix",
-  applicationCategory: "BusinessApplication",
-  applicationSubCategory: "Waste management software",
-  operatingSystem: "Web, iOS, Android",
-  description:
-    "Operations platform for UK waste, skip-hire, and haulage firms. One Progressive Web App covering driver walk-around checks, yard dispatch, office workflows, and automated Waste Transfer Notes.",
-  url: "https://fleetlix.com",
-  image: "https://fleetlix.com/og-image.jpg",
-  offers: {
-    "@type": "Offer",
-    priceCurrency: "GBP",
-    price: "79.00",
-    priceSpecification: {
-      "@type": "UnitPriceSpecification",
-      price: "79.00",
-      priceCurrency: "GBP",
-      unitText: "MONTH",
-      referenceQuantity: { "@type": "QuantitativeValue", value: 1, unitCode: "MON" },
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": "https://fleetlix.com/#website",
+      url: "https://fleetlix.com",
+      name: "Fleetlix",
+      description:
+        "UK-built operations software for waste, skip-hire, and haulage firms.",
+      publisher: { "@id": "https://fleetlix.com/#organization" },
+      inLanguage: "en-GB",
     },
-    availability: "https://schema.org/PreOrder",
-    eligibleRegion: { "@type": "Country", name: "United Kingdom" },
-  },
-  publisher: {
-    "@type": "Organization",
-    name: "CN-DESIGN LTD",
-    url: "https://cn-design.co.uk",
-  },
-  audience: {
-    "@type": "BusinessAudience",
-    audienceType:
-      "Skip hire, waste management, and haulage operators — fleets of 1 to 80+ vehicles, United Kingdom",
-  },
-  featureList: [
-    "DVSA-compliant driver walk-around checks",
-    "Real-time dispatch and job tracking",
-    "Automated Waste Transfer Notes (WTN)",
-    "Office, yard, driver, and maintenance roles in one app",
-    "Works offline, installs as a PWA on any device",
-    "UK GDPR compliant data handling",
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://fleetlix.com/#software",
+      name: "Fleetlix",
+      applicationCategory: "BusinessApplication",
+      applicationSubCategory: "Waste management software",
+      operatingSystem: "Web, iOS, Android",
+      description:
+        "Operations platform for UK waste, skip-hire, and haulage firms. One Progressive Web App covering driver walk-around checks, yard dispatch, office workflows, and automated Waste Transfer Notes.",
+      url: "https://fleetlix.com",
+      image: "https://fleetlix.com/og-image.jpg",
+      offers: {
+        "@type": "Offer",
+        priceCurrency: "GBP",
+        price: "79.00",
+        priceSpecification: {
+          "@type": "UnitPriceSpecification",
+          price: "79.00",
+          priceCurrency: "GBP",
+          unitText: "MONTH",
+          referenceQuantity: { "@type": "QuantitativeValue", value: 1, unitCode: "MON" },
+        },
+        availability: "https://schema.org/PreOrder",
+        eligibleRegion: { "@type": "Country", name: "United Kingdom" },
+      },
+      publisher: { "@id": "https://fleetlix.com/#organization" },
+      audience: {
+        "@type": "BusinessAudience",
+        audienceType:
+          "Skip hire, waste management, and haulage operators — fleets of 1 to 80+ vehicles, United Kingdom",
+      },
+      featureList: [
+        "DVSA-compliant driver walk-around checks",
+        "Real-time dispatch and job tracking",
+        "Automated Waste Transfer Notes (WTN)",
+        "Office, yard, driver, and maintenance roles in one app",
+        "Works offline, installs as a PWA on any device",
+        "UK GDPR compliant data handling",
+      ],
+    },
+    {
+      "@type": "FAQPage",
+      "@id": "https://fleetlix.com/#faq",
+      mainEntity: faqItems.map((item) => ({
+        "@type": "Question",
+        name: item.question,
+        acceptedAnswer: { "@type": "Answer", text: item.answer },
+      })),
+    },
   ],
 };
 ---
 
 <Base
-  title="Fleetlix — Waste & haulage software for UK skip-hire and fleet operators"
-  description="UK-built operations software for waste, skip-hire, and haulage firms. One PWA covering driver, yard, and office workflows: DVSA walk-around checks, real-time dispatch, automated Waste Transfer Notes. Replaces spreadsheets and £18k legacy systems."
+  title="Waste & Haulage Software for UK Fleet Operators | Fleetlix"
+  description="UK-built operations software for waste, skip-hire & haulage firms. One PWA for DVSA checks, live dispatch & automated Waste Transfer Notes. From £79/mo."
 >
   <Header />
   <main>
@@ -73,11 +100,12 @@ const softwareJsonLd = {
     <FeatureGrid />
     <WhyPwa />
     <WhoFor />
+    <Faq />
     {SHOW_PRICING ? <PricingSection client:visible /> : <InterestForm client:visible />}
     {SHOW_CONTACT && <CtaFooter />}
   </main>
   <SiteFooter />
-  <script type="application/ld+json" set:html={JSON.stringify(softwareJsonLd)} />
+  <script type="application/ld+json" set:html={JSON.stringify(homepageJsonLd)} />
 </Base>
 
 <script>

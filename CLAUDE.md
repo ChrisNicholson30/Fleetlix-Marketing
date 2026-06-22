@@ -78,10 +78,11 @@ fleetlix-marketing/
 
 | Route | Purpose |
 |---|---|
-| `/` | Homepage: Hero → BuiltForRoad → FrontReveal → MotionProduct → FeatureGrid → WhyPwa → WhoFor → (PricingSection \| InterestForm) → (CtaFooter when SHOW_CONTACT) → SiteFooter |
+| `/` | Homepage: Hero → BuiltForRoad → FrontReveal → MotionProduct → FeatureGrid → WhyPwa → WhoFor → Faq → (PricingSection \| InterestForm) → (CtaFooter when SHOW_CONTACT) → SiteFooter |
 | `/privacy` | UK GDPR policy. Update the `lastUpdated` const when material content changes. |
 | `/cookies` | PECR cookie policy. Asserts "no first-party cookies, no analytics". |
 | `/thank-you` | Post-payment landing. Links to `https://app.fleetlix.com` (not yet live). |
+| `/404` | Custom not-found page (`src/pages/404.astro`). `noindex`; Astro emits `dist/404.html`, which Cloudflare Pages serves for unmatched routes. |
 
 ### Conversion path
 
@@ -165,28 +166,32 @@ Cloudflare **Email Routing** has one route: `contact@fleetlix.com` → `chris@cn
 
 ## SEO
 
-- **`Base.astro`** sets canonical, Open Graph, and Twitter Card meta tags on every page. The default `ogImage` is `/Hero.jpg`. To opt a page out of indexing, pass `noindex={true}` (already done for `/thank-you`).
+- **`Base.astro`** sets canonical, Open Graph, and Twitter Card meta tags on every page. The default `ogImage` is `/og-image.jpg` (1200×630). To opt a page out of indexing, pass `noindex={true}` (already done for `/thank-you` and `/404`).
 - **`@astrojs/sitemap`** generates `dist/sitemap-index.xml` and `dist/sitemap-0.xml` at build time. The filter in `astro.config.mjs` excludes `/thank-you` from the sitemap.
-- **`public/robots.txt`** allows everything and points at the sitemap.
+- **`public/robots.txt`** allows everything except `/api/` and points at the sitemap.
 - **Structured data (JSON-LD):**
-  - `Base.astro` emits a sitewide **Organization** entity in `<head>` (Fleetlix + parent CN-DESIGN LTD with Glasgow postal address + SC885094).
-  - `src/pages/index.astro` emits a **SoftwareApplication** entity before `</body>` describing the product, pricing, audience, and feature list.
-- **Target keywords:** the homepage `<title>` and `<meta description>` lead with "waste & haulage software" / "UK skip-hire and fleet operators". When you write new homepage copy, keep these phrases findable without it reading like SEO sludge.
+  - `Base.astro` emits a sitewide **Organization** entity in `<head>` (`@id` `#organization`; Fleetlix + parent CN-DESIGN LTD with Glasgow postal address + SC885094, plus `areaServed` UK and a sales `contactPoint`).
+  - `src/pages/index.astro` emits a single homepage **`@graph`** before `</body>` — **WebSite** (`#website`), **SoftwareApplication** (`#software`: product, pricing, audience, features), and **FAQPage** (`#faq`). Both reference the sitewide Organization via `@id`. One `@graph` = one inline script = one CSP hash.
+  - The visible FAQ accordion (`Faq.astro`) and its schema both read `src/config/faq.ts`, so the structured data can never drift from the on-page copy. Edit the Q&A in one place.
+- **Target keywords:** the homepage `<title>` and `<meta description>` lead with "waste & haulage software" / "UK skip-hire and fleet operators". Keep titles ≤ ~60 chars and descriptions ≤ ~160 so they don't truncate in the SERP. When you write new homepage copy, keep these phrases findable without it reading like SEO sludge.
 
-Both JSON-LD scripts contribute to the CSP `script-src` hash list — see below.
+Both JSON-LD scripts (the sitewide Organization and the homepage `@graph`) contribute to the CSP `script-src` hash list — see below.
 
 ## CSP and security headers
 
 `public/_headers` ships strict headers on every response. Two parts deserve care:
 
-**`script-src` whitelists exactly five inline-script SHA-256 hashes:**
+**`script-src` whitelists exactly six inline-script SHA-256 hashes:**
 1. Sitewide Organization JSON-LD (every page, from `Base.astro`)
-2. Astro's `client:visible` IntersectionObserver bootstrap
-3. Astro's `astro-island` custom-element registration
-4. Homepage SoftwareApplication JSON-LD (from `src/pages/index.astro`)
-5. The homepage's `cinematic.ts` bundle (Astro inlines it because it has no imports)
+2. The mobile-menu close-on-click handler (every page, from `Header.astro`)
+3. Astro's `client:visible` IntersectionObserver bootstrap
+4. Astro's `astro-island` custom-element registration
+5. Homepage JSON-LD `@graph` — WebSite + SoftwareApplication + FAQPage (from `src/pages/index.astro`)
+6. The homepage's `cinematic.ts` bundle (Astro inlines it because it has no imports)
 
-**Regenerate the hashes after** an Astro version bump **or** after editing `src/scripts/cinematic.ts`, `src/layouts/Base.astro`'s JSON-LD, or `src/pages/index.astro`'s JSON-LD. The exact one-liner is in the comment at the top of `_headers`. If the hashes drift, the offending inline script is silently blocked in production.
+The FAQ accordion (`Faq.astro`) is native `<details>` with no JS, so adding/editing FAQs does **not** touch the hash list — but editing the FAQ *schema* in `index.astro`'s `@graph` does.
+
+**Regenerate the hashes after** an Astro version bump **or** after editing `src/scripts/cinematic.ts`, `src/layouts/Base.astro`'s JSON-LD, `src/components/Header.astro`'s handler, or `src/pages/index.astro`'s JSON-LD `@graph`. The exact one-liner is in the comment at the top of `_headers` (it globs every built page, so new routes like `404.html` are covered). If the hashes drift, the offending inline script is silently blocked in production.
 
 **`style-src 'self' 'unsafe-inline'`** — React style props, the modal's `<style>` block, and various `style="…"` attributes from Astro components all need this. We've traded style-XSS hardening for not having to hash every inline style. Don't tighten this without first rewriting the inline styles out.
 
