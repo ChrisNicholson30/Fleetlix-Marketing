@@ -223,7 +223,7 @@ iPhone is a first-class target. The bar is **the apple.com/uk pattern**: vertica
 
 ## Performance
 
-- **Hero LCP** is `glen.png` served as AVIF via `<Picture>` with `loading="eager" fetchpriority="high"`. The `/hero/hero.webm` aerial loop attaches lazily after the LCP via `cinematic.ts` — it must never compete with the LCP image.
+- **Hero LCP** is `aerial.png` (the opening frame of `hero.webm`, so the still-to-video handoff is seamless) served as AVIF via `<Picture>` with `loading="eager" fetchpriority="high"`. The `/hero/hero.webm` aerial loop attaches lazily after the LCP via `cinematic.ts` — it must never compete with the LCP image.
 - **Self-hosted fonts** are preloaded for only the two display variants used above the fold (Space Grotesk 700, Inter 400). FOUT on other weights is cheaper than the extra round-trips.
 - Astro emits ~46 image variants from 4 hero PNGs. If that grows substantially, audit before merging.
 

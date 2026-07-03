@@ -1,22 +1,23 @@
 ---
 import { Picture } from "astro:assets";
-import glen from "../assets/hero/glen.png";
+import aerial from "../assets/hero/aerial.png";
 import { SHOW_CONTACT, SHOW_PRICING } from "../config/featureFlags";
 
-// Cinematic hero. The glen still is the LCP image (eager, high priority).
-// A short muted aerial loop is attached lazily after load (see the
-// hero-video script in index.astro) so it never competes with the LCP.
+// Cinematic hero. The still is the LCP image (eager, high priority) — it's the
+// opening frame of the aerial loop, so the still-to-video handoff is invisible.
+// The muted loop is attached lazily after load (see the hero-video script in
+// index.astro) so it never competes with the LCP.
 ---
 
 <section class="relative isolate overflow-clip min-h-[70svh] md:min-h-[72svh] flex items-center text-white">
   <!-- Media layer -->
   <div class="absolute inset-0 -z-10 bg-[color:var(--color-graphite)]">
     <Picture
-      src={glen}
+      src={aerial}
       formats={["avif", "webp"]}
       widths={[420, 768, 1280, 1920]}
       sizes="100vw"
-      alt="Aerial view of a Highland glen at golden hour, a single-track road winding through the valley toward distant mountains."
+      alt="Aerial view of a dual carriageway curving through the Scottish countryside, lorries and vans in traffic between pine forest and open fields."
       loading="eager"
       decoding="async"
       fetchpriority="high"
