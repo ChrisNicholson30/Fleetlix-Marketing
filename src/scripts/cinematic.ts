@@ -53,3 +53,31 @@ if (video && !reduceMotion) {
   if (document.readyState === "complete") schedule();
   else window.addEventListener("load", schedule, { once: true });
 }
+
+// Compliance countdown — ticks the [data-cd-*] fields down to the target date
+// in [data-countdown]. Lives in this homepage bundle (not its own island) so it
+// costs no extra CSP hash; the element only exists on the homepage, so this
+// no-ops elsewhere. Days run unpadded; hours/mins/secs pad to two digits.
+const countdown = document.querySelector<HTMLElement>("[data-countdown]");
+if (countdown) {
+  const target = new Date(countdown.dataset.countdown ?? "").getTime();
+  const daysEl = countdown.querySelector<HTMLElement>("[data-cd-days]");
+  const hoursEl = countdown.querySelector<HTMLElement>("[data-cd-hours]");
+  const minsEl = countdown.querySelector<HTMLElement>("[data-cd-mins]");
+  const secsEl = countdown.querySelector<HTMLElement>("[data-cd-secs]");
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const render = () => {
+    const diff = Math.max(0, target - Date.now());
+    const totalSecs = Math.floor(diff / 1000);
+    if (daysEl) daysEl.textContent = String(Math.floor(totalSecs / 86400));
+    if (hoursEl) hoursEl.textContent = pad(Math.floor((totalSecs % 86400) / 3600));
+    if (minsEl) minsEl.textContent = pad(Math.floor((totalSecs % 3600) / 60));
+    if (secsEl) secsEl.textContent = pad(totalSecs % 60);
+    return diff;
+  };
+  if (!Number.isNaN(target) && render() > 0) {
+    const id = setInterval(() => {
+      if (render() <= 0) clearInterval(id);
+    }, 1000);
+  }
+}

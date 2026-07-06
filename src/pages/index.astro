@@ -8,6 +8,7 @@ import MotionProduct from "../components/MotionProduct.astro";
 import FeatureGrid from "../components/FeatureGrid.astro";
 import WhyPwa from "../components/WhyPwa.astro";
 import WhoFor from "../components/WhoFor.astro";
+import ComplianceCountdown from "../components/ComplianceCountdown.astro";
 import Faq from "../components/Faq.astro";
 import PricingSection from "../components/PricingSection";
 import InterestForm from "../components/InterestForm";
@@ -100,6 +101,7 @@ const homepageJsonLd = {
     <FeatureGrid />
     <WhyPwa />
     <WhoFor />
+    <ComplianceCountdown />
     <Faq />
     {SHOW_PRICING ? <PricingSection client:visible /> : <InterestForm client:visible />}
     {SHOW_CONTACT && <CtaFooter />}
