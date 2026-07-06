@@ -1,72 +1,157 @@
 ---
-import { Picture } from "astro:assets";
-import aerial from "../assets/hero/aerial.png";
 import { SHOW_CONTACT, SHOW_PRICING } from "../config/featureFlags";
 
-// Cinematic hero. The still is the LCP image (eager, high priority) — it's the
-// opening frame of the aerial loop, so the still-to-video handoff is invisible.
-// The muted loop is attached lazily after load (see the hero-video script in
-// index.astro) so it never competes with the LCP.
+// Abstract cinematic hero — a code-drawn "live network" instead of photo/video.
+// Route arteries carry travelling light-comets (pure CSS stroke-dashoffset
+// loops, normalised via pathLength="100"), a depot node pulses radar rings,
+// and the aurora field breathes behind a fine grid. Zero media bytes on the
+// critical path: the LCP is now the <h1> itself (Space Grotesk is preloaded
+// in Base.astro). All continuous motion is gated behind
+// prefers-reduced-motion; the static composition reads complete without it.
+// Negative animation-delays start each comet mid-route on first paint.
+
+type Comet = { dur: string; delay: string };
+type Route = { d: string; color: string; roadOpacity: number; comets: Comet[] };
+
+const routes: Route[] = [
+  {
+    // Main cyan artery, lower-left to upper-right. Two comets share it.
+    d: "M -80 700 C 260 660, 430 520, 700 490 C 950 462, 1120 380, 1460 210",
+    color: "var(--color-cyan)",
+    roadOpacity: 0.16,
+    comets: [
+      { dur: "9s", delay: "-3s" },
+      { dur: "9s", delay: "-7.5s" },
+    ],
+  },
+  {
+    // Amber mid artery.
+    d: "M -60 500 C 240 520, 520 610, 800 585 C 1040 564, 1230 480, 1500 430",
+    color: "var(--color-amber)",
+    roadOpacity: 0.14,
+    comets: [{ dur: "12s", delay: "-6s" }],
+  },
+  {
+    // Faint white diagonal, bottom to top-right.
+    d: "M 160 950 C 380 740, 760 720, 1000 600 C 1180 510, 1260 420, 1380 300",
+    color: "rgba(255, 255, 255, 0.75)",
+    roadOpacity: 0.1,
+    comets: [{ dur: "14s", delay: "-5s" }],
+  },
+  {
+    // Cyan feeder dropping into the depot from the top edge.
+    d: "M 850 -60 C 845 100, 900 210, 940 290",
+    color: "var(--color-cyan)",
+    roadOpacity: 0.14,
+    comets: [{ dur: "7s", delay: "-2s" }],
+  },
+];
+
+// Tiled film grain (same technique as InterestForm) — data: URI is covered by
+// the existing img-src 'self' data: CSP directive.
+const GRAIN_SVG =
+  "data:image/svg+xml;utf8," +
+  encodeURIComponent(
+    `<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.35 0'/></filter><rect width='100%' height='100%' filter='url(#n)'/></svg>`,
+  );
+
+const trust = [
+  { label: "No app store", d: "M20 6 9 17l-5-5" },
+  { label: "Works offline", d: "M5 12a7 7 0 0 1 14 0M8.5 15.5a3.5 3.5 0 0 1 7 0M12 19h.01" },
+  { label: "UK-built · EU-hosted", d: "M12 21s-7-4.35-7-10a7 7 0 0 1 14 0c0 5.65-7 10-7 10Z" },
+  { label: "DVSA-ready", d: "M12 3l7 3v6c0 4-3 6.5-7 9-4-2.5-7-5-7-9V6l7-3Z" },
+];
 ---
 
-<section class="relative isolate overflow-clip min-h-[70svh] md:min-h-[72svh] flex items-center text-white">
-  <!-- Media layer -->
-  <div class="absolute inset-0 -z-10 bg-[color:var(--color-graphite)]">
-    <Picture
-      src={aerial}
-      formats={["avif", "webp"]}
-      widths={[420, 768, 1280, 1920]}
-      sizes="100vw"
-      alt="Aerial view of a dual carriageway curving through the Scottish countryside, lorries and vans in traffic between pine forest and open fields."
-      loading="eager"
-      decoding="async"
-      fetchpriority="high"
-      class="h-full w-full object-cover object-center"
-    />
-    <video
-      class="hero-video pointer-events-none absolute inset-0 h-full w-full object-cover object-center"
-      data-hero-video
-      data-src="/hero/hero.webm"
-      muted
-      loop
-      playsinline
-      preload="none"
+<section class="relative isolate overflow-clip min-h-[82svh] md:min-h-[86svh] flex items-center bg-[color:var(--color-graphite)] text-white">
+  <!-- Abstract network backdrop (decorative, code-drawn) -->
+  <div class="absolute inset-0 -z-10" aria-hidden="true">
+    <svg
+      class="h-full w-full"
+      viewBox="0 0 1440 900"
+      preserveAspectRatio="xMidYMid slice"
+      fill="none"
       aria-hidden="true"
-    ></video>
-    <!-- Legibility scrims: darken top-left for headline, base for footer cue -->
+    >
+      <defs>
+        <pattern id="heroGrid" width="64" height="64" patternUnits="userSpaceOnUse">
+          <path d="M64 0H0V64" fill="none" stroke="rgb(255 255 255 / 0.05)" stroke-width="1" />
+        </pattern>
+      </defs>
+      <rect width="1440" height="900" fill="url(#heroGrid)" />
+
+      <!-- Contour rings around the depot -->
+      <circle cx="940" cy="290" r="90" stroke="rgb(255 255 255 / 0.06)" stroke-width="1" />
+      <circle cx="940" cy="290" r="150" stroke="rgb(255 255 255 / 0.05)" stroke-width="1" />
+      <circle cx="940" cy="290" r="215" stroke="rgb(255 255 255 / 0.04)" stroke-width="1" />
+
+      <!-- Route arteries + travelling comets -->
+      {routes.map((r) => (
+        <g>
+          <path d={r.d} class="net-road" stroke={r.color} stroke-opacity={r.roadOpacity} />
+          {r.comets.map((c) => (
+            <g class="net-comet-g" style={`--dur:${c.dur}; --delay:${c.delay}; color:${r.color}`}>
+              <path d={r.d} pathLength="100" class="net-comet net-comet--glow" />
+              <path d={r.d} pathLength="100" class="net-comet net-comet--core" />
+            </g>
+          ))}
+        </g>
+      ))}
+
+      <!-- Depot node: radar pings + core -->
+      <circle cx="940" cy="290" r="12" stroke="var(--color-amber)" stroke-width="1.5" opacity="0.45" class="ping-ring" />
+      <circle cx="940" cy="290" r="12" stroke="var(--color-amber)" stroke-width="1.5" opacity="0.45" class="ping-ring" style="animation-delay: -1.3s" />
+      <circle cx="940" cy="290" r="4.5" fill="var(--color-amber)" class="live-dot" />
+
+      <!-- Junction nodes along the arteries -->
+      <circle cx="700" cy="490" r="3.5" fill="var(--color-cyan)" class="live-dot" />
+      <circle cx="800" cy="585" r="3.5" fill="var(--color-amber)" class="live-dot" style="animation-delay: -0.9s" />
+      <circle cx="1000" cy="600" r="2.5" fill="rgb(255 255 255 / 0.5)" />
+    </svg>
+
+    <!-- Ambient aurora, breathing behind the network -->
+    <div class="aurora mix-blend-screen opacity-60">
+      <div class="aurora-blob aurora-blob--cyan -bottom-32 -left-20 h-[26rem] w-[26rem]"></div>
+      <div class="aurora-blob aurora-blob--amber -top-28 right-[-7rem] h-[26rem] w-[26rem]"></div>
+    </div>
+
+    <!-- Film grain -->
     <div
-      aria-hidden="true"
-      class="absolute inset-0 bg-gradient-to-br from-[color:var(--color-graphite)]/85 via-[color:var(--color-graphite)]/35 to-transparent"
+      class="absolute inset-0 opacity-[0.05] mix-blend-screen bg-[length:160px_160px]"
+      style={`background-image: url("${GRAIN_SVG}")`}
     >
     </div>
-    <div
-      aria-hidden="true"
-      class="absolute inset-0 bg-gradient-to-t from-[color:var(--color-graphite)]/75 via-transparent to-transparent"
-    >
-    </div>
+
+    <!-- Legibility scrims: protect the headline column, ground the base -->
+    <div class="absolute inset-0 bg-gradient-to-r from-[color:var(--color-graphite)]/85 via-[color:var(--color-graphite)]/40 to-[color:var(--color-graphite)]/10"></div>
+    <div class="absolute inset-0 bg-gradient-to-t from-[color:var(--color-graphite)]/70 via-transparent to-transparent"></div>
+    <!-- Fine top hairline where the sticky header meets the scene -->
+    <div class="absolute inset-x-0 top-0 h-px bg-white/10"></div>
   </div>
 
   <div
-    class="mx-auto max-w-7xl w-full px-6 pt-20 pb-12 md:pt-20 md:pb-16 pb-[max(3rem,env(safe-area-inset-bottom))]"
+    class="mx-auto max-w-7xl w-full px-6 pt-24 pb-14 md:pt-24 md:pb-20 pb-[max(3.5rem,env(safe-area-inset-bottom))]"
   >
     <div class="max-w-2xl">
       <p
-        class="hero-rise [--stagger:60ms] inline-flex items-center gap-2 text-xs font-semibold tracking-[0.18em] uppercase text-[color:var(--color-amber)]"
+        class="hero-rise [--stagger:60ms] inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-[11px] font-semibold tracking-[0.18em] uppercase text-[color:var(--color-amber)] backdrop-blur-sm"
       >
-        <span class="inline-block h-2 w-2 rounded-full bg-[color:var(--color-amber)]"></span>
+        <span class="relative flex h-2 w-2">
+          <span class="ping-ring absolute inline-flex h-full w-full rounded-full bg-[color:var(--color-amber)]"></span>
+          <span class="relative inline-flex h-2 w-2 rounded-full bg-[color:var(--color-amber)]"></span>
+        </span>
         Operations platform for waste &amp; haulage
       </p>
 
       <h1
-        class="hero-rise [--stagger:140ms] mt-4 font-[family-name:var(--font-display)] font-extrabold text-[2rem] sm:text-5xl md:text-5xl lg:text-6xl leading-[1.02] tracking-tight text-white [text-wrap:balance]"
+        class="hero-rise [--stagger:140ms] mt-5 font-[family-name:var(--font-display)] font-extrabold text-[2.15rem] sm:text-5xl md:text-5xl lg:text-[4rem] leading-[1.02] tracking-tight text-white [text-wrap:balance]"
       >
         Run the yard, the office, and every driver
-        <span class="text-[color:var(--color-amber)]">from one</span>
-        <span class="text-[color:var(--color-cyan)]">PWA.</span>
+        <span class="text-gradient text-gradient--animate">from one PWA.</span>
       </h1>
 
       <p
-        class="hero-rise [--stagger:240ms] mt-4 text-base sm:text-lg md:text-lg text-white/90 max-w-xl leading-relaxed"
+        class="hero-rise [--stagger:240ms] mt-5 text-base sm:text-lg md:text-lg text-white/90 max-w-xl leading-relaxed"
       >
         Fleetlix replaces the spreadsheets, paper tickets, and £18k legacy
         software that small-to-medium waste and haulage firms run on today.
@@ -75,47 +160,63 @@ import { SHOW_CONTACT, SHOW_PRICING } from "../config/featureFlags";
       </p>
 
       <div
-        class="hero-rise [--stagger:340ms] mt-6 flex flex-wrap items-center gap-3 sm:gap-4"
+        class="hero-rise [--stagger:340ms] mt-7 flex flex-wrap items-center gap-3 sm:gap-4"
       >
         {SHOW_CONTACT && (
           <a
             href="#contact"
-            class="inline-flex items-center justify-center rounded-xl bg-[color:var(--color-cyan)] px-6 py-3.5 text-base font-semibold text-white shadow-lg shadow-black/30 ring-1 ring-white/10 hover:brightness-110 transition"
+            class="btn-sheen inline-flex items-center justify-center rounded-xl bg-[color:var(--color-cyan)] px-6 py-3.5 text-base font-semibold text-white shadow-lg shadow-black/30 ring-1 ring-white/10 hover:brightness-110 transition"
           >
             Book a demo
           </a>
         )}
         <a
-          href="#register-interest"
-          class="inline-flex items-center justify-center gap-2 rounded-xl bg-[color:var(--color-amber)] px-6 py-3.5 text-base sm:text-lg font-semibold text-[color:var(--color-graphite)] shadow-lg shadow-black/30 ring-1 ring-[color:var(--color-amber)]/40 hover:brightness-105 transition"
+          href={SHOW_PRICING ? "#pricing" : "#register-interest"}
+          class="btn-sheen group inline-flex items-center justify-center gap-2 rounded-xl bg-[color:var(--color-amber)] px-6 py-3.5 text-base sm:text-lg font-semibold text-[color:var(--color-graphite)] shadow-lg shadow-amber-900/20 ring-1 ring-[color:var(--color-amber)]/40 hover:brightness-105 transition"
         >
           {SHOW_PRICING ? "Prices from £79/month" : "Register your interest"}
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4 transition-transform group-hover:translate-x-0.5" aria-hidden="true">
             <path d="M5 12h14" />
             <path d="m13 5 7 7-7 7" />
           </svg>
         </a>
         <a
-          href="#built"
-          class="inline-flex items-center justify-center rounded-xl border border-white/30 bg-white/5 px-6 py-3.5 text-base font-semibold text-white backdrop-blur-sm hover:bg-white/10 hover:border-white/50 transition"
+          href="#product-tour"
+          class="inline-flex items-center justify-center rounded-xl border border-white/25 bg-white/5 px-6 py-3.5 text-base font-semibold text-white backdrop-blur-sm hover:bg-white/10 hover:border-white/50 transition"
         >
           See how it works
         </a>
       </div>
 
+      <!-- Trust chips -->
+      <ul
+        class="hero-rise [--stagger:420ms] mt-7 flex flex-wrap gap-x-4 gap-y-2.5 text-sm text-white/80"
+      >
+        {trust.map((item) => (
+          <li class="inline-flex items-center gap-2">
+            <span class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-[color:var(--color-cyan)]/15 text-[color:var(--color-cyan)]">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d={item.d} />
+              </svg>
+            </span>
+            {item.label}
+          </li>
+        ))}
+      </ul>
+
       <dl
-        class="hero-rise [--stagger:440ms] mt-6 grid grid-cols-3 gap-6 max-w-md"
+        class="hero-rise [--stagger:500ms] mt-8 grid grid-cols-3 gap-6 max-w-md border-t border-white/10 pt-6"
       >
         <div>
-          <dt class="text-[11px] uppercase tracking-wider text-white/75">Install step</dt>
+          <dt class="text-[11px] uppercase tracking-wider text-white/70">Install step</dt>
           <dd class="mt-0.5 font-[family-name:var(--font-display)] font-bold text-xl text-white">None</dd>
         </div>
         <div>
-          <dt class="text-[11px] uppercase tracking-wider text-white/75">Devices</dt>
+          <dt class="text-[11px] uppercase tracking-wider text-white/70">Devices</dt>
           <dd class="mt-0.5 font-[family-name:var(--font-display)] font-bold text-xl text-white">Any</dd>
         </div>
         <div>
-          <dt class="text-[11px] uppercase tracking-wider text-white/75">Live in</dt>
+          <dt class="text-[11px] uppercase tracking-wider text-white/70">Live in</dt>
           <dd class="mt-0.5 font-[family-name:var(--font-display)] font-bold text-xl text-white">Scotland</dd>
         </div>
       </dl>
@@ -128,8 +229,40 @@ import { SHOW_CONTACT, SHOW_PRICING } from "../config/featureFlags";
     aria-label="Scroll to see how it works"
     class="hero-fade [--stagger:640ms] absolute left-1/2 -translate-x-1/2 bottom-[max(1.25rem,env(safe-area-inset-bottom))] hidden sm:flex h-11 w-11 items-center justify-center rounded-full border border-white/30 bg-white/5 text-white/80 backdrop-blur-sm hover:bg-white/10 transition"
   >
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true" class="float-soft">
       <path d="M12 5v14M6 13l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
     </svg>
   </a>
 </section>
+
+<style>
+  /* Network scene. The comet is a short dash (7 units of a pathLength-100
+     path) whose dashoffset loops 100 -> 0, sending the light down the route
+     once per cycle. Glow + core are the same path at two widths. Comets are
+     invisible unless motion is allowed — the static scene is roads + nodes. */
+  .net-road {
+    fill: none;
+    stroke-width: 1.3;
+  }
+  .net-comet {
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-dasharray: 7 93;
+    stroke-dashoffset: 100;
+    opacity: 0;
+  }
+  .net-comet--glow { stroke-width: 7; }
+  .net-comet--core { stroke-width: 2.2; }
+  @media (prefers-reduced-motion: no-preference) {
+    .net-comet {
+      animation: cometTravel var(--dur, 9s) linear infinite;
+      animation-delay: var(--delay, 0s);
+    }
+    .net-comet--glow { opacity: 0.22; }
+    .net-comet--core { opacity: 0.95; }
+    @keyframes cometTravel {
+      to { stroke-dashoffset: 0; }
+    }
+  }
+</style>

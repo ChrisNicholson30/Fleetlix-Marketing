@@ -11,7 +11,9 @@ const nav = [
 ].filter((item): item is { href: string; label: string } => item !== null);
 ---
 
-<header class="sticky top-0 z-40 backdrop-blur bg-[color:var(--color-offwhite)]/85 border-b border-[color:var(--color-mist)]">
+<header class="sticky top-0 z-40 backdrop-blur-md bg-[color:var(--color-offwhite)]/80 border-b border-[color:var(--color-mist)]">
+  <!-- Reading progress; driven by cinematic.ts on the homepage, dormant elsewhere. -->
+  <div aria-hidden="true" class="scroll-progress pointer-events-none absolute inset-x-0 bottom-0 h-0.5" data-scroll-progress></div>
   <div class="mx-auto max-w-7xl px-6 py-4 flex items-center justify-between gap-4">
     <a href="/" class="inline-flex items-center" aria-label="Fleetlix home">
       <img src="/fleetlix-logo-primary.svg" alt="Fleetlix" class="h-9 w-auto" />
@@ -20,7 +22,7 @@ const nav = [
     <!-- Desktop nav: sm and up -->
     <nav class="hidden sm:flex items-center gap-6 md:gap-8 text-sm font-medium text-[color:var(--color-slate)]">
       {nav.map((item) => (
-        <a href={item.href} class="hover:text-[color:var(--color-graphite)] transition-colors">
+        <a href={item.href} data-nav-link class="nav-link hover:text-[color:var(--color-graphite)] transition-colors">
           {item.label}
         </a>
       ))}

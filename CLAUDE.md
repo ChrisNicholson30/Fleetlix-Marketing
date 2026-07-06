@@ -13,7 +13,7 @@ This repo is **only the marketing site**. The Fleetlix operations PWA is a separ
 | | |
 |---|---|
 | Build | Astro 6, `inlineStylesheets: 'never'` |
-| Interactivity | React 19 islands via `@astrojs/react` — only `InterestForm` and `PricingSection` use it |
+| Interactivity | React 19 islands via `@astrojs/react` — only `InterestForm` uses it (`PricingSection` is a static `.astro` component since the billing toggle was dropped) |
 | Styles | Tailwind 4 via `@tailwindcss/vite`; CSS custom properties for the colour palette live in `src/styles/global.css` |
 | Package manager | pnpm (lockfile committed); Node ≥ 22.12 |
 | Host | Cloudflare Pages (`fleetlix-marketing` project, `main` branch auto-deploys) |
@@ -70,7 +70,6 @@ fleetlix-marketing/
 └── public/
     ├── _headers                # CSP + cache rules (Cloudflare reads this verbatim)
     ├── fonts/                  # self-hosted Inter + Space Grotesk (woff2)
-    ├── hero/hero.webm          # cinematic loop, attached after LCP
     └── *.{svg,png,ico}         # logos, favicons
 ```
 
@@ -78,7 +77,7 @@ fleetlix-marketing/
 
 | Route | Purpose |
 |---|---|
-| `/` | Homepage: Hero → BuiltForRoad → FrontReveal → MotionProduct → FeatureGrid → WhyPwa → WhoFor → Faq → (PricingSection \| InterestForm) → (CtaFooter when SHOW_CONTACT) → SiteFooter |
+| `/` | Homepage: Hero → BuiltForRoad → ProductShowcase → StatBand → FrontReveal → MotionProduct → FeatureGrid → WhyPwa → WhoFor → ComplianceCountdown → (PricingSection when SHOW_PRICING) → Faq → InterestForm → (CtaFooter when SHOW_CONTACT) → SiteFooter. `ProductShowcase` (`#product-tour`) is a hand-built CSS/SVG mock of the app (no screenshots); `StatBand` shows count-up market figures. `InterestForm` always renders — it's the conversion action while pre-launch, and every pricing CTA anchors to it. |
 | `/privacy` | UK GDPR policy. Update the `lastUpdated` const when material content changes. |
 | `/cookies` | PECR cookie policy. Asserts "no first-party cookies, no analytics". |
 | `/thank-you` | Post-payment landing. Links to `https://app.fleetlix.com` (not yet live). |
@@ -87,7 +86,7 @@ fleetlix-marketing/
 ### Conversion path
 
 - **Header.** Desktop nav at `sm:` and up. On mobile (`<sm`), a `<details>`/`<summary>` hamburger opens a drop-down panel (no JS for the disclosure itself; a small inline script closes it on link tap or outside click). When `SHOW_CONTACT` is off, the header's right-side CTA defaults to "Register interest" (amber) → `#register-interest`.
-- **Hero.** Primary amber "Register your interest" CTA → `#register-interest` is the load-bearing above-the-fold action. "See how it works" → `#built` sits beside it as a tertiary outline button.
+- **Hero.** Primary amber "Register your interest" CTA → `#register-interest` is the load-bearing above-the-fold action. "See how it works" → `#product-tour` (the ProductShowcase mock) sits beside it as a tertiary outline button; the centred scroll-cue still points at `#built`.
 - **Interest form.** Always rendered inline (no modal, no trigger click). Below `lg:` the copy stacks above the form card; at `lg:` and up the copy sits to the left of the form. The submit button is the only action.
 
 ## Responsive breakpoints
@@ -112,7 +111,7 @@ Always test at **375px (iPhone SE)** before merge — that's the narrowest targe
 
 ## Feature flags — `src/config/featureFlags.ts`
 
-- **`SHOW_PRICING`** (currently `false`) — when off: Pricing nav link, `PricingSection`, and hero "Prices from £79/month" CTA are hidden. The homepage renders `InterestForm` in PricingSection's slot.
+- **`SHOW_PRICING`** (currently `true`) — when on: the Pricing nav link, `PricingSection` (five fixed plans mirroring `Resources/Pricing.md`: Operator £79 / Workshop £189 / Depot £350 / Haulier £550 / Network £899), and the hero "Prices from £79/month" CTA (→ `#pricing`) are rendered. `InterestForm` renders regardless of this flag. The old Stripe checkout links were removed with the retired tier structure (prices changed, Haulier didn't exist) — pricing CTAs anchor to `#register-interest` until real per-plan links are wired at launch. If `Resources/Pricing.md` and the app repo's `shared/plans/index.ts` disagree, the code wins.
 - **`SHOW_CONTACT`** (currently `false`) — when off: "Book a demo" CTAs in Header + Hero, the Contact nav link, the `CtaFooter` section, and the footer email are all hidden. Legal pages keep their statutory data-protection contact regardless.
 
 Credentials and email addresses stay in source even when flags are off — only the rendered surface is cut.
@@ -223,9 +222,9 @@ iPhone is a first-class target. The bar is **the apple.com/uk pattern**: vertica
 
 ## Performance
 
-- **Hero LCP** is `aerial.png` (the opening frame of `hero.webm`, so the still-to-video handoff is seamless) served as AVIF via `<Picture>` with `loading="eager" fetchpriority="high"`. The `/hero/hero.webm` aerial loop attaches lazily after the LCP via `cinematic.ts` — it must never compete with the LCP image.
+- **Hero LCP** is the `<h1>` text itself — the hero backdrop is a code-drawn SVG/CSS "live network" scene (route arteries with travelling comet lights, radar pings, grid, aurora) with **zero media bytes** on the critical path. All continuous motion is gated behind `prefers-reduced-motion`; the static composition reads complete without it. The old `hero.webm` loop and `aerial.png` still were removed (webm deleted from `public/`; `aerial.png` remains in `src/assets/hero/` unimported, so Astro emits no variants for it). Don't reintroduce hero media without checking it can't regress the LCP.
 - **Self-hosted fonts** are preloaded for only the two display variants used above the fold (Space Grotesk 700, Inter 400). FOUT on other weights is cheaper than the extra round-trips.
-- Astro emits ~46 image variants from 4 hero PNGs. If that grows substantially, audit before merging.
+- Astro emits ~34 image variants from 3 hero PNGs (`road`, `front`, `wheel`). If that grows substantially, audit before merging.
 
 ## Deployment
 

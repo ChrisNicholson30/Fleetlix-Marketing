@@ -28,7 +28,7 @@ export const faqItems: FaqItem[] = [
   {
     question: "How much does Fleetlix cost?",
     answer:
-      "Packages start at £79 per month, with custom tiers for larger fleets. That sits well below enterprise incumbents like Access Weighsoft, Mandata, and HaulTech, and a clear step up from the spreadsheet-and-paper status quo.",
+      "Five plans, from £79 to £899 per month: Operator, Workshop, Depot, Haulier, and Network. Every plan runs the full operations platform — tiers differ by team size and which commercial modules are unlocked. That sits well below enterprise incumbents like Access Weighsoft, Mandata, and HaulTech, and a clear step up from the spreadsheet-and-paper status quo.",
   },
   {
     question: "Do drivers need to install an app?",

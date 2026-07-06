@@ -3,6 +3,8 @@ import Base from "../layouts/Base.astro";
 import Header from "../components/Header.astro";
 import Hero from "../components/Hero.astro";
 import BuiltForRoad from "../components/BuiltForRoad.astro";
+import ProductShowcase from "../components/ProductShowcase.astro";
+import StatBand from "../components/StatBand.astro";
 import FrontReveal from "../components/FrontReveal.astro";
 import MotionProduct from "../components/MotionProduct.astro";
 import FeatureGrid from "../components/FeatureGrid.astro";
@@ -10,7 +12,7 @@ import WhyPwa from "../components/WhyPwa.astro";
 import WhoFor from "../components/WhoFor.astro";
 import ComplianceCountdown from "../components/ComplianceCountdown.astro";
 import Faq from "../components/Faq.astro";
-import PricingSection from "../components/PricingSection";
+import PricingSection from "../components/PricingSection.astro";
 import InterestForm from "../components/InterestForm";
 import CtaFooter from "../components/CtaFooter.astro";
 import SiteFooter from "../components/SiteFooter.astro";
@@ -96,18 +98,34 @@ const homepageJsonLd = {
   <main>
     <Hero />
     <BuiltForRoad />
+    <ProductShowcase />
+    <StatBand />
     <FrontReveal />
     <MotionProduct />
     <FeatureGrid />
     <WhyPwa />
     <WhoFor />
     <ComplianceCountdown />
+    {SHOW_PRICING && <PricingSection />}
     <Faq />
-    {SHOW_PRICING ? <PricingSection client:visible /> : <InterestForm client:visible />}
+    <InterestForm client:visible />
     {SHOW_CONTACT && <CtaFooter />}
   </main>
   <SiteFooter />
   <script type="application/ld+json" set:html={JSON.stringify(homepageJsonLd)} />
+  <!-- Scroll-reveal elements start at opacity 0 (md+) and wait for JS to add
+       .is-visible. With JS disabled that never happens — force everything
+       visible. Inline <style> is fine: style-src allows 'unsafe-inline'. -->
+  <noscript>
+    <style>
+      [data-reveal] {
+        opacity: 1 !important;
+        transform: none !important;
+        filter: none !important;
+        clip-path: none !important;
+      }
+    </style>
+  </noscript>
 </Base>
 
 <script>

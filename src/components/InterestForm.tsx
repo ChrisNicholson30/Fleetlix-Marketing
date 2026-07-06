@@ -323,7 +323,7 @@ export default function InterestForm() {
                     <button
                       type="submit"
                       disabled={submitting}
-                      className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-[color:var(--color-amber)] px-6 py-3 text-base font-semibold text-[color:var(--color-graphite)] shadow-lg shadow-black/20 ring-1 ring-[color:var(--color-amber)]/40 hover:brightness-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--color-amber)] transition disabled:opacity-60 disabled:cursor-not-allowed"
+                      className="btn-sheen w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-[color:var(--color-amber)] px-6 py-3 text-base font-semibold text-[color:var(--color-graphite)] shadow-lg shadow-black/20 ring-1 ring-[color:var(--color-amber)]/40 hover:brightness-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--color-amber)] transition disabled:opacity-60 disabled:cursor-not-allowed"
                       style={{ transitionTimingFunction: EASING }}
                     >
                       {submitting ? (

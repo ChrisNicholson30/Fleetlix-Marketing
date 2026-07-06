@@ -1,38 +1,61 @@
 ---
 const audiences = [
   {
+    accent: "cyan",
     title: "Skip-hire operators",
     body: "Running 5–50 vehicles, currently on paper or basic ticketing software.",
+    icon: `<path d="M2.5 9h19l-1.2 8.2a2 2 0 0 1-2 1.8H5.7a2 2 0 0 1-2-1.8L2.5 9Z"/><path d="M6 9V6h12v3"/><path d="M9 13h6"/>`,
   },
   {
+    accent: "amber",
     title: "Small-to-medium hauliers",
     body: "Under 50 vehicles — the bottom 90% of the UK's ~57,000 licensed operators.",
+    icon: `<path d="M3 6.5h11v8.5H3z"/><path d="M14 9h3.5l3 3v3H14z"/><circle cx="7" cy="17.5" r="1.7"/><circle cx="17" cy="17.5" r="1.7"/>`,
   },
   {
+    accent: "cyan",
     title: "Waste collectors",
     body: "Trade waste, mixed waste, and aggregate sectors. Modern tools at non-enterprise prices.",
+    icon: `<path d="M4 7h16"/><path d="M9 7V5h6v2"/><path d="M6.5 7l1 12a2 2 0 0 0 2 1.9h5a2 2 0 0 0 2-1.9l1-12"/><path d="M10.5 11v5M13.5 11v5"/>`,
   },
 ];
+
+const stagger = ["[--stagger:0ms]", "[--stagger:110ms]", "[--stagger:220ms]"];
 ---
 
 <section id="who" class="bg-[color:var(--color-offwhite)]">
   <div class="mx-auto max-w-7xl px-6 py-20 md:py-28">
     <div class="grid md:grid-cols-12 gap-10 items-start">
       <div class="md:col-span-5">
-        <p class="text-xs font-semibold tracking-[0.18em] uppercase text-[color:var(--color-cyan)]">Who it's for</p>
-        <h2 class="mt-3 font-[family-name:var(--font-display)] font-extrabold text-3xl md:text-4xl text-[color:var(--color-graphite)] tracking-tight">
+        <p class="text-xs font-semibold tracking-[0.18em] uppercase text-[color:var(--color-cyan)]" data-reveal>Who it's for</p>
+        <h2 class="mt-3 font-[family-name:var(--font-display)] font-extrabold text-3xl md:text-4xl text-[color:var(--color-graphite)] tracking-tight [--stagger:80ms]" data-reveal="clip">
           Built for the underserved 90% of UK transport.
         </h2>
-        <p class="mt-4 text-[color:var(--color-slate)] text-lg">
-          Modern, mobile-first, from £79/month with custom tiers above — well below enterprise incumbents like Access Weighsoft,
+        <p class="mt-4 text-[color:var(--color-slate)] text-lg [--stagger:160ms]" data-reveal>
+          Modern, mobile-first, five plans from £79 to £899/month — well below enterprise incumbents like Access Weighsoft,
           Mandata, and HaulTech, and well above the spreadsheet-and-paper status quo.
         </p>
       </div>
       <div class="md:col-span-7 grid sm:grid-cols-1 gap-4">
-        {audiences.map((a) => (
-          <div class="rounded-2xl bg-white border border-[color:var(--color-mist)] p-7">
-            <h3 class="font-[family-name:var(--font-display)] font-bold text-xl text-[color:var(--color-graphite)]">{a.title}</h3>
-            <p class="mt-2 text-[color:var(--color-slate)]">{a.body}</p>
+        {audiences.map((a, i) => (
+          <div
+            class={`card-glow group flex items-start gap-5 rounded-2xl bg-white border border-[color:var(--color-mist)] p-7 transition duration-300 hover:-translate-y-1 hover:border-[color:var(--color-graphite)]/15 hover:shadow-xl hover:shadow-[color:var(--color-graphite)]/5 ${
+              a.accent === "amber" ? "glow-amber" : "glow-cyan"
+            } ${stagger[i]}`}
+            data-reveal
+            data-spotlight
+          >
+            <span class={`inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-xl transition-transform duration-300 group-hover:scale-105 ${
+              a.accent === "amber"
+                ? "bg-[color:var(--color-amber)]/12 text-[color:var(--color-amber)] ring-1 ring-[color:var(--color-amber)]/20"
+                : "bg-[color:var(--color-cyan)]/12 text-[color:var(--color-cyan)] ring-1 ring-[color:var(--color-cyan)]/20"
+            }`}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" set:html={a.icon} />
+            </span>
+            <div>
+              <h3 class="font-[family-name:var(--font-display)] font-bold text-xl text-[color:var(--color-graphite)]">{a.title}</h3>
+              <p class="mt-2 text-[color:var(--color-slate)]">{a.body}</p>
+            </div>
           </div>
         ))}
       </div>

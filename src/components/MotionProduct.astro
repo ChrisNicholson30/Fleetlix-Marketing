@@ -4,16 +4,22 @@ import wheel from "../assets/hero/wheel.png";
 
 const cards = [
   {
+    accent: "amber",
     title: "Live tracking",
     body: "Every job and vehicle on one live map. The office knows where the fleet is without picking up the phone.",
+    icon: `<path d="M12 21s-7-4.35-7-10a7 7 0 0 1 14 0c0 5.65-7 10-7 10Z"/><circle cx="12" cy="11" r="2.5"/>`,
   },
   {
+    accent: "cyan",
     title: "Walk-around checks",
     body: "DVSA-compliant checks completed in the cab, time-stamped, with photos. Defects route straight to the workshop.",
+    icon: `<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4.5V3.5h6v1"/><path d="M8.5 12.5l2.5 2.5 4-4.5"/>`,
   },
   {
+    accent: "amber",
     title: "Work orders",
     body: "A failed check becomes a work order in a tap — driver's name snapshotted, vehicle flagged off-road if needed.",
+    icon: `<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.6-3.6a6 6 0 0 1-7.9 7.9l-6.9 6.9a2.1 2.1 0 0 1-3-3l6.9-6.9a6 6 0 0 1 7.9-7.9l-3.6 3.6z"/>`,
   },
 ];
 
@@ -60,11 +66,18 @@ const stagger = ["[--stagger:0ms]", "[--stagger:130ms]", "[--stagger:260ms]"];
         <div class="mt-10 md:mt-14 grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {cards.map((c, i) => (
             <article
-              class={`rounded-2xl border border-white/15 bg-white/8 p-6 backdrop-blur-md ${stagger[i]}`}
+              class={`card-glow group rounded-2xl border border-white/15 bg-white/8 p-6 backdrop-blur-md transition duration-300 hover:-translate-y-1 hover:border-white/30 ${
+                c.accent === "amber" ? "glow-amber" : "glow-cyan"
+              } ${stagger[i]}`}
               data-reveal
+              data-spotlight
             >
-              <div class="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-[color:var(--color-amber)]/20 text-[color:var(--color-amber)]">
-                <span class="block h-3 w-3 rounded-sm bg-[color:var(--color-amber)]"></span>
+              <div class={`inline-flex h-11 w-11 items-center justify-center rounded-xl transition-transform duration-300 group-hover:scale-105 ${
+                c.accent === "amber"
+                  ? "bg-[color:var(--color-amber)]/20 text-[color:var(--color-amber)] ring-1 ring-[color:var(--color-amber)]/25"
+                  : "bg-[color:var(--color-cyan)]/20 text-[color:var(--color-cyan)] ring-1 ring-[color:var(--color-cyan)]/25"
+              }`}>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" set:html={c.icon} />
               </div>
               <h3 class="mt-4 font-[family-name:var(--font-display)] font-bold text-xl text-white">{c.title}</h3>
               <p class="mt-2 text-white/75 leading-relaxed">{c.body}</p>

@@ -1,0 +1,83 @@
+---
+// Proof band — the market story in four numbers: a large, underserved base
+// that overpays. Figures animate up on first view (see the count-up handler in
+// cinematic.ts, which reads the data-count attributes); reduced-motion visitors
+// get the final values immediately. The build-time text content below is the
+// finished value, so no-JS visitors and crawlers read a sensible figure too.
+const stats = [
+  {
+    count: "57000",
+    display: "57,000",
+    label: "Licensed UK operators",
+    note: "The market Fleetlix is built for.",
+    accent: "cyan",
+  },
+  {
+    count: "90",
+    suffix: "%",
+    display: "90%",
+    label: "Still on paper or spreadsheets",
+    note: "Underserved by today's software.",
+    accent: "amber",
+  },
+  {
+    count: "79",
+    prefix: "£",
+    display: "£79",
+    label: "Where Fleetlix starts, per month",
+    note: "Every role. One login.",
+    accent: "cyan",
+  },
+  {
+    count: "18000",
+    prefix: "£",
+    display: "£18,000",
+    label: "The legacy software it replaces",
+    note: "Enterprise pricing, SME operation.",
+    accent: "amber",
+  },
+];
+---
+
+<section class="overflow-clip bg-[color:var(--color-offwhite)] border-y border-[color:var(--color-mist)]">
+  <div class="mx-auto max-w-7xl px-6 py-16 md:py-20">
+    <div class="max-w-2xl" data-reveal>
+      <p class="text-xs font-semibold tracking-[0.18em] uppercase text-[color:var(--color-cyan)]">
+        Why now
+      </p>
+      <h2 class="mt-3 font-[family-name:var(--font-display)] font-extrabold text-2xl md:text-3xl text-[color:var(--color-graphite)] tracking-tight">
+        A big market, underserved, and overpaying.
+      </h2>
+    </div>
+
+    <dl class="mt-10 grid grid-cols-2 lg:grid-cols-4 rounded-2xl border border-[color:var(--color-mist)] bg-white overflow-hidden">
+      {stats.map((s, i) => (
+        <div
+          class={`relative p-5 sm:p-6 md:p-8 border-[color:var(--color-mist)] ${
+            i % 2 === 0 ? "border-r" : ""
+          } ${i < 2 ? "border-b lg:border-b-0" : ""} ${i !== 3 ? "lg:border-r" : ""}`}
+          data-reveal
+        >
+          <span
+            aria-hidden="true"
+            class={`absolute left-0 top-0 h-1 w-12 ${
+              s.accent === "amber"
+                ? "bg-[color:var(--color-amber)]"
+                : "bg-[color:var(--color-cyan)]"
+            }`}
+          ></span>
+          <dd
+            class="font-[family-name:var(--font-display)] font-extrabold text-[1.75rem] sm:text-4xl md:text-5xl tracking-tight tabular-nums text-[color:var(--color-graphite)]"
+            data-count={s.count}
+            data-count-prefix={s.prefix ?? ""}
+            data-count-suffix={s.suffix ?? ""}
+          >
+            {s.display}
+          </dd>
+          <dt class="mt-3 font-semibold text-[color:var(--color-graphite)]">{s.label}</dt>
+          <p class="mt-1 text-sm text-[color:var(--color-slate)]">{s.note}</p>
+        </div>
+      ))}
+    </dl>
+  </div>
+</section>

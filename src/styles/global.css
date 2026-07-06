@@ -74,6 +74,12 @@
     color: var(--color-graphite);
     letter-spacing: -0.02em;
   }
+
+  /* Brand text selection — amber highlight, graphite text. */
+  ::selection {
+    background-color: var(--color-amber);
+    color: var(--color-graphite);
+  }
 }
 
 /* ------------------------------------------------------------------ *
@@ -140,13 +146,6 @@
       to { opacity: 1; }
     }
 
-    /* Hero aerial loop fades in once attached */
-    .hero-video {
-      opacity: 0;
-      transition: opacity 1.2s ease;
-    }
-    .hero-video.is-playing { opacity: 1; }
-
     /* CTA wordmark draw-in: stroke paths + wipe, triggered by .is-visible */
     /* Paths declare pathLength="100" so the draw is length-independent. */
     .wordmark-stroke {
@@ -171,4 +170,199 @@
       to { opacity: 1; clip-path: inset(0 0 0 0); }
     }
   }
+}
+
+/* ================================================================== *
+ * Design-system motion + surface primitives (redesign layer)
+ *
+ * Hand-written CSS (not Tailwind utilities) so it survives purge and
+ * keeps a single, findable home. Everything decorative and continuous
+ * is gated behind prefers-reduced-motion: no-preference; pointer- and
+ * hover-driven effects (spotlight, sheen) are colour/opacity only and
+ * safe to leave on. No inline <style> is introduced — the strict CSP
+ * stays intact (style-src still only needs 'self' 'unsafe-inline').
+ * ================================================================== */
+
+/* ---- Extra scroll-reveal variants (match the md+ gating above) ---- */
+@layer base {
+  @media (prefers-reduced-motion: no-preference) and (min-width: 768px) {
+    /* Soft focus-in: pairs with the base translateY for a filmic settle. */
+    [data-reveal="blur"] {
+      transform: translateY(20px) scale(0.985);
+      filter: blur(10px);
+      transition:
+        opacity 0.9s cubic-bezier(0.22, 1, 0.36, 1),
+        transform 0.9s cubic-bezier(0.22, 1, 0.36, 1),
+        filter 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+      transition-delay: var(--stagger, 0ms);
+    }
+    [data-reveal="blur"].is-visible { filter: blur(0); }
+
+    /* Wipe-up: reveals from a clipped baseline, good for headings. */
+    [data-reveal="clip"] {
+      opacity: 1;
+      clip-path: inset(0 0 100% 0);
+      transform: translateY(6px);
+      transition:
+        clip-path 1s cubic-bezier(0.22, 1, 0.36, 1),
+        transform 1s cubic-bezier(0.22, 1, 0.36, 1);
+      transition-delay: var(--stagger, 0ms);
+    }
+    [data-reveal="clip"].is-visible { clip-path: inset(0 0 0 0); transform: none; }
+  }
+}
+
+/* ---- Animated aurora field (dark sections) ----
+ * Two slow-drifting radial blobs. Static (no drift) under reduced motion
+ * so the composition still reads. Blobs are pointer-transparent decoration. */
+.aurora { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.aurora-blob {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(70px);
+  opacity: 0.5;
+  will-change: transform;
+}
+.aurora-blob--amber {
+  background: radial-gradient(circle at center, var(--color-amber), transparent 68%);
+}
+.aurora-blob--cyan {
+  background: radial-gradient(circle at center, var(--color-cyan), transparent 68%);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .aurora-blob--amber { animation: auroraA 24s ease-in-out infinite alternate; }
+  .aurora-blob--cyan { animation: auroraB 30s ease-in-out infinite alternate; }
+  @keyframes auroraA {
+    from { transform: translate3d(-6%, -4%, 0) scale(1); }
+    to { transform: translate3d(8%, 6%, 0) scale(1.18); }
+  }
+  @keyframes auroraB {
+    from { transform: translate3d(6%, 8%, 0) scale(1.1); }
+    to { transform: translate3d(-8%, -6%, 0) scale(0.92); }
+  }
+}
+
+/* ---- Gradient text ----
+ * Static amber→cyan clip; the -animate variant pans the gradient. Falls
+ * back to a plain painted gradient under reduced motion. */
+.text-gradient {
+  background-image: linear-gradient(100deg, var(--color-amber), var(--color-cyan) 60%, var(--color-amber));
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .text-gradient--animate { animation: textPan 8s linear infinite; }
+  @keyframes textPan { to { background-position: 200% center; } }
+}
+
+/* ---- Cursor spotlight for cards ----
+ * JS writes --mx/--my (percentages) on pointermove; the glow tints the
+ * card toward its --glow accent (default cyan). Purely opacity/colour,
+ * so it stays on under reduced motion. Children lift above the glow. */
+.card-glow { position: relative; }
+.card-glow::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+    340px circle at var(--mx, 50%) var(--my, 0%),
+    color-mix(in srgb, var(--glow, var(--color-cyan)) 24%, transparent),
+    transparent 62%
+  );
+  opacity: 0;
+  transition: opacity 0.45s ease;
+  pointer-events: none;
+}
+.card-glow:hover::before,
+.card-glow:focus-within::before { opacity: 1; }
+.card-glow > * { position: relative; z-index: 1; }
+.glow-cyan { --glow: var(--color-cyan); }
+.glow-amber { --glow: var(--color-amber); }
+
+/* ---- Gradient hairline border (opt-in ring) ---- */
+.ring-gradient {
+  background:
+    linear-gradient(var(--ring-bg, var(--color-graphite)), var(--ring-bg, var(--color-graphite))) padding-box,
+    linear-gradient(135deg, var(--color-amber), var(--color-cyan)) border-box;
+  border: 1px solid transparent;
+}
+
+/* ---- Header scroll-progress bar ----
+ * JS sets --scroll (0–1). scaleX keeps it on the compositor. */
+.scroll-progress {
+  transform: scaleX(var(--scroll, 0));
+  transform-origin: left center;
+  background-image: linear-gradient(90deg, var(--color-amber), var(--color-cyan));
+}
+
+/* ---- Active-section nav underline ----
+ * The dot/underline scales in when JS marks a link .is-active. */
+.nav-link { position: relative; }
+.nav-link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -0.35rem;
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, var(--color-amber), var(--color-cyan));
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.nav-link:hover::after { transform: scaleX(0.4); }
+.nav-link.is-active::after { transform: scaleX(1); }
+.nav-link.is-active { color: var(--color-graphite); }
+
+/* ---- Button sheen ---- a single slow pass of light on hover. */
+.btn-sheen { position: relative; overflow: hidden; isolation: isolate; }
+.btn-sheen::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(115deg, transparent 30%, rgba(255, 255, 255, 0.45) 50%, transparent 70%);
+  transform: translateX(-120%);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .btn-sheen:hover::after { animation: sheen 0.9s ease; }
+  @keyframes sheen { to { transform: translateX(120%); } }
+}
+
+/* ---- Ambient loops for the product mock (dark UI) ----
+ * transform-box/origin so scale() pivots on each shape's own centre — needed
+ * because SVG elements otherwise transform about the SVG's 0,0 origin. */
+.live-dot, .ping-ring { transform-box: fill-box; transform-origin: center; }
+@media (prefers-reduced-motion: no-preference) {
+  .live-dot { animation: livePulse 2.4s ease-in-out infinite; }
+  @keyframes livePulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.55; transform: scale(0.82); }
+  }
+  .ping-ring { animation: ping 2.6s cubic-bezier(0, 0, 0.2, 1) infinite; }
+  @keyframes ping {
+    0% { transform: scale(0.6); opacity: 0.7; }
+    80%, 100% { transform: scale(2.4); opacity: 0; }
+  }
+  .float-soft { animation: floatSoft 6s ease-in-out infinite; }
+  @keyframes floatSoft {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+  }
+  /* Dispatch route line drawing itself once revealed. */
+  .route-draw { stroke-dasharray: 1; stroke-dashoffset: 1; }
+  .is-visible .route-draw { animation: routeDraw 2.2s ease forwards 0.3s; }
+  @keyframes routeDraw { to { stroke-dashoffset: 0; } }
+  /* Marquee track for the "runs anywhere" device strip. */
+  .marquee-track { animation: marquee 32s linear infinite; }
+  @keyframes marquee { to { transform: translateX(-50%); } }
+}
+.marquee-mask {
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
 }

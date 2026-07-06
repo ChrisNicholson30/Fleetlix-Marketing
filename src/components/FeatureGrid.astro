@@ -1,60 +1,85 @@
 ---
+// Crafted line-icons (currentColor, tinted by the accent token) replace the old
+// placeholder squares. Each card is a cursor-spotlight surface: card-glow draws
+// the radial tint, data-spotlight lets cinematic.ts steer it to the pointer.
 const features = [
   {
     accent: "amber",
     title: "Office dashboard",
     body: "Job intake, dispatch, customers, invoicing, reporting. Everything the office needs without leaving the browser tab.",
+    icon: `<rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/>`,
   },
   {
     accent: "cyan",
     title: "Driver PWA",
     body: "Daily run sheet, DVSA-compliant walk-around checks, proof of delivery, signature and photo capture — on any phone.",
+    icon: `<rect x="6" y="2.5" width="12" height="19" rx="3"/><path d="M10.5 18.5h3"/>`,
   },
   {
     accent: "amber",
     title: "Yard view",
     body: "Weighbridge tickets, gate management, container tracking. Designed for a touchscreen on a counter.",
+    icon: `<path d="M3 21V9l9-5 9 5v12"/><path d="M9 21v-8h6v8"/>`,
   },
   {
     accent: "cyan",
     title: "Maintenance",
     body: "Workshop logs defects, schedules repairs, closes the loop with drivers. Vehicles automatically flagged off-road when needed.",
+    icon: `<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.6-3.6a6 6 0 0 1-7.9 7.9l-6.9 6.9a2.1 2.1 0 0 1-3-3l6.9-6.9a6 6 0 0 1 7.9-7.9l-3.6 3.6z"/>`,
   },
   {
     accent: "amber",
     title: "Automated compliance",
     body: "Waste Transfer Notes and Weighbridge Tickets generated as PDFs without a single re-typed field.",
+    icon: `<path d="M12 3l7 3v6c0 4-3 6.5-7 9-4-2.5-7-5-7-9V6l7-3Z"/><path d="M9 12l2 2 4-4"/>`,
   },
   {
     accent: "cyan",
     title: "Customer portal",
     body: "Customers raise jobs from their own website, see live status, settle invoices. Less phone, more visibility.",
+    icon: `<circle cx="9" cy="8" r="3.2"/><path d="M3.5 20a5.5 5.5 0 0 1 11 0"/><path d="M16 6.2a3 3 0 0 1 0 5.6M18.5 20a5.5 5.5 0 0 0-3-4.9"/>`,
   },
+];
+
+// Literal stagger classes so Tailwind's JIT emits them.
+const stagger = [
+  "[--stagger:0ms]",
+  "[--stagger:80ms]",
+  "[--stagger:160ms]",
+  "[--stagger:240ms]",
+  "[--stagger:320ms]",
+  "[--stagger:400ms]",
 ];
 ---
 
 <section id="product" class="bg-[color:var(--color-offwhite)] border-y border-[color:var(--color-mist)]">
   <div class="mx-auto max-w-7xl px-6 py-20 md:py-28">
     <div class="max-w-2xl">
-      <p class="text-xs font-semibold tracking-[0.18em] uppercase text-[color:var(--color-cyan)]">What you get</p>
-      <h2 class="mt-3 font-[family-name:var(--font-display)] font-extrabold text-3xl md:text-4xl text-[color:var(--color-graphite)] tracking-tight">
+      <p class="text-xs font-semibold tracking-[0.18em] uppercase text-[color:var(--color-cyan)]" data-reveal>What you get</p>
+      <h2 class="mt-3 font-[family-name:var(--font-display)] font-extrabold text-3xl md:text-4xl text-[color:var(--color-graphite)] tracking-tight [--stagger:80ms]" data-reveal="clip">
         The whole operational loop, in one product.
       </h2>
-      <p class="mt-4 text-[color:var(--color-slate)] text-lg">
+      <p class="mt-4 text-[color:var(--color-slate)] text-lg [--stagger:160ms]" data-reveal>
         Drivers, yard staff, mechanics and office all share one Supabase-backed database with
         role-based access. Live updates everywhere. An append-only audit trail for regulated workflows.
       </p>
     </div>
 
     <div class="mt-12 grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      {features.map((f) => (
-        <article class="group relative rounded-2xl bg-white p-7 border border-[color:var(--color-mist)] hover:border-[color:var(--color-graphite)] transition-colors">
-          <div class={`inline-flex h-10 w-10 items-center justify-center rounded-lg ${
+      {features.map((f, i) => (
+        <article
+          class={`card-glow group relative rounded-2xl bg-white p-7 border border-[color:var(--color-mist)] transition duration-300 hover:-translate-y-1 hover:border-[color:var(--color-graphite)]/15 hover:shadow-xl hover:shadow-[color:var(--color-graphite)]/5 ${
+            f.accent === "amber" ? "glow-amber" : "glow-cyan"
+          } ${stagger[i]}`}
+          data-reveal
+          data-spotlight
+        >
+          <div class={`inline-flex h-11 w-11 items-center justify-center rounded-xl transition-transform duration-300 group-hover:scale-105 ${
             f.accent === "amber"
-              ? "bg-[color:var(--color-amber)]/15 text-[color:var(--color-amber)]"
-              : "bg-[color:var(--color-cyan)]/15 text-[color:var(--color-cyan)]"
+              ? "bg-[color:var(--color-amber)]/12 text-[color:var(--color-amber)] ring-1 ring-[color:var(--color-amber)]/20"
+              : "bg-[color:var(--color-cyan)]/12 text-[color:var(--color-cyan)] ring-1 ring-[color:var(--color-cyan)]/20"
           }`}>
-            <span class="block h-3 w-3 rounded-sm" style={`background-color: ${f.accent === "amber" ? "#FF8A00" : "#0098C7"}`}></span>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" set:html={f.icon} />
           </div>
           <h3 class="mt-5 font-[family-name:var(--font-display)] font-bold text-xl text-[color:var(--color-graphite)]">{f.title}</h3>
           <p class="mt-2 text-[color:var(--color-slate)] leading-relaxed">{f.body}</p>

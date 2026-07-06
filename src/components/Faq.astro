@@ -21,18 +21,18 @@ import { faqItems } from "../config/faq";
       </p>
     </div>
 
-    <div class="mt-10 md:mt-12 divide-y divide-[color:var(--color-mist)] border-y border-[color:var(--color-mist)]">
+    <div class="mt-10 md:mt-12 divide-y divide-[color:var(--color-mist)] border-y border-[color:var(--color-mist)]" data-reveal>
       {faqItems.map((item) => (
         <details class="faq-item group">
           <summary
-            class="flex cursor-pointer list-none items-center justify-between gap-4 py-5 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--color-cyan)]"
+            class="flex cursor-pointer list-none items-center justify-between gap-4 py-5 px-2 -mx-2 rounded-lg text-left transition-colors hover:bg-[color:var(--color-mist)]/40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--color-cyan)]"
           >
             <h3 class="font-[family-name:var(--font-display)] font-bold text-lg md:text-xl text-[color:var(--color-graphite)]">
               {item.question}
             </h3>
             <span
               aria-hidden="true"
-              class="faq-icon mt-1 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[color:var(--color-mist)] bg-white text-[color:var(--color-cyan)] transition-transform"
+              class="faq-icon mt-1 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[color:var(--color-mist)] bg-white text-[color:var(--color-cyan)] transition-transform group-hover:border-[color:var(--color-cyan)]/40"
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5">
                 <path d="M12 5v14M5 12h14" />

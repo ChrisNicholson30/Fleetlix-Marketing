@@ -16,28 +16,33 @@ const points = [
     body: "iOS, Android, Windows, macOS, ChromeOS — and the yard's dusty kiosk PC. Less native overhead means packages start at £79/month.",
   },
 ];
+
+const stagger = ["[--stagger:0ms]", "[--stagger:120ms]", "[--stagger:240ms]"];
 ---
 
-<section id="why-pwa" class="relative bg-[color:var(--color-graphite)] text-white">
-  <div class="mx-auto max-w-7xl px-6 py-20 md:py-28">
+<section id="why-pwa" class="relative overflow-clip bg-[color:var(--color-graphite)] text-white">
+  <div aria-hidden="true" class="aurora opacity-25">
+    <div class="aurora-blob aurora-blob--amber top-1/2 -left-32 h-[26rem] w-[26rem]"></div>
+  </div>
+  <div class="relative mx-auto max-w-7xl px-6 py-20 md:py-28">
     <div class="max-w-2xl">
-      <p class="text-xs font-semibold tracking-[0.18em] uppercase text-[color:var(--color-amber)]">Why a PWA</p>
-      <h2 class="mt-3 font-[family-name:var(--font-display)] font-extrabold text-3xl md:text-4xl tracking-tight">
+      <p class="text-xs font-semibold tracking-[0.18em] uppercase text-[color:var(--color-amber)]" data-reveal>Why a PWA</p>
+      <h2 class="mt-3 font-[family-name:var(--font-display)] font-extrabold text-3xl md:text-4xl tracking-tight [--stagger:80ms]" data-reveal="clip">
         Adoption friction near-zero. By design.
       </h2>
-      <p class="mt-4 text-white/70 text-lg">
+      <p class="mt-4 text-white/70 text-lg [--stagger:160ms]" data-reveal>
         The Progressive Web App delivery model is the foundational design choice Fleetlix is built around.
         Every other decision flows from it.
       </p>
     </div>
 
-    <div class="mt-14 grid md:grid-cols-3 gap-8">
-      {points.map((p) => (
-        <div class="relative">
-          <span class="font-[family-name:var(--font-display)] font-extrabold text-7xl text-[color:var(--color-amber)]/70 leading-none">
+    <div class="mt-14 grid md:grid-cols-3 gap-px rounded-2xl bg-white/10 overflow-hidden border border-white/10">
+      {points.map((p, i) => (
+        <div class={`group relative bg-[color:var(--color-graphite)] p-8 transition-colors hover:bg-white/[0.03] ${stagger[i]}`} data-reveal>
+          <span class="font-[family-name:var(--font-display)] font-extrabold text-6xl leading-none text-gradient">
             {p.n}
           </span>
-          <h3 class="mt-4 font-[family-name:var(--font-display)] font-bold text-2xl text-white">{p.title}</h3>
+          <h3 class="mt-5 font-[family-name:var(--font-display)] font-bold text-2xl text-white">{p.title}</h3>
           <p class="mt-3 text-white/70 leading-relaxed">{p.body}</p>
         </div>
       ))}
