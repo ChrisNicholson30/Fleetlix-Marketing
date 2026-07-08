@@ -31,6 +31,11 @@ export const faqItems: FaqItem[] = [
       "Five plans, from £79 to £899 per month: Operator, Workshop, Depot, Haulier, and Network. Every plan runs the full operations platform — tiers differ by team size and which commercial modules are unlocked. That sits well below enterprise incumbents like Access Weighsoft, Mandata, and HaulTech, and a clear step up from the spreadsheet-and-paper status quo.",
   },
   {
+    question: "Does Fleetlix support haulage operators?",
+    answer:
+      "Fleetlix is launching for waste, skip-hire, and waste-carrier operators first — that is where the product is focused today. Dedicated haulage support is expected in March 2027. If you run a haulage fleet, register your interest now and we will let you know the moment it is ready.",
+  },
+  {
     question: "Do drivers need to install an app?",
     answer:
       "No. Fleetlix is a Progressive Web App, so drivers simply open a link — there is nothing to download from an app store and nothing for IT to provision. It works on any phone, tablet, or yard PC.",

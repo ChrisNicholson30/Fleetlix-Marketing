@@ -165,7 +165,7 @@ Cloudflare **Email Routing** has one route: `contact@fleetlix.com` → `chris@cn
 
 ## SEO
 
-- **`Base.astro`** sets canonical, Open Graph, and Twitter Card meta tags on every page. The default `ogImage` is `/og-image.jpg` (1200×630). To opt a page out of indexing, pass `noindex={true}` (already done for `/thank-you` and `/404`).
+- **`Base.astro`** sets canonical, Open Graph, and Twitter Card meta tags on every page. The default `ogImage` is `/og-image.png` (1200×630) — a static render of the homepage hero "network" scene (graphite, route comets, depot radar, Fleetlix lockup). It's a committed asset, not generated at build time; recreate it by running a sharp/librsvg script on a host that has fonts (the slim dev container has none — its `sharp` renders `<text>` as tofu). To opt a page out of indexing, pass `noindex={true}` (already done for `/thank-you` and `/404`).
 - **`@astrojs/sitemap`** generates `dist/sitemap-index.xml` and `dist/sitemap-0.xml` at build time. The filter in `astro.config.mjs` excludes `/thank-you` from the sitemap.
 - **`public/robots.txt`** allows everything except `/api/` and points at the sitemap.
 - **Structured data (JSON-LD):**

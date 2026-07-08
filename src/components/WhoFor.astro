@@ -9,7 +9,8 @@ const audiences = [
   {
     accent: "amber",
     title: "Small-to-medium hauliers",
-    body: "Under 50 vehicles — the bottom 90% of the UK's ~57,000 licensed operators.",
+    status: "From March 2027",
+    body: "Under 50 vehicles — the bottom 90% of the UK's ~57,000 licensed operators. Dedicated haulage workflows are on the roadmap.",
     icon: `<path d="M3 6.5h11v8.5H3z"/><path d="M14 9h3.5l3 3v3H14z"/><circle cx="7" cy="17.5" r="1.7"/><circle cx="17" cy="17.5" r="1.7"/>`,
   },
   {
@@ -35,6 +36,17 @@ const stagger = ["[--stagger:0ms]", "[--stagger:110ms]", "[--stagger:220ms]"];
           Modern, mobile-first, five plans from £79 to £899/month — well below enterprise incumbents like Access Weighsoft,
           Mandata, and HaulTech, and well above the spreadsheet-and-paper status quo.
         </p>
+        <p class="mt-5 inline-flex items-start gap-2.5 rounded-xl border border-[color:var(--color-mist)] bg-white px-4 py-3 text-sm text-[color:var(--color-slate)] [--stagger:240ms]" data-reveal>
+          <span class="mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[color:var(--color-amber)]/15 text-[color:var(--color-amber)]">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="9" /><path d="M12 8v4l2.5 2" />
+            </svg>
+          </span>
+          <span>
+            <span class="font-semibold text-[color:var(--color-graphite)]">Waste carriers first.</span>
+            Dedicated haulage support is expected March 2027 — register now and we'll tell you the moment it lands.
+          </span>
+        </p>
       </div>
       <div class="md:col-span-7 grid sm:grid-cols-1 gap-4">
         {audiences.map((a, i) => (
@@ -53,7 +65,20 @@ const stagger = ["[--stagger:0ms]", "[--stagger:110ms]", "[--stagger:220ms]"];
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" set:html={a.icon} />
             </span>
             <div>
-              <h3 class="font-[family-name:var(--font-display)] font-bold text-xl text-[color:var(--color-graphite)]">{a.title}</h3>
+              <div class="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+                <h3 class="font-[family-name:var(--font-display)] font-bold text-xl text-[color:var(--color-graphite)]">{a.title}</h3>
+                {a.status ? (
+                  <span class="inline-flex items-center gap-1.5 rounded-full bg-[color:var(--color-amber)]/12 px-2.5 py-0.5 text-[11px] font-semibold text-[color:var(--color-amber)] ring-1 ring-[color:var(--color-amber)]/25">
+                    <span class="h-1.5 w-1.5 rounded-full bg-[color:var(--color-amber)]"></span>
+                    {a.status}
+                  </span>
+                ) : (
+                  <span class="inline-flex items-center gap-1.5 rounded-full bg-[color:var(--color-success)]/12 px-2.5 py-0.5 text-[11px] font-semibold text-[color:var(--color-success)] ring-1 ring-[color:var(--color-success)]/25">
+                    <span class="h-1.5 w-1.5 rounded-full bg-[color:var(--color-success)]"></span>
+                    Launching first
+                  </span>
+                )}
+              </div>
               <p class="mt-2 text-[color:var(--color-slate)]">{a.body}</p>
             </div>
           </div>
