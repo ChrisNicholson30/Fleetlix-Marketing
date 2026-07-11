@@ -314,7 +314,7 @@ function renderConfirmation(payload: ParsedPayload) {
           </tr>
           <tr>
             <td style="background-color:#F7F5F0;padding:18px 32px;border-top:1px solid #E5E2DB;font-family:'Inter',Helvetica,Arial,sans-serif;font-size:11px;line-height:1.7;color:#8A8F96;">
-              Fleetlix is a product of CN-DESIGN LTD (Scotland · SC885094 · ICO CSN2072529).<br>You're receiving this because you registered interest at <a href="https://fleetlix.com" style="color:#8A8F96;text-decoration:underline;">fleetlix.com</a>.
+              FLEETLIX LTD · Registered in England and Wales, company no. 17331348.<br>You're receiving this because you registered interest at <a href="https://fleetlix.com" style="color:#8A8F96;text-decoration:underline;">fleetlix.com</a>.
             </td>
           </tr>
         </table>

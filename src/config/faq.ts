@@ -58,6 +58,6 @@ export const faqItems: FaqItem[] = [
   {
     question: "Where is Fleetlix based?",
     answer:
-      "Fleetlix is built in Glasgow by CN-DESIGN LTD and serves waste, skip-hire, and haulage operators across the United Kingdom.",
+      "Fleetlix is built in Glasgow by FLEETLIX LTD and serves waste, skip-hire, and haulage operators across the United Kingdom.",
   },
 ];
