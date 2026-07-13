@@ -95,7 +95,7 @@ const handleCheckout = async ({ request, env }: Ctx): Promise<Response> => {
 
   // Validate plan.
   if (typeof plan !== "string" || !PLAN_SLUGS.includes(plan as PlanSlug)) {
-    return json(400, { error: "Unknown plan." });
+    return json(400, { error: "Unknown plan.", build: "guarded" });
   }
 
   // Gate: a valid promo is required.
