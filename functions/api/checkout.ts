@@ -67,7 +67,7 @@ function parsePriceMap(raw: string | undefined): Record<string, string> {
   }
 }
 
-export const onRequestPost = async ({ request, env }: Ctx): Promise<Response> => {
+const handleCheckout = async ({ request, env }: Ctx): Promise<Response> => {
   // Test override takes precedence so testing never touches the live key.
   const useTest = Boolean(env.TEST_STRIPE_SECRET_KEY);
   // .trim() defends against a stray newline/space pasted into the env var,
@@ -160,4 +160,19 @@ export const onRequestPost = async ({ request, env }: Ctx): Promise<Response> =>
   }
 
   return json(200, { url: sessionUrl });
+};
+
+// Top-level guard: a payment endpoint must never return a bare Cloudflare 502.
+// Anything that slips past the inner handlers is logged (with a stack) and
+// returned as a controlled JSON error.
+export const onRequestPost = async (ctx: Ctx): Promise<Response> => {
+  try {
+    return await handleCheckout(ctx);
+  } catch (err) {
+    console.error(
+      "checkout: unhandled exception",
+      err instanceof Error ? err.stack || err.message : String(err),
+    );
+    return json(500, { error: "Checkout error. Try again shortly." });
+  }
 };
