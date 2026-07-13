@@ -18,7 +18,6 @@ pnpm-debug.log*
 !.env.example
 
 Dockerfile*
-compose.yaml
 docker-compose*
 .dockerignore
 

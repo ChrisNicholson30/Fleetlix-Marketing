@@ -17,7 +17,7 @@ RUN npm install -g pnpm@11.0.8
 COPY package.json pnpm-lock.yaml .npmrc pnpm-workspace.yaml ./
 RUN pnpm install --frozen-lockfile
 
-# Source comes in via a bind mount at runtime (see compose.yaml).
+# Source comes in via a bind mount at runtime (see docker-compose.dev.yml).
 # Copying here gives the image a sensible default for `docker run` use.
 COPY . .
 

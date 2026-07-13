@@ -36,7 +36,7 @@ pnpm preview     # serve the build locally
 
 ### Docker / OrbStack
 
-`compose.yaml` defines two services under the `fleetlix` project (so both group with the operations app in OrbStack):
+`docker-compose.dev.yml` defines two services under the `fleetlix` project (so both group with the operations app in OrbStack). It is **not** an auto-discovered Compose filename, so every command below passes `-f docker-compose.dev.yml`:
 
 | Service | Profile | Dockerfile | Image | Container | Serves |
 |---|---|---|---|---|---|
@@ -44,10 +44,10 @@ pnpm preview     # serve the build locally
 | `marketing-prod` | `prod` | `Dockerfile` | `fleetlix-marketing:latest` | `fleetlix-marketing-prod` | static `dist/` via nginx on 4321 |
 
 ```bash
-docker compose up -d                        # dev server (HMR) → localhost:4321
-docker compose logs -f
-docker compose down
-docker compose up -d --build marketing-prod # test the production image locally
+docker compose -f docker-compose.dev.yml up -d              # dev server (HMR) → localhost:4321
+docker compose -f docker-compose.dev.yml logs -f
+docker compose -f docker-compose.dev.yml down
+docker compose -f docker-compose.dev.yml up -d --build marketing-prod   # test the prod image locally
 ```
 
 **Deploy the production image to the Mac Mini (Mini-server):**
@@ -56,8 +56,8 @@ docker compose up -d --build marketing-prod # test the production image locally
 # one-time: create a remote Docker context over SSH
 docker context create mini-server --docker "host=ssh://<user>@Mini-server.local"
 # build + run on the Mini (re-run after a git pull to update):
-docker --context mini-server compose up -d --build marketing-prod
-docker --context mini-server compose --profile prod down   # to stop
+docker --context mini-server compose -f docker-compose.dev.yml up -d --build marketing-prod
+docker --context mini-server compose -f docker-compose.dev.yml --profile prod down   # to stop
 ```
 
 Name `marketing-prod` explicitly — `--profile prod` alone would also start the dev service and clash on 4321.

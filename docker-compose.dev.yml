@@ -2,13 +2,16 @@
 # Joins the existing `fleetlix` OrbStack project (where the operations app
 # already lives) so both services appear under the same group in OrbStack.
 #
-#   Local dev (HMR):      docker compose up -d              → http://localhost:4321
-#   Local prod test:      docker compose up -d --build marketing-prod
+# NOTE: `docker-compose.dev.yml` is not an auto-discovered Compose filename,
+# so every command must pass `-f docker-compose.dev.yml`.
+#
+#   Local dev (HMR):   docker compose -f docker-compose.dev.yml up -d          → http://localhost:4321
+#   Local prod test:   docker compose -f docker-compose.dev.yml up -d --build marketing-prod
 #
 #   Deploy to the Mac Mini (Mini-server) — one time, create the remote context:
 #       docker context create mini-server --docker "host=ssh://<user>@Mini-server.local"
 #   Then build + run the production image ON the Mini:
-#       docker --context mini-server compose up -d --build marketing-prod
+#       docker --context mini-server compose -f docker-compose.dev.yml up -d --build marketing-prod
 #   Update later: re-run the same command after `git pull` on your Mac.
 #
 # The dev service starts by default; the prod service is behind the `prod`
