@@ -70,7 +70,9 @@ function parsePriceMap(raw: string | undefined): Record<string, string> {
 export const onRequestPost = async ({ request, env }: Ctx): Promise<Response> => {
   // Test override takes precedence so testing never touches the live key.
   const useTest = Boolean(env.TEST_STRIPE_SECRET_KEY);
-  const secretKey = useTest ? env.TEST_STRIPE_SECRET_KEY : env.STRIPE_SECRET_KEY;
+  // .trim() defends against a stray newline/space pasted into the env var,
+  // which would otherwise make the Authorization header invalid and throw.
+  const secretKey = (useTest ? env.TEST_STRIPE_SECRET_KEY : env.STRIPE_SECRET_KEY)?.trim();
   const priceMapRaw = useTest ? env.TEST_STRIPE_PRICE_MAP : env.STRIPE_PRICE_MAP;
 
   if (!secretKey || !priceMapRaw) {
@@ -123,26 +125,39 @@ export const onRequestPost = async ({ request, env }: Ctx): Promise<Response> =>
     cancel_url: env.CHECKOUT_CANCEL_URL || DEFAULT_CANCEL_URL,
   });
 
-  const res = await fetch("https://api.stripe.com/v1/checkout/sessions", {
-    method: "POST",
-    headers: {
-      authorization: `Bearer ${secretKey}`,
-      "content-type": "application/x-www-form-urlencoded",
-    },
-    body: form.toString(),
-  });
+  let sessionUrl: string | undefined;
+  try {
+    const res = await fetch("https://api.stripe.com/v1/checkout/sessions", {
+      method: "POST",
+      headers: {
+        authorization: `Bearer ${secretKey}`,
+        "content-type": "application/x-www-form-urlencoded",
+      },
+      body: form.toString(),
+    });
 
-  if (!res.ok) {
-    const detail = await res.text().catch(() => "");
-    console.error("checkout: Stripe error", res.status, detail);
+    if (!res.ok) {
+      const detail = await res.text().catch(() => "");
+      console.error("checkout: Stripe error", res.status, detail);
+      return json(502, { error: "Couldn't start checkout. Try again shortly." });
+    }
+
+    const session = (await res.json()) as { url?: string };
+    sessionUrl = session.url;
+  } catch (err) {
+    // Any exception (invalid header, network, JSON) — log it and fail
+    // gracefully instead of surfacing a bare Cloudflare 502.
+    console.error(
+      "checkout: Stripe request threw",
+      err instanceof Error ? err.message : String(err),
+    );
     return json(502, { error: "Couldn't start checkout. Try again shortly." });
   }
 
-  const session = (await res.json()) as { url?: string };
-  if (!session.url) {
+  if (!sessionUrl) {
     console.error("checkout: Stripe returned no url");
     return json(502, { error: "Couldn't start checkout. Try again shortly." });
   }
 
-  return json(200, { url: session.url });
+  return json(200, { url: sessionUrl });
 };
