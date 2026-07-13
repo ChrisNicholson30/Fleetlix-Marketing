@@ -22,5 +22,8 @@ compose.yaml
 docker-compose*
 .dockerignore
 
-# High-res OG source — the optimised JPG ships in public/og-image.jpg
+# Reference material (113 MB of source video + docs) — not needed to build.
+Resources
+
+# High-res OG source — the optimised render ships in public/og-image.png
 public/og-image-source.png

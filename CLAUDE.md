@@ -36,21 +36,36 @@ pnpm preview     # serve the build locally
 
 ### Docker / OrbStack
 
-A `Dockerfile.dev` + `compose.yaml` run the dev server in a container, useful when you don't want pnpm/Node installed on the host.
+`compose.yaml` defines two services under the `fleetlix` project (so both group with the operations app in OrbStack):
+
+| Service | Profile | Dockerfile | Image | Container | Serves |
+|---|---|---|---|---|---|
+| `marketing` | *(default)* | `Dockerfile.dev` | `fleetlix-marketing:dev` | `fleetlix-marketing` | `astro dev` (HMR) on 4321 |
+| `marketing-prod` | `prod` | `Dockerfile` | `fleetlix-marketing:latest` | `fleetlix-marketing-prod` | static `dist/` via nginx on 4321 |
 
 ```bash
-docker compose up -d        # build (first time) + start in the background
-docker compose logs -f      # follow logs
-docker compose down         # stop and remove the container
+docker compose up -d                        # dev server (HMR) → localhost:4321
+docker compose logs -f
+docker compose down
+docker compose up -d --build marketing-prod # test the production image locally
 ```
 
-The service is named `marketing`, image `fleetlix-marketing:latest`, container `fleetlix-marketing`. The compose project is set to `fleetlix` so it appears under the same group as the operations app in OrbStack.
+**Deploy the production image to the Mac Mini (Mini-server):**
+
+```bash
+# one-time: create a remote Docker context over SSH
+docker context create mini-server --docker "host=ssh://<user>@Mini-server.local"
+# build + run on the Mini (re-run after a git pull to update):
+docker --context mini-server compose up -d --build marketing-prod
+docker --context mini-server compose --profile prod down   # to stop
+```
+
+Name `marketing-prod` explicitly — `--profile prod` alone would also start the dev service and clash on 4321.
 
 Notes:
-- Source is bind-mounted; HMR works.
-- `node_modules` lives in an anonymous volume so the container keeps its Linux binaries (sharp/esbuild are platform-specific).
-- The image pins Node 22.13-slim and pnpm 11.0.8 — Cloudflare Pages still builds production with `NODE_VERSION=22.12.0`, but pnpm 11.0.8 was retroactively bumped to require Node ≥ 22.13, so the dev image is one minor ahead.
-- The Cloudflare Pages Function at `/api/register-interest` is **not** served by `pnpm dev`. To test the form's API end-to-end locally, use `wrangler pages dev` (not currently wired into the container).
+- **Dev:** source is bind-mounted (HMR); `node_modules` lives in an anonymous volume so the container keeps its Linux binaries (sharp/esbuild are platform-specific). `astro.config.mjs` sets `server.host: true` + `vite.server.allowedHosts` (`mini-server.local`, `.orb.local`, `.ts.net`) so the dev server is reachable over LAN / OrbStack / Tailscale.
+- Both images pin Node 22.13-slim and pnpm 11.0.8 — Cloudflare Pages still builds production with `NODE_VERSION=22.12.0`, but pnpm 11.0.8 was retroactively bumped to require Node ≥ 22.13, so the images are one minor ahead. The prod `Dockerfile` uses a BuildKit heredoc (`# syntax=…`) for its nginx config; OrbStack enables BuildKit by default.
+- **The prod image is a static mirror.** The `/api/register-interest` Pages Function and the `public/_headers` CSP are Cloudflare-only and do **not** run in nginx — the interest form won't deliver from the Mini, and only the vCard content-type + asset caching are reproduced in the nginx config. The real site stays on Cloudflare Pages; to test the Function locally use `wrangler pages dev`.
 
 ## Repo shape
 

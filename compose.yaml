@@ -1,15 +1,28 @@
-# Local-dev Compose for the Fleetlix marketing site.
+# Compose for the Fleetlix marketing site.
 # Joins the existing `fleetlix` OrbStack project (where the operations app
 # already lives) so both services appear under the same group in OrbStack.
+#
+#   Local dev (HMR):      docker compose up -d              → http://localhost:4321
+#   Local prod test:      docker compose up -d --build marketing-prod
+#
+#   Deploy to the Mac Mini (Mini-server) — one time, create the remote context:
+#       docker context create mini-server --docker "host=ssh://<user>@Mini-server.local"
+#   Then build + run the production image ON the Mini:
+#       docker --context mini-server compose up -d --build marketing-prod
+#   Update later: re-run the same command after `git pull` on your Mac.
+#
+# The dev service starts by default; the prod service is behind the `prod`
+# profile, so name it explicitly (as above) to avoid a port clash on 4321.
 
 name: fleetlix
 
 services:
+  # ── Local development: Astro dev server with HMR ──
   marketing:
     build:
       context: .
       dockerfile: Dockerfile.dev
-    image: fleetlix-marketing:latest
+    image: fleetlix-marketing:dev
     container_name: fleetlix-marketing
     ports:
       - "4321:4321"
@@ -23,3 +36,21 @@ services:
       - NODE_ENV=development
     tty: true
     stdin_open: true
+
+  # ── Production: static build served by nginx on 4321 (runs on Mini-server) ──
+  marketing-prod:
+    profiles: ["prod"]
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: fleetlix-marketing:latest
+    container_name: fleetlix-marketing-prod
+    ports:
+      - "4321:4321"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://localhost:4321/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
