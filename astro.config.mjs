@@ -1,12 +1,12 @@
 // @ts-check
-import { defineConfig } from 'astro/config';
-import tailwindcss from '@tailwindcss/vite';
-import react from '@astrojs/react';
-import sitemap from '@astrojs/sitemap';
+import { defineConfig } from "astro/config";
+import tailwindcss from "@tailwindcss/vite";
+import react from "@astrojs/react";
+import sitemap from "@astrojs/sitemap";
 
 // https://astro.build/config
 export default defineConfig({
-  site: 'https://fleetlix.com',
+  site: "https://fleetlix.com",
   // Bind the dev server to 0.0.0.0 so it's reachable off localhost (LAN,
   // OrbStack, Tailscale). Must live at Astro's top level — Astro overwrites
   // vite.server.host with this value. Only affects `astro dev`; `astro
@@ -15,7 +15,7 @@ export default defineConfig({
     host: true,
   },
   build: {
-    inlineStylesheets: 'never',
+    inlineStylesheets: "never",
   },
   integrations: [
     react(),
@@ -31,9 +31,9 @@ export default defineConfig({
     // Vite config, so this lives here — a standalone vite.config.ts is ignored.
     server: {
       allowedHosts: [
-        'mini-server.local', // LAN mDNS — set to your Mac's Local Hostname (System Settings > General > Sharing)
-        '.orb.local',        // OrbStack auto-domains
-        '.ts.net',           // Tailscale MagicDNS (remote access)
+        "mac-server.local", // LAN mDNS — set to your Mac's Local Hostname (System Settings > General > Sharing)
+        ".orb.local", // OrbStack auto-domains
+        ".ts.net", // Tailscale MagicDNS (remote access)
       ],
     },
   },
