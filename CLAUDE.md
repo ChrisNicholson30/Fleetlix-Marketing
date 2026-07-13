@@ -148,7 +148,7 @@ visitor submits InterestForm (React island)
 |---|---|---|
 | `RESEND_API_KEY` *(secret)* | `re_…` | Scope to **Sending access** on the **fleetlix.com** domain. A key scoped to "no domain" or a different domain returns Resend 403 *"API key not authorized for this domain"*. |
 | `INTEREST_TO_EMAIL` | `contact@fleetlix.com` | Where leads land. |
-| `INTEREST_FROM_EMAIL` | `Fleetlix <interest@fleetlix.com>` | Must use the verified `fleetlix.com` domain. Display-name form recommended; bare `<addr>` with no display name is invalid and Resend rejects with 422. |
+| `INTEREST_FROM_EMAIL` | `Fleetlix <contact@fleetlix.com>` | Must use the verified `fleetlix.com` domain. Display-name form recommended; bare `<addr>` with no display name is invalid and Resend rejects with 422. Both sends now use `contact@` — the lead notification is therefore addressed from `contact@` **to** `INTEREST_TO_EMAIL` (also `contact@`); a self-addressed mail is fine but is likelier to spam-bin for the first few sends. |
 | `TURNSTILE_SECRET_KEY` *(optional)* | from Cloudflare Turnstile | Only set this once the frontend also adds a Turnstile widget — the function *requires* the token when this var is present. |
 | `NODE_VERSION` | `22.12.0` | Build-time only. |
 
