@@ -20,7 +20,7 @@ related: ["[[fleetlix-inhouse-build-plan]]", "[[Fleetlix-Plan-of-Action]]"]
 | **Workshop** |   **£189** | Small fleet — yard + mechanic        |    12 |       8 |           4 |
 | **Depot**    |   **£350** | A full single operation              |    40 |      30 |           8 |
 | **Haulier**  |   **£550** | The commercial operator              |   120 |      90 |          15 |
-| **Network**  |   **£899** | Multi-site, white-label, audit-ready |   500 |     400 |          40 |
+| **Network**  |   **£899** | Multi-site, multi-depot, audit-ready |   500 |     400 |          40 |
 
 _"Users" is the total sign-in limit; **Drivers** and **Maintenance** are sub-limits
 within it (e.g. Depot = up to 40 users, of which up to 30 drivers and 8 mechanics).
@@ -46,7 +46,7 @@ The table below is about the **commercial modules layered on top** of that core.
 | ------------------------------ | ----------------- | ------------- | ------------------- | ----------------------------- | ----------------- |
 | **DWTS submission** (DEFRA)    | ✓                 | ✓             | ✓                   | ✓                             | ✓ (higher volume) |
 | **Billing & invoicing**        | basic invoices    | + branded PDF | + bulk              | self-bill + supplier matching | all               |
-| **Customer portal**            | —                 | read-only     | + recycling / CO₂   | + booking from portal         | white-label       |
+| **Customer portal**            | —                 | read-only     | + recycling / CO₂   | + booking from portal         | all               |
 | **Online cart / bookings**     | register-interest | basic cart    | paid cart           | + multi-service               | all               |
 | **Brokerage & subcontractors** | —                 | —             | margin tracking     | + auto-PO + subbie logins     | all               |
 | **Routing & logistics**        | —                 | —             | basic drag-drop     | + map optimisation            | multi-depot       |
@@ -80,7 +80,7 @@ adds custom ones. Depot gets 1-way Xero — Haulier adds 2-way + QuickBooks.
   optimisation**, **auto-PO + subcontractor logins**, **portal booking**,
   multi-service cart, custom dashboards, CRM pipeline + tasks, self-bill +
   supplier matching, 2-way Xero + QuickBooks.
-- **Network — £899** — multi-site, **white-label**, audit-ready. The ceiling:
+- **Network — £899** — multi-site, **multi-depot**, audit-ready. The ceiling:
   everything above at full spec, multi-depot routing, BI drill-down, higher DWTS
   submission volume, and SSO.
 
