@@ -30,7 +30,7 @@
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()
   Cross-Origin-Opener-Policy: same-origin
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'sha256-ZLLrZkbz5LFJDdGZ8xszg9i8iXWbnxlTYMl589PFEpk=' 'sha256-Ms1wZb/sbSlwrDF1iLFv+5GAIZWa5/BX0A/KM+J+73Y=' 'sha256-Q2BPg90ZMplYY+FSdApNErhpWafg2hcRRbndmvxuL/Q=' 'sha256-SaCkFfPruIdTXT8/97JArQmGxiJAL2o4bBDvSgJ5y3Q=' 'sha256-DKOv6KYwSLaRstSn+3U37kmAugaWrrqRx6X8wRk3/1Q=' 'sha256-5XjjxO5+QTOmOs1HQ3MNZ0ldOrIA+HaoZ590OeiI8T8='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; form-action 'self'; base-uri 'self'; object-src 'none'
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'sha256-ZLLrZkbz5LFJDdGZ8xszg9i8iXWbnxlTYMl589PFEpk=' 'sha256-tDTNKA8rHA2lPUNIgb6SZ/gn3mGWWS6oSKgzOeZqk6E=' 'sha256-Q2BPg90ZMplYY+FSdApNErhpWafg2hcRRbndmvxuL/Q=' 'sha256-SaCkFfPruIdTXT8/97JArQmGxiJAL2o4bBDvSgJ5y3Q=' 'sha256-DKOv6KYwSLaRstSn+3U37kmAugaWrrqRx6X8wRk3/1Q=' 'sha256-bykL74jyTcVtVQ+/I8ObO4dZnHjz8LJwvutAvCUZxMI='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; form-action 'self'; base-uri 'self'; object-src 'none'
 
 /fleetlix.vcf
   Content-Type: text/vcard; charset=utf-8
