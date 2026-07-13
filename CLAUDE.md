@@ -184,9 +184,11 @@ card QR / link → fleetlix.com/?promo=letsrecycle#pricing
 
 | Var | Format | Notes |
 |---|---|---|
-| `STRIPE_SECRET_KEY` *(secret)* | `sk_live_…` / `sk_test_…` | Server-side only; used by `functions/api/checkout.ts`. |
-| `STRIPE_PRICE_MAP` | JSON `{"operator":"price_…","workshop":"price_…",…}` | Plan slug → **monthly** Stripe price id. A slug with no entry (e.g. a plan not yet created in Stripe — currently 4 of 5 exist) returns a graceful 400. |
-| `CHECKOUT_SUCCESS_URL` *(optional)* | `https://fleetlix.app/onboarding?session_id={CHECKOUT_SESSION_ID}` | Defaults to this. Keep the literal `{CHECKOUT_SESSION_ID}` placeholder. |
+| `STRIPE_SECRET_KEY` *(secret)* | `sk_live_…` | Live server-side key; used by `functions/api/checkout.ts`. |
+| `STRIPE_PRICE_MAP` | JSON `{"operator":"price_…","workshop":"price_…",…}` | Plan slug → **live monthly** Stripe price id. A slug with no entry (e.g. a plan not yet created in Stripe) returns a graceful 400. |
+| `TEST_STRIPE_SECRET_KEY` *(secret, optional)* | `sk_test_…` | **Test override.** When set, the function runs entirely in test mode (this key + `TEST_STRIPE_PRICE_MAP`), leaving the live vars untouched. **Remove it to go live** — otherwise real customers get a test checkout they can't actually pay. |
+| `TEST_STRIPE_PRICE_MAP` | JSON, **test-mode** price ids | Required alongside `TEST_STRIPE_SECRET_KEY` — Stripe test prices are separate objects from live, so this must hold `price_…` ids created in test mode. |
+| `CHECKOUT_SUCCESS_URL` *(optional)* | `https://fleetlix.app/onboarding?session_id={CHECKOUT_SESSION_ID}` | Defaults to this. Keep the literal `{CHECKOUT_SESSION_ID}` placeholder. For testing, point it at `https://fleetlix.com/thank-you?session_id={CHECKOUT_SESSION_ID}` until the app onboarding exists. |
 | `CHECKOUT_CANCEL_URL` *(optional)* | `https://fleetlix.com/#pricing` | Defaults to this. |
 
 ## DNS / Cloudflare snapshot

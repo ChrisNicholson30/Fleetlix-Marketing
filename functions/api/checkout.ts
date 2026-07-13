@@ -20,6 +20,12 @@ type Env = {
   // JSON map of plan slug -> Stripe monthly price id, e.g.
   // {"operator":"price_...","workshop":"price_...","depot":"price_..."}
   STRIPE_PRICE_MAP?: string;
+  // Test override: when TEST_STRIPE_SECRET_KEY is set, the function runs
+  // entirely in test mode (test key + TEST_STRIPE_PRICE_MAP, which must hold
+  // test-mode price ids). Remove both to go live. This keeps the live key and
+  // price map in place and untouched while testing.
+  TEST_STRIPE_SECRET_KEY?: string;
+  TEST_STRIPE_PRICE_MAP?: string;
   CHECKOUT_SUCCESS_URL?: string;
   CHECKOUT_CANCEL_URL?: string;
 };
@@ -62,8 +68,13 @@ function parsePriceMap(raw: string | undefined): Record<string, string> {
 }
 
 export const onRequestPost = async ({ request, env }: Ctx): Promise<Response> => {
-  if (!env.STRIPE_SECRET_KEY || !env.STRIPE_PRICE_MAP) {
-    console.error("checkout: missing STRIPE_SECRET_KEY or STRIPE_PRICE_MAP");
+  // Test override takes precedence so testing never touches the live key.
+  const useTest = Boolean(env.TEST_STRIPE_SECRET_KEY);
+  const secretKey = useTest ? env.TEST_STRIPE_SECRET_KEY : env.STRIPE_SECRET_KEY;
+  const priceMapRaw = useTest ? env.TEST_STRIPE_PRICE_MAP : env.STRIPE_PRICE_MAP;
+
+  if (!secretKey || !priceMapRaw) {
+    console.error("checkout: missing Stripe secret key or price map");
     return json(503, { error: "Checkout isn't available yet." });
   }
 
@@ -89,7 +100,7 @@ export const onRequestPost = async ({ request, env }: Ctx): Promise<Response> =>
 
   // Look up the plan's Stripe price. A plan without a configured price id
   // (e.g. the one plan not yet created in Stripe) fails gracefully.
-  const priceId = parsePriceMap(env.STRIPE_PRICE_MAP)[plan];
+  const priceId = parsePriceMap(priceMapRaw)[plan];
   if (!priceId) {
     return json(400, { error: "That plan isn't available for checkout yet." });
   }
@@ -111,7 +122,7 @@ export const onRequestPost = async ({ request, env }: Ctx): Promise<Response> =>
   const res = await fetch("https://api.stripe.com/v1/checkout/sessions", {
     method: "POST",
     headers: {
-      authorization: `Bearer ${env.STRIPE_SECRET_KEY}`,
+      authorization: `Bearer ${secretKey}`,
       "content-type": "application/x-www-form-urlencoded",
     },
     body: form.toString(),
