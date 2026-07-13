@@ -74,7 +74,11 @@ export const onRequestPost = async ({ request, env }: Ctx): Promise<Response> =>
   const priceMapRaw = useTest ? env.TEST_STRIPE_PRICE_MAP : env.STRIPE_PRICE_MAP;
 
   if (!secretKey || !priceMapRaw) {
-    console.error("checkout: missing Stripe secret key or price map");
+    console.error(
+      `checkout: not configured — mode=${useTest ? "test" : "live"}, ` +
+        `secretKey=${secretKey ? "set" : "MISSING"}, ` +
+        `priceMap=${priceMapRaw ? "set" : "MISSING"}`,
+    );
     return json(503, { error: "Checkout isn't available yet." });
   }
 
