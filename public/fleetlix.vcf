@@ -1,0 +1,13 @@
+BEGIN:VCARD
+VERSION:3.0
+FN:Fleetlix
+N:Fleetlix;;;;
+ORG:FLEETLIX LTD
+TITLE:Fleet & Waste Management Software
+EMAIL;TYPE=INTERNET,WORK:contact@fleetlix.com
+URL:https://fleetlix.com
+ADR;TYPE=WORK:;;66 Paul Street;London;;;United Kingdom
+NOTE:Fleet & waste management software for UK skip hire and waste carriers. DWTS-ready as standard. Company No. 17331348.
+PHOTO;VALUE=URI:https://fleetlix.com/icon-512.png
+REV:2026-07-13T00:00:00Z
+END:VCARD
