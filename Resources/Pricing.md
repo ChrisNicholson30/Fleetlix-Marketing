@@ -92,7 +92,7 @@ adds custom ones. Depot gets 1-way Xero — Haulier adds 2-way + QuickBooks.
 - **Network is the ceiling — "Custom" is scrapped.** Former bespoke/on-prem/data-
   residency requests become Network features or **paid add-ons**. The main add-on
   today is a **+£499 onboarding** line.
-- **VAT:** the owner (CN-DESIGN) is not currently VAT-registered, so prices are as
+- **VAT:** the owner (FLEETLIX LTD) is not currently VAT-registered, so prices are as
   listed with no VAT added. Revisit if/when VAT registration happens.
 - **Billing:** Fleetlix's own subscriptions are **Stripe-only** (Stripe Billing
   drives the `plan` via webhook). Worldpay is offered only on the _tenant-facing_

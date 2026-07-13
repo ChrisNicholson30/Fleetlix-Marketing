@@ -169,7 +169,7 @@ Cloudflare **Email Routing** has one route: `contact@fleetlix.com` → `chris@cn
 - **`@astrojs/sitemap`** generates `dist/sitemap-index.xml` and `dist/sitemap-0.xml` at build time. The filter in `astro.config.mjs` excludes `/thank-you` from the sitemap.
 - **`public/robots.txt`** allows everything except `/api/` and points at the sitemap.
 - **Structured data (JSON-LD):**
-  - `Base.astro` emits a sitewide **Organization** entity in `<head>` (`@id` `#organization`; Fleetlix + parent CN-DESIGN LTD with Glasgow postal address + SC885094, plus `areaServed` UK and a sales `contactPoint`).
+  - `Base.astro` emits a sitewide **Organization** entity in `<head>` (`@id` `#organization`; Fleetlix as its own legal entity — `legalName` FLEETLIX LTD, company no. 17331348, London registered office, `foundingDate` 2026-07-09 — plus `areaServed` UK and a sales `contactPoint`).
   - `src/pages/index.astro` emits a single homepage **`@graph`** before `</body>` — **WebSite** (`#website`), **SoftwareApplication** (`#software`: product, pricing, audience, features), and **FAQPage** (`#faq`). Both reference the sitewide Organization via `@id`. One `@graph` = one inline script = one CSP hash.
   - The visible FAQ accordion (`Faq.astro`) and its schema both read `src/config/faq.ts`, so the structured data can never drift from the on-page copy. Edit the Q&A in one place.
 - **Target keywords:** the homepage `<title>` and `<meta description>` lead with "waste & haulage software" / "UK skip-hire and fleet operators". Keep titles ≤ ~60 chars and descriptions ≤ ~160 so they don't truncate in the SERP. When you write new homepage copy, keep these phrases findable without it reading like SEO sludge.
