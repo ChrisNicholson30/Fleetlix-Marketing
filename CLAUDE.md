@@ -195,17 +195,17 @@ Both JSON-LD scripts (the sitewide Organization and the homepage `@graph`) contr
 
 `public/_headers` ships strict headers on every response. Two parts deserve care:
 
-**`script-src` whitelists exactly six inline-script SHA-256 hashes:**
+**`script-src` whitelists exactly four inline-script SHA-256 hashes — all stable:**
 1. Sitewide Organization JSON-LD (every page, from `Base.astro`)
-2. The mobile-menu close-on-click handler (every page, from `Header.astro`)
-3. Astro's `client:visible` IntersectionObserver bootstrap
-4. Astro's `astro-island` custom-element registration
-5. Homepage JSON-LD `@graph` — WebSite + SoftwareApplication + FAQPage (from `src/pages/index.astro`)
-6. The homepage's `cinematic.ts` bundle (Astro inlines it because it has no imports)
+2. Astro's `client:visible` IntersectionObserver bootstrap
+3. Astro's `astro-island` custom-element registration
+4. Homepage JSON-LD `@graph` — WebSite + SoftwareApplication + FAQPage (from `src/pages/index.astro`)
+
+The mobile-menu handler (`src/scripts/header-menu.ts`) and the homepage `cinematic.ts` bundle are **no longer inline**: each imports the shared `src/scripts/lib/env.ts`, which Rollup code-splits into a shared chunk, so Astro emits them as **external `/_astro/*.js` files covered by `script-src 'self'`** — no hash. This is deliberate. On 13 Jul 2026 a Cloudflare build-image change altered how esbuild minified those two inline scripts, so their hashes drifted from `_headers` and both were CSP-blocked in prod (blank homepage). External `'self'` scripts can't drift. **Don't reinline them** (keep the shared `env.ts` import) and don't hardcode `/_astro` filenames anywhere.
 
 The FAQ accordion (`Faq.astro`) is native `<details>` with no JS, so adding/editing FAQs does **not** touch the hash list — but editing the FAQ *schema* in `index.astro`'s `@graph` does.
 
-**Regenerate the hashes after** an Astro version bump **or** after editing `src/scripts/cinematic.ts`, `src/layouts/Base.astro`'s JSON-LD, `src/components/Header.astro`'s handler, or `src/pages/index.astro`'s JSON-LD `@graph`. The exact one-liner is in the comment at the top of `_headers` (it globs every built page, so new routes like `404.html` are covered). If the hashes drift, the offending inline script is silently blocked in production.
+**Regenerate the hashes only after** an Astro version bump **or** after editing `src/layouts/Base.astro`'s JSON-LD or `src/pages/index.astro`'s JSON-LD `@graph` (the four remaining hashes are JSON-LD + Astro runtime, which don't re-minify per build). The one-liner is in the comment at the top of `_headers`. **Do not regenerate from a local build unless you've confirmed it matches production** — local and Cloudflare esbuild have differed; hash the live site (`curl https://fleetlix.com/ | …`) when in doubt.
 
 **`style-src 'self' 'unsafe-inline'`** — React style props, the modal's `<style>` block, and various `style="…"` attributes from Astro components all need this. We've traded style-XSS hardening for not having to hash every inline style. Don't tighten this without first rewriting the inline styles out.
 

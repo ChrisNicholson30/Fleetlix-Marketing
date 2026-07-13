@@ -1,19 +1,20 @@
-# script-src hashes whitelist the page's inline <script> snippets:
+# script-src hashes whitelist the page's remaining inline <script> snippets:
 #   1) Organization JSON-LD (every page, sitewide in Base.astro)
-#   2) Mobile-menu close-on-click handler (every page, in Header.astro)
-#   3) Astro's IntersectionObserver loader (client:visible bootstrap)
-#   4) Astro's astro-island custom-element registration
-#   5) homepage JSON-LD @graph — WebSite + SoftwareApplication + FAQPage
-#      (homepage only, in index.astro). The FAQ accordion itself is JS-free
-#      (native <details>), so it adds no script hash.
-#   6) the homepage's cinematic behaviour bundle (scroll-reveal IO, countdown,
-#      scroll-progress, active-nav, count-up, card spotlight), which Astro
-#      inlines because it has no imports.
-# Regenerate after an Astro version bump OR after editing any of:
-#   - src/scripts/cinematic.ts
+#   2) Astro's IntersectionObserver loader (client:visible bootstrap)
+#   3) Astro's astro-island custom-element registration
+#   4) homepage JSON-LD @graph — WebSite + SoftwareApplication + FAQPage
+#      (homepage only, in index.astro). The FAQ accordion is JS-free (native
+#      <details>), so it adds no script hash.
+# The mobile-menu handler and the cinematic bundle are NO LONGER inline: they
+# import a shared module (src/scripts/lib/env.ts), so Astro emits them as
+# external /_astro/*.js files covered by script-src 'self'. Deliberate —
+# inline-script hashes silently drift when the build minifier changes (this
+# broke prod once, 13 Jul 2026); external 'self' scripts don't. Don't reinline.
+# The 4 hashes below are stable (JSON-LD is plain JSON; Astro's runtime scripts
+# don't re-minify per build). Regenerate only after an Astro version bump OR
+# after editing:
 #   - src/layouts/Base.astro (the Organization JSON-LD)
 #   - src/pages/index.astro (the homepage JSON-LD @graph)
-#   - src/components/Header.astro (the mobile-menu handler)
 # One-liner that prints the unique hashes across EVERY built page (globs
 # dist so new pages like 404.html are always covered):
 #   pnpm build && node -e 'const fs=require("fs"),c=require("crypto"),
@@ -30,7 +31,7 @@
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()
   Cross-Origin-Opener-Policy: same-origin
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'sha256-ZLLrZkbz5LFJDdGZ8xszg9i8iXWbnxlTYMl589PFEpk=' 'sha256-tDTNKA8rHA2lPUNIgb6SZ/gn3mGWWS6oSKgzOeZqk6E=' 'sha256-Q2BPg90ZMplYY+FSdApNErhpWafg2hcRRbndmvxuL/Q=' 'sha256-SaCkFfPruIdTXT8/97JArQmGxiJAL2o4bBDvSgJ5y3Q=' 'sha256-DKOv6KYwSLaRstSn+3U37kmAugaWrrqRx6X8wRk3/1Q=' 'sha256-bykL74jyTcVtVQ+/I8ObO4dZnHjz8LJwvutAvCUZxMI='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; form-action 'self'; base-uri 'self'; object-src 'none'
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'sha256-ZLLrZkbz5LFJDdGZ8xszg9i8iXWbnxlTYMl589PFEpk=' 'sha256-Q2BPg90ZMplYY+FSdApNErhpWafg2hcRRbndmvxuL/Q=' 'sha256-SaCkFfPruIdTXT8/97JArQmGxiJAL2o4bBDvSgJ5y3Q=' 'sha256-DKOv6KYwSLaRstSn+3U37kmAugaWrrqRx6X8wRk3/1Q='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; form-action 'self'; base-uri 'self'; object-src 'none'
 
 /fleetlix.vcf
   Content-Type: text/vcard; charset=utf-8

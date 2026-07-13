@@ -1,13 +1,15 @@
 // Cinematic homepage behaviour. Imported from index.astro via a processed
-// <script>. This file is intentionally import-free, so Astro INLINES it into
-// the page (one inline <script> covered by a single CSP hash — regenerate the
-// hashes after editing this file; see public/_headers). Nearly all visual
-// motion lives in CSS; this toggles reveal classes, drives the compliance
-// countdown, and adds a handful of pointer/scroll enhancers (scroll-progress,
-// active-nav, count-up, card spotlight) that are each fully optional and
-// no-op when their target elements are absent.
-const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-const finePointer = window.matchMedia("(pointer: fine)").matches;
+// <script>. It imports ./lib/env, which makes Astro emit this as an EXTERNAL
+// /_astro/*.js file (script-src 'self') instead of an inline hashed <script> —
+// inline-script hashes drift silently when the build minifier changes, external
+// 'self' scripts don't. Nearly all visual motion lives in CSS; this toggles
+// reveal classes, drives the compliance countdown, and adds a handful of
+// pointer/scroll enhancers (scroll-progress, active-nav, count-up, card
+// spotlight) that are each fully optional and no-op when targets are absent.
+import { prefersReducedMotion, finePointer as finePointerQuery } from "./lib/env";
+
+const reduceMotion = prefersReducedMotion();
+const finePointer = finePointerQuery();
 
 // Scroll reveals — add `.is-visible` when an element enters the viewport.
 const reveals = document.querySelectorAll<HTMLElement>("[data-reveal]");

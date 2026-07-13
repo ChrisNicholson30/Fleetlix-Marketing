@@ -104,18 +104,8 @@ const nav = [
 </style>
 
 <script>
-  // Close the mobile nav <details> on (a) anchor-link tap and (b) outside
-  // click. Without this, the menu would stay open after navigation,
-  // overlapping the section the user just scrolled to.
-  document.addEventListener("click", (event) => {
-    const target = event.target as Element | null;
-    if (!target) return;
-    const menu = document.querySelector<HTMLDetailsElement>("details.mobile-menu[open]");
-    if (!menu) return;
-    if (target.closest("a[href]")) {
-      menu.open = false;
-    } else if (!menu.contains(target)) {
-      menu.open = false;
-    }
-  });
+  // Imports a shared module so Astro emits this as an external /_astro/*.js
+  // file (script-src 'self'), not an inline hashed <script>. See
+  // src/scripts/header-menu.ts and src/scripts/lib/env.ts.
+  import "../scripts/header-menu.ts";
 </script>
