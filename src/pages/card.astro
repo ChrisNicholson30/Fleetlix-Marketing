@@ -2,14 +2,27 @@
 import Base from "../layouts/Base.astro";
 import SiteFooter from "../components/SiteFooter.astro";
 
-// One canonical contact endpoint. The printed QR, an NFC chip, and a Wallet
-// pass all point here; the "Add to contacts" button below serves /fleetlix.vcf.
+// One canonical physical-channel endpoint. The printed business-card QR, an
+// NFC chip, and a Wallet pass all resolve here. The page does two jobs:
+//   1. presents the trial promo and links to signup with the code pre-applied
+//   2. offers the "Add to contacts" vCard (/fleetlix.vcf)
+// noindex: this is a card/QR entry point, not an SEO page (excluded from the
+// sitemap in astro.config.mjs).
+
+// Promo — change these in one place. The matching promo_codes row + validation
+// live in the Fleetlix-App repo (see Resources/Fleetlix-Card-Promo-Implementation.md).
+const PROMO_CODE = "letsrecycle";
+const PROMO_TRIAL_DAYS = 30;
+const BASE_TRIAL_DAYS = 14;
+const SIGNUP_URL = `https://app.fleetlix.com/signup?promo=${PROMO_CODE}`;
+
 const vcard = "/fleetlix.vcf";
 ---
 
 <Base
-  title="Fleetlix — Digital business card"
-  description="Save Fleetlix to your contacts — fleet & waste management software for UK skip hire and waste carriers. Jobs, compliance, routing and billing in one platform."
+  title="Fleetlix — Your 30-day free trial"
+  description={`An extended ${PROMO_TRIAL_DAYS}-day Fleetlix free trial with code ${PROMO_CODE} — plus our contact card. Fleet & waste management software for UK skip hire and waste carriers.`}
+  noindex={true}
 >
   <main
     class="flex min-h-screen flex-col items-center justify-center bg-[color:var(--color-offwhite)] px-5 py-10 pb-[max(2.5rem,env(safe-area-inset-bottom))]"
@@ -37,11 +50,69 @@ const vcard = "/fleetlix.vcf";
             hire and waste carriers. DWTS-ready as standard.
           </p>
 
+          <!-- Promo -->
+          <div
+            class="mt-7 rounded-2xl border border-[color:var(--color-amber)]/30 bg-[color:var(--color-amber)]/[0.08] p-5"
+          >
+            <p
+              class="text-[0.7rem] font-semibold uppercase tracking-[0.22em] text-[color:var(--color-amber)]"
+            >
+              Exclusive offer
+            </p>
+            <p class="mt-2 flex items-baseline gap-2">
+              <span
+                class="font-[family-name:var(--font-display)] text-3xl font-extrabold tracking-tight text-white"
+                >{PROMO_TRIAL_DAYS} days free</span
+              >
+              <span class="text-sm font-medium text-white/45 line-through"
+                >{BASE_TRIAL_DAYS} days</span
+              >
+            </p>
+            <p class="mt-2 text-[14px] leading-relaxed text-white/70">
+              Start Fleetlix on an extended free trial. Tap below and the code
+              is applied at signup — or enter it manually.
+            </p>
+
+            <div
+              class="mt-4 flex items-center justify-between gap-3 rounded-xl border border-dashed border-white/25 bg-white/5 px-4 py-3"
+            >
+              <span
+                class="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-white/40"
+                >Code</span
+              >
+              <span
+                class="font-mono text-lg font-bold tracking-[0.12em] text-[color:var(--color-amber)]"
+                >{PROMO_CODE}</span
+              >
+            </div>
+
+            <a
+              href={SIGNUP_URL}
+              class="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-[color:var(--color-amber)] px-6 py-3.5 text-base font-semibold text-[color:var(--color-graphite)] shadow transition hover:brightness-105"
+            >
+              Start your free trial
+              <svg
+                aria-hidden="true"
+                viewBox="0 0 24 24"
+                class="h-4 w-4"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M5 12h14" />
+                <path d="m13 6 6 6-6 6" />
+              </svg>
+            </a>
+          </div>
+
+          <!-- Save contact (secondary) -->
           <a
             href={vcard}
             download="Fleetlix.vcf"
             type="text/vcard"
-            class="mt-7 flex w-full items-center justify-center gap-2 rounded-xl bg-[color:var(--color-amber)] px-6 py-3.5 text-base font-semibold text-[color:var(--color-graphite)] shadow transition hover:brightness-105"
+            class="mt-6 flex w-full items-center justify-center gap-2 rounded-xl border border-white/20 px-6 py-3 text-base font-semibold text-white transition hover:bg-white/5"
           >
             <svg
               aria-hidden="true"
@@ -60,9 +131,6 @@ const vcard = "/fleetlix.vcf";
             </svg>
             Add to contacts
           </a>
-          <p class="mt-2 text-center text-xs text-white/40">
-            Works on iPhone and Android
-          </p>
 
           <ul class="mt-7 space-y-3 text-[15px]">
             <li class="flex items-center gap-3">
