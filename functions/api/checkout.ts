@@ -111,6 +111,20 @@ const handleCheckout = async ({ request, env }: Ctx): Promise<Response> => {
     return json(400, { error: "That plan isn't available for checkout yet." });
   }
 
+  // TEMP debug: ?debug=1 returns the resolved config WITHOUT calling Stripe,
+  // to isolate whether the crash is in the outbound fetch. Reveals only the
+  // key prefix (sk_test_ / sk_live_) and length, not the secret. Remove after.
+  if (new URL(request.url).searchParams.get("debug") === "1") {
+    return json(200, {
+      debug: true,
+      mode: useTest ? "test" : "live",
+      keyPrefix: secretKey.slice(0, 8),
+      keyLength: secretKey.length,
+      priceId,
+      priceIdLength: priceId.length,
+    });
+  }
+
   const form = new URLSearchParams({
     mode: "subscription",
     "line_items[0][price]": priceId,
