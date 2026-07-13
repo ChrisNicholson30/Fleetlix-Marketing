@@ -14,7 +14,10 @@ import SiteFooter from "../components/SiteFooter.astro";
 const PROMO_CODE = "letsrecycle";
 const PROMO_TRIAL_DAYS = 30;
 const BASE_TRIAL_DAYS = 14;
-const SIGNUP_URL = `https://app.fleetlix.com/signup?promo=${PROMO_CODE}`;
+// Checkout-first: land on the pricing section with the promo pre-applied, pick
+// a plan, pay on Stripe, then create the login on fleetlix.app. Query before
+// the hash so src/scripts/checkout.ts can read ?promo= from location.search.
+const CHECKOUT_URL = `/?promo=${PROMO_CODE}#pricing`;
 
 const vcard = "/fleetlix.vcf";
 ---
@@ -87,7 +90,7 @@ const vcard = "/fleetlix.vcf";
             </div>
 
             <a
-              href={SIGNUP_URL}
+              href={CHECKOUT_URL}
               class="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-[color:var(--color-amber)] px-6 py-3.5 text-base font-semibold text-[color:var(--color-graphite)] shadow transition hover:brightness-105"
             >
               Start your free trial

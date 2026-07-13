@@ -126,7 +126,7 @@ Always test at **375px (iPhone SE)** before merge — that's the narrowest targe
 
 ## Feature flags — `src/config/featureFlags.ts`
 
-- **`SHOW_PRICING`** (currently `true`) — when on: the Pricing nav link, `PricingSection` (five fixed plans mirroring `Resources/Pricing.md`: Operator £79 / Workshop £189 / Depot £350 / Haulier £550 / Network £899), and the hero "Prices from £79/month" CTA (→ `#pricing`) are rendered. `InterestForm` renders regardless of this flag. The old Stripe checkout links were removed with the retired tier structure (prices changed, Haulier didn't exist) — pricing CTAs anchor to `#register-interest` until real per-plan links are wired at launch. If `Resources/Pricing.md` and the app repo's `shared/plans/index.ts` disagree, the code wins.
+- **`SHOW_PRICING`** (currently `true`) — when on: the Pricing nav link, `PricingSection` (five fixed plans mirroring `Resources/Pricing.md`: Operator £79 / Workshop £189 / Depot £350 / Haulier £550 / Network £899), and the hero "Prices from £79/month" CTA (→ `#pricing`) are rendered. `InterestForm` renders regardless of this flag. By default the per-plan CTAs anchor to `#register-interest`; `src/scripts/checkout.ts` progressively enhances them into Stripe checkout **only when a valid `?promo=` is in the URL** (see *Promo checkout* below). If `Resources/Pricing.md` and the app repo's `shared/plans/index.ts` disagree, the code wins.
 - **`SHOW_CONTACT`** (currently `false`) — when off: "Book a demo" CTAs in Header + Hero, the Contact nav link, the `CtaFooter` section, and the footer email are all hidden. Legal pages keep their statutory data-protection contact regardless.
 
 Credentials and email addresses stay in source even when flags are off — only the rendered surface is cut.
@@ -159,6 +159,35 @@ visitor submits InterestForm (React island)
 1. **Browser shows 502** with Cloudflare's branded "Bad gateway" HTML → the function crashed before responding. Check Pages → Functions → Real-time logs.
 2. **Browser shows 502** with JSON `{"error":"Couldn't deliver…"}` → function ran, Resend rejected. Check Resend → Logs for the exact rejection.
 3. **Resend Logs shows 200 / Delivered, no email arrives** → Cloudflare Email Routing dropped it, OR the destination silently spam-binned it. Check Email Routing → Overview activity, then the destination's spam folder. Same-domain auto-mail to a brand-new sending domain commonly hits spam for the first ~10 sends; mark "Not spam" 2–3 times and reputation builds.
+
+## Promo checkout pipeline
+
+The paid-signup entry point. **Checkout-first:** the customer pays on Stripe on the marketing site, *then* creates their login on the app (`fleetlix.app`). Gated to promo-code holders.
+
+```
+card QR / link → fleetlix.com/?promo=letsrecycle#pricing
+  → src/scripts/checkout.ts sees a valid ?promo=, turns each pricing CTA into
+    "Start N-day free trial" (otherwise CTAs stay #register-interest links)
+  → POST /api/checkout { plan, promo }        (functions/api/checkout.ts)
+    → Stripe Checkout Session (mode=subscription, trial_period_days from promo)
+      → hosted Stripe page collects details + card, starts the trial
+        → success_url → fleetlix.app/onboarding?session_id=…  (APP repo — TBD)
+          → app provisions the tenant + plan, user sets their password
+```
+
+- **Promo is authoritative server-side.** `functions/api/checkout.ts` requires a valid promo (403 otherwise) and keeps its OWN copy of the promo/plan config — no import from `src/`, so the payment path can't break on a bundling change. The client copy lives in `src/config/checkout.ts`; **keep the two in sync**.
+- The promo sets the **trial length via `trial_period_days`**, not a Stripe coupon (coupons discount price, not time). **Monthly only** — no annual price ids.
+- `checkout.ts` (client) imports the shared `src/scripts/lib/env.ts`, so it's an external `/_astro/*.js` under `script-src 'self'` — no CSP hash. Hosted Checkout is a redirect (no Stripe.js), so no CSP change either.
+- The function returns 503 until the Stripe env vars are set, so it's safe to ship ahead of them; non-promo visitors see no change.
+
+### Checkout env vars (Pages Production)
+
+| Var | Format | Notes |
+|---|---|---|
+| `STRIPE_SECRET_KEY` *(secret)* | `sk_live_…` / `sk_test_…` | Server-side only; used by `functions/api/checkout.ts`. |
+| `STRIPE_PRICE_MAP` | JSON `{"operator":"price_…","workshop":"price_…",…}` | Plan slug → **monthly** Stripe price id. A slug with no entry (e.g. a plan not yet created in Stripe — currently 4 of 5 exist) returns a graceful 400. |
+| `CHECKOUT_SUCCESS_URL` *(optional)* | `https://fleetlix.app/onboarding?session_id={CHECKOUT_SESSION_ID}` | Defaults to this. Keep the literal `{CHECKOUT_SESSION_ID}` placeholder. |
+| `CHECKOUT_CANCEL_URL` *(optional)* | `https://fleetlix.com/#pricing` | Defaults to this. |
 
 ## DNS / Cloudflare snapshot
 

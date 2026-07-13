@@ -9,9 +9,12 @@
 // component — it gets data-reveal / card-glow / data-spotlight for free and
 // drops one hydration bundle.
 //
-// CTAs anchor to #register-interest (the form below) — the old Stripe links
-// belonged to the retired tier structure (different prices, no Haulier) and
-// were removed. Wire real checkout links per-plan at launch.
+// CTAs server-render as #register-interest links. src/scripts/checkout.ts
+// progressively enhances them: when a valid ?promo= is in the URL (e.g. the
+// letsrecycle card promo), each becomes a "Start N-day free trial" button that
+// creates a Stripe Checkout Session via POST /api/checkout. Promo-gated — no
+// promo, no checkout. The data-checkout-cta / data-plan / data-checkout-label
+// hooks below are what the script targets.
 
 type Plan = {
   name: string;
@@ -235,6 +238,8 @@ const stagger = [
 
           <a
             href="#register-interest"
+            data-checkout-cta
+            data-plan={p.name.toLowerCase()}
             class={`mt-auto pt-5 block`}
           >
             <span class={`btn-sheen block rounded-xl px-4 py-2.5 text-center text-sm font-semibold transition ${
@@ -242,7 +247,7 @@ const stagger = [
                 ? "bg-[color:var(--color-amber)] text-[color:var(--color-graphite)] hover:brightness-105 ring-1 ring-[color:var(--color-amber)]/40"
                 : "border border-[color:var(--color-graphite)]/25 text-[color:var(--color-graphite)] hover:bg-[color:var(--color-graphite)] hover:text-white"
             }`}>
-              Register interest
+              <span data-checkout-label>Register interest</span>
             </span>
           </a>
         </article>
@@ -308,3 +313,9 @@ const stagger = [
     </div>
   </div>
 </section>
+
+<script>
+  // Promo-gated checkout enhancement. Imports a shared module, so Astro emits
+  // it as an external /_astro/*.js file under script-src 'self' (no CSP hash).
+  import "../scripts/checkout.ts";
+</script>

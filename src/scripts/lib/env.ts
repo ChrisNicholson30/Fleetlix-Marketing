@@ -17,3 +17,8 @@ export const qs = <T extends Element>(
   selector: string,
   root: ParentNode = document,
 ): T | null => root.querySelector<T>(selector);
+
+export const qsa = <T extends Element>(
+  selector: string,
+  root: ParentNode = document,
+): T[] => Array.from(root.querySelectorAll<T>(selector));
