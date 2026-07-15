@@ -153,24 +153,30 @@ const handleCheckout = async ({ request, env }: Ctx): Promise<Response> => {
     if (!res.ok) {
       const detail = await res.text().catch(() => "");
       console.error("checkout: Stripe error", res.status, detail);
-      return json(502, { error: "Couldn't start checkout. Try again shortly." });
+      // 409, not 502: Cloudflare's edge replaces ANY 5xx returned by a Pages
+      // Function with its own opaque "error code: 502" text page, discarding
+      // this JSON body — so the client (src/scripts/checkout.ts) never sees
+      // data.error. A 4xx passes through untouched. (This masking is exactly
+      // what made an in-code 502 look like an uncatchable runtime crash.)
+      return json(409, { error: "Couldn't start checkout. Try again shortly." });
     }
 
     const session = (await res.json()) as { url?: string };
     sessionUrl = session.url;
   } catch (err) {
     // Any exception (invalid header, network, JSON) — log it and fail
-    // gracefully instead of surfacing a bare Cloudflare 502.
+    // gracefully. 409 not 5xx so the JSON body survives Cloudflare's edge,
+    // which would otherwise mask a 5xx as an opaque "error code: 502" page.
     console.error(
       "checkout: Stripe request threw",
       err instanceof Error ? err.message : String(err),
     );
-    return json(502, { error: "Couldn't start checkout. Try again shortly." });
+    return json(409, { error: "Couldn't start checkout. Try again shortly." });
   }
 
   if (!sessionUrl) {
     console.error("checkout: Stripe returned no url");
-    return json(502, { error: "Couldn't start checkout. Try again shortly." });
+    return json(409, { error: "Couldn't start checkout. Try again shortly." });
   }
 
   return json(200, { url: sessionUrl });
