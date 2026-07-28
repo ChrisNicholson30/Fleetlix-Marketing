@@ -33,7 +33,7 @@ export const faqItems: FaqItem[] = [
   {
     question: "Does Fleetlix support haulage operators?",
     answer:
-      "Fleetlix is launching for waste, skip-hire, and waste-carrier operators first — that is where the product is focused today. Dedicated haulage support is expected in March 2027. If you run a haulage fleet, register your interest now and we will let you know the moment it is ready.",
+      "Fleetlix is launching for waste, skip-hire, and waste-carrier operators first — that is where the product is focused today. Dedicated haulage support is expected in May 2027. If you run a haulage fleet, register your interest now and we will let you know the moment it is ready.",
   },
   {
     question: "Do drivers need to install an app?",
