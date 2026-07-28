@@ -5,18 +5,22 @@ const year = new Date().getFullYear();
 ---
 
 <footer class="border-t border-[color:var(--color-mist)] bg-[color:var(--color-offwhite)]">
-  <div class="mx-auto max-w-7xl px-6 py-10 flex flex-col md:flex-row md:items-center md:justify-between gap-4 text-sm text-[color:var(--color-slate)]">
-    <div class="flex items-center gap-3">
-      <img src="/fleetlix-logo-icon.svg" alt="" class="h-6 w-6" />
-      <span>&copy; {year} FLEETLIX LTD</span>
+  <div class="mx-auto max-w-7xl px-6 py-10 text-sm text-[color:var(--color-slate)]">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <img src="/fleetlix-logo-icon.svg" alt="" class="h-6 w-6" />
+        <span>&copy; {year} FLEETLIX LTD</span>
+      </div>
+      <div class="flex flex-wrap items-center gap-x-6 gap-y-2">
+        <a href="/privacy" class="hover:text-[color:var(--color-graphite)]">Privacy</a>
+        <a href="/cookies" class="hover:text-[color:var(--color-graphite)]">Cookies</a>
+        {SHOW_CONTACT && (
+          <a href="mailto:contact@fleetlix.com" class="hover:text-[color:var(--color-graphite)]">contact@fleetlix.com</a>
+        )}
+      </div>
     </div>
-    <div class="flex flex-wrap items-center gap-x-6 gap-y-2">
-      <a href="/privacy" class="hover:text-[color:var(--color-graphite)]">Privacy</a>
-      <a href="/cookies" class="hover:text-[color:var(--color-graphite)]">Cookies</a>
-      {SHOW_CONTACT && (
-        <a href="mailto:contact@fleetlix.com" class="hover:text-[color:var(--color-graphite)]">contact@fleetlix.com</a>
-      )}
-      <span class="opacity-60">Registered in England and Wales, company no. 17331348 · Registered office: 66 Paul Street, London</span>
-    </div>
+    <p class="mt-6 text-xs leading-relaxed opacity-60">
+      Registered in England and Wales, company no. 17331348 · Registered office: 66 Paul Street, London EC2A 4NA · Registered with the Information Commissioner&rsquo;s Office, reference <a href="https://ico.org.uk/ESDWebPages/Entry/ZC207602" class="underline underline-offset-2 hover:text-[color:var(--color-graphite)]" rel="noopener" target="_blank">ZC207602</a>
+    </p>
   </div>
 </footer>
