@@ -18,6 +18,7 @@ import CtaFooter from "../components/CtaFooter.astro";
 import SiteFooter from "../components/SiteFooter.astro";
 import { SHOW_CONTACT, SHOW_PRICING } from "../config/featureFlags";
 import { faqItems } from "../config/faq";
+import { TIERS, ENTRY_MONTHLY, TOP_MONTHLY } from "../config/pricing";
 
 // Homepage structured data as a single @graph so the page emits ONE inline
 // JSON-LD <script> (one CSP hash) rather than one per entity. @id values
@@ -48,19 +49,36 @@ const homepageJsonLd = {
         "Operations platform for UK waste, skip-hire, and haulage firms. One Progressive Web App covering driver walk-around checks, yard dispatch, office workflows, and automated Waste Transfer Notes.",
       url: "https://fleetlix.com",
       image: "https://fleetlix.com/og-image.png",
+      // AggregateOffer, not a single Offer: there are five published tiers, and
+      // quoting only the entry price understates the ladder. Every figure is
+      // generated from src/config/pricing.ts — the same source the cards render
+      // from — so the SERP can never advertise a price the page doesn't show.
+      // valueAddedTaxIncluded: false is the machine-readable half of the "+VAT"
+      // the cards print; the prices are ex-VAT and must say so.
       offers: {
-        "@type": "Offer",
+        "@type": "AggregateOffer",
         priceCurrency: "GBP",
-        price: "79.00",
-        priceSpecification: {
-          "@type": "UnitPriceSpecification",
-          price: "79.00",
-          priceCurrency: "GBP",
-          unitText: "MONTH",
-          referenceQuantity: { "@type": "QuantitativeValue", value: 1, unitCode: "MON" },
-        },
+        lowPrice: ENTRY_MONTHLY.toFixed(2),
+        highPrice: TOP_MONTHLY.toFixed(2),
+        offerCount: TIERS.length,
         availability: "https://schema.org/PreOrder",
         eligibleRegion: { "@type": "Country", name: "United Kingdom" },
+        offers: TIERS.map((tier) => ({
+          "@type": "Offer",
+          name: `Fleetlix ${tier.name}`,
+          priceCurrency: "GBP",
+          price: tier.monthly.toFixed(2),
+          priceSpecification: {
+            "@type": "UnitPriceSpecification",
+            price: tier.monthly.toFixed(2),
+            priceCurrency: "GBP",
+            valueAddedTaxIncluded: false,
+            unitText: "MONTH",
+            referenceQuantity: { "@type": "QuantitativeValue", value: 1, unitCode: "MON" },
+          },
+          availability: "https://schema.org/PreOrder",
+          eligibleRegion: { "@type": "Country", name: "United Kingdom" },
+        })),
       },
       publisher: { "@id": "https://fleetlix.com/#organization" },
       audience: {
@@ -92,7 +110,7 @@ const homepageJsonLd = {
 
 <Base
   title="Waste & Haulage Software for UK Fleet Operators | Fleetlix"
-  description="UK-built operations software for waste, skip-hire & haulage firms. One PWA for DVSA checks, live dispatch & automated Waste Transfer Notes. From £79/mo."
+  description="UK-built operations software for waste, skip-hire & haulage firms. One PWA for DVSA checks, live dispatch & automated Waste Transfer Notes. From £99/mo +VAT."
 >
   <Header />
   <main>

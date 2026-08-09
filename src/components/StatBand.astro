@@ -4,6 +4,8 @@
 // cinematic.ts, which reads the data-count attributes); reduced-motion visitors
 // get the final values immediately. The build-time text content below is the
 // finished value, so no-JS visitors and crawlers read a sensible figure too.
+import { ENTRY_MONTHLY } from "../config/pricing";
+
 const stats = [
   {
     count: "57000",
@@ -21,11 +23,11 @@ const stats = [
     accent: "amber",
   },
   {
-    count: "79",
+    count: String(ENTRY_MONTHLY),
     prefix: "£",
-    display: "£79",
+    display: `£${ENTRY_MONTHLY}`,
     label: "Where Fleetlix starts, per month",
-    note: "Every role. One login.",
+    note: "Every role. One login. Ex VAT.",
     accent: "cyan",
   },
   {

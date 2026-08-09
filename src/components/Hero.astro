@@ -1,5 +1,6 @@
 ---
 import { SHOW_CONTACT, SHOW_PRICING } from "../config/featureFlags";
+import { ENTRY_MONTHLY } from "../config/pricing";
 
 // Abstract cinematic hero — a code-drawn "live network" instead of photo/video.
 // Route arteries carry travelling light-comets (pure CSS stroke-dashoffset
@@ -174,7 +175,7 @@ const trust = [
           href={SHOW_PRICING ? "#pricing" : "#register-interest"}
           class="btn-sheen group inline-flex items-center justify-center gap-2 rounded-xl bg-[color:var(--color-amber)] px-6 py-3.5 text-base sm:text-lg font-semibold text-[color:var(--color-graphite)] shadow-lg shadow-amber-900/20 ring-1 ring-[color:var(--color-amber)]/40 hover:brightness-105 transition"
         >
-          {SHOW_PRICING ? "Prices from £79/month" : "Register your interest"}
+          {SHOW_PRICING ? `Prices from £${ENTRY_MONTHLY}/month` : "Register your interest"}
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4 transition-transform group-hover:translate-x-0.5" aria-hidden="true">
             <path d="M5 12h14" />
             <path d="m13 5 7 7-7 7" />

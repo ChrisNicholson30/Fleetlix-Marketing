@@ -1,10 +1,19 @@
 ---
-title: Fleetlix — Pricing & Plans
-status: reference
-updated: 2026-07-06
-source_of_truth: shared/plans/index.ts (PLAN_META + MODULE_MATRIX)
-related: ["[[fleetlix-inhouse-build-plan]]", "[[Fleetlix-Plan-of-Action]]"]
+title: Fleetlix — Pricing & Plans (v1, superseded)
+status: superseded
+updated: 2026-08-09
+source_of_truth: src/config/pricing.ts (marketing site) / shared/plans/index.ts (app)
+related: ["[[fleetlix-pricing-v2]]", "[[fleetlix-inhouse-build-plan]]", "[[Fleetlix-Plan-of-Action]]"]
 ---
+
+> [!WARNING] Superseded on 9 August 2026 by [[fleetlix-pricing-v2]].
+> The published ladder is now £99 / £219 / £419 / £675 / £949 **ex VAT**, with
+> annual billing at 10x monthly, four named seat pools (Drivers / Yard /
+> Mechanics / Office — "Users" is retired) and a stated DWTS allowance per tier.
+> The marketing site renders from `src/config/pricing.ts`; the app still runs
+> `shared/plans/index.ts` and has NOT yet been migrated. This file is kept only
+> as the record of what v1 was — read it for the module matrix and the gating
+> logic, which are unchanged, not for the prices or seat caps.
 
 # Fleetlix — Pricing & Plans
 
@@ -92,8 +101,9 @@ adds custom ones. Depot gets 1-way Xero — Haulier adds 2-way + QuickBooks.
 - **Network is the ceiling — "Custom" is scrapped.** Former bespoke/on-prem/data-
   residency requests become Network features or **paid add-ons**. The main add-on
   today is a **+£499 onboarding** line.
-- **VAT:** the owner (FLEETLIX LTD) is not currently VAT-registered, so prices are as
-  listed with no VAT added. Revisit if/when VAT registration happens.
+- **VAT:** ~~the owner (FLEETLIX LTD) is not currently VAT-registered, so prices are as
+  listed with no VAT added~~ — **no longer true.** FLEETLIX LTD is VAT registered;
+  every published price excludes VAT and must say so. See [[fleetlix-pricing-v2]].
 - **Billing:** Fleetlix's own subscriptions are **Stripe-only** (Stripe Billing
   drives the `plan` via webhook). Worldpay is offered only on the _tenant-facing_
   payment surface (tenants collecting from their own customers), not for Fleetlix

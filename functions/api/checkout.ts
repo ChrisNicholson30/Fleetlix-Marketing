@@ -17,8 +17,12 @@
 
 type Env = {
   STRIPE_SECRET_KEY?: string;
-  // JSON map of plan slug -> Stripe monthly price id, e.g.
-  // {"operator":"price_...","workshop":"price_...","depot":"price_..."}
+  // JSON map of plan slug -> Stripe price id(s). Two accepted shapes:
+  //   {"operator":"price_..."}                        -> monthly only
+  //   {"operator":{"month":"price_...","year":"price_..."}}
+  // The flat form is the original one and still works, so the live env var
+  // keeps functioning unchanged until annual prices exist in Stripe; a plan
+  // with no id for the requested interval fails with a graceful 400.
   STRIPE_PRICE_MAP?: string;
   // Test override: when TEST_STRIPE_SECRET_KEY is set, the function runs
   // entirely in test mode (test key + TEST_STRIPE_PRICE_MAP, which must hold
@@ -28,6 +32,11 @@ type Env = {
   TEST_STRIPE_PRICE_MAP?: string;
   CHECKOUT_SUCCESS_URL?: string;
   CHECKOUT_CANCEL_URL?: string;
+  // Escape hatch only. Stripe Tax is ON by default because every price on the
+  // site is published ex-VAT — without it FLEETLIX LTD would absorb the VAT on
+  // every UK sale. Set to "off" ONLY if Stripe Tax isn't yet enabled on the
+  // account, since session creation fails outright in that state.
+  STRIPE_AUTOMATIC_TAX?: string;
 };
 
 type Ctx = { request: Request; env: Env };
@@ -40,7 +49,11 @@ const PROMOS: Record<string, { trialDays: number }> = {
   letsrecycle: { trialDays: 30 },
 };
 
-// Monthly only — the yearly option is scrapped.
+// Billing intervals the pricing toggle can ask for. Annual is 10x monthly
+// (two months free) — a separate Stripe Price, not a discount on the monthly.
+const INTERVALS = ["month", "year"] as const;
+type Interval = (typeof INTERVALS)[number];
+
 const DEFAULT_SUCCESS_URL =
   "https://fleetlix.app/onboarding?session_id={CHECKOUT_SESSION_ID}";
 const DEFAULT_CANCEL_URL = "https://fleetlix.com/#pricing";
@@ -57,14 +70,35 @@ function resolvePromo(raw: unknown): { code: string; trialDays: number } | null 
   return promo ? { code, ...promo } : null;
 }
 
-function parsePriceMap(raw: string | undefined): Record<string, string> {
-  if (!raw) return {};
+// Resolves plan + interval to a Stripe price id across both accepted map
+// shapes. Returns undefined for anything missing or malformed — the caller
+// turns that into a 400 rather than posting a junk id to Stripe.
+function resolvePriceId(
+  raw: string | undefined,
+  plan: PlanSlug,
+  interval: Interval,
+): string | undefined {
+  if (!raw) return undefined;
+  let parsed: unknown;
   try {
-    const parsed = JSON.parse(raw);
-    return parsed && typeof parsed === "object" ? (parsed as Record<string, string>) : {};
+    parsed = JSON.parse(raw);
   } catch {
-    return {};
+    return undefined;
   }
+  if (!parsed || typeof parsed !== "object") return undefined;
+
+  const entry = (parsed as Record<string, unknown>)[plan];
+  // Flat form: one id, monthly by definition. An annual request against a flat
+  // map has no price to charge, so it must fail rather than silently bill
+  // monthly at the annual figure.
+  if (typeof entry === "string") {
+    return interval === "month" && entry ? entry : undefined;
+  }
+  if (entry && typeof entry === "object") {
+    const id = (entry as Record<string, unknown>)[interval];
+    return typeof id === "string" && id ? id : undefined;
+  }
+  return undefined;
 }
 
 const handleCheckout = async ({ request, env }: Ctx): Promise<Response> => {
@@ -91,12 +125,23 @@ const handleCheckout = async ({ request, env }: Ctx): Promise<Response> => {
     return json(400, { error: "Invalid JSON body." });
   }
 
-  const { plan, promo } = (body ?? {}) as { plan?: unknown; promo?: unknown };
+  const { plan, promo, interval } = (body ?? {}) as {
+    plan?: unknown;
+    promo?: unknown;
+    interval?: unknown;
+  };
 
   // Validate plan.
   if (typeof plan !== "string" || !PLAN_SLUGS.includes(plan as PlanSlug)) {
     return json(400, { error: "Unknown plan." });
   }
+
+  // Interval is optional — an older cached client sends none and means monthly.
+  const billing: Interval = INTERVALS.includes(interval as Interval)
+    ? (interval as Interval)
+    : "month";
+
+  const taxEnabled = env.STRIPE_AUTOMATIC_TAX?.trim().toLowerCase() !== "off";
 
   // Gate: a valid promo is required.
   const resolved = resolvePromo(promo);
@@ -104,11 +149,17 @@ const handleCheckout = async ({ request, env }: Ctx): Promise<Response> => {
     return json(403, { error: "This checkout requires a valid promo code." });
   }
 
-  // Look up the plan's Stripe price. A plan without a configured price id
-  // (e.g. the one plan not yet created in Stripe) fails gracefully.
-  const priceId = parsePriceMap(priceMapRaw)[plan];
+  // Look up the plan's Stripe price for the requested interval. A plan/interval
+  // with no configured id (e.g. annual before the yearly prices are created)
+  // fails gracefully rather than charging the wrong thing.
+  const priceId = resolvePriceId(priceMapRaw, plan as PlanSlug, billing);
   if (!priceId) {
-    return json(400, { error: "That plan isn't available for checkout yet." });
+    return json(400, {
+      error:
+        billing === "year"
+          ? "Annual billing isn't available for that plan yet."
+          : "That plan isn't available for checkout yet.",
+    });
   }
 
   const form = new URLSearchParams({
@@ -118,8 +169,19 @@ const handleCheckout = async ({ request, env }: Ctx): Promise<Response> => {
     "subscription_data[trial_period_days]": String(resolved.trialDays),
     "subscription_data[metadata][plan]": plan,
     "subscription_data[metadata][promo]": resolved.code,
+    "subscription_data[metadata][interval]": billing,
     "metadata[plan]": plan,
     "metadata[promo]": resolved.code,
+    "metadata[interval]": billing,
+    // Ex-VAT prices, so Stripe Tax works out and adds the VAT: 20% for a UK
+    // business, reverse charge for a VAT-registered business outside the UK,
+    // destination VAT for an EU consumer. The prices themselves must be
+    // created with tax_behavior: 'exclusive' — that's immutable per price, so
+    // getting it wrong means recreating them.
+    "automatic_tax[enabled]": String(taxEnabled),
+    // Lets a business enter its VAT number, which is what triggers the reverse
+    // charge rather than charging them UK VAT they'd have to reclaim.
+    "tax_id_collection[enabled]": String(taxEnabled),
     billing_address_collection: "required",
     success_url: env.CHECKOUT_SUCCESS_URL || DEFAULT_SUCCESS_URL,
     cancel_url: env.CHECKOUT_CANCEL_URL || DEFAULT_CANCEL_URL,

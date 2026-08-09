@@ -28,7 +28,17 @@ export const faqItems: FaqItem[] = [
   {
     question: "How much does Fleetlix cost?",
     answer:
-      "Five plans, from £79 to £899 per month: Operator, Workshop, Depot, Haulier, and Network. Every plan runs the full operations platform — tiers differ by team size and which commercial modules are unlocked. That sits well below the enterprise software vendors serving the sector, and a clear step up from the spreadsheet-and-paper status quo.",
+      "Five plans, from £99 to £949 per month plus VAT: Operator, Workshop, Depot, Haulier, and Network. Paying annually costs ten months rather than twelve, so two months are free. Every plan runs the full operations platform — tiers differ by team size and which commercial modules are unlocked. That sits well below the enterprise software vendors serving the sector, and a clear step up from the spreadsheet-and-paper status quo.",
+  },
+  {
+    question: "Do the prices include VAT?",
+    answer:
+      "No. Every price shown on the site excludes VAT. FLEETLIX LTD is VAT registered, so a UK business pays the listed price plus VAT at 20%, which most can then reclaim on their own return. VAT is worked out and added at checkout. A business outside the UK can enter its VAT number at checkout and is handled under the reverse charge.",
+  },
+  {
+    question: "How are user seats counted?",
+    answer:
+      "Each plan includes a set number of driver, yard, mechanic, and office seats — the four roles the app actually assigns. Drivers is the headline number because it is the one a yard owner can answer without checking. Admin is a permission rather than a seat type, so an office or yard user can hold admin rights without using an extra login. Seat limits are enforced in the database, not just the interface.",
   },
   {
     question: "Does Fleetlix support haulage operators?",

@@ -77,6 +77,7 @@ fleetlix-marketing/
 │   ├── layouts/Base.astro      # <html>, meta, font preload, single <slot/>
 │   ├── components/             # Astro sections + React islands
 │   ├── config/featureFlags.ts  # SHOW_PRICING, SHOW_CONTACT
+│   ├── config/pricing.ts       # the price ladder — cards + JSON-LD read this
 │   ├── scripts/cinematic.ts    # scroll-reveal IntersectionObserver + lazy hero video
 │   ├── styles/global.css       # colour tokens, Tailwind base, html/body overflow-clip
 │   └── assets/hero/            # source PNGs; Astro <Picture> emits avif/webp
@@ -87,6 +88,49 @@ fleetlix-marketing/
     ├── fonts/                  # self-hosted Inter + Space Grotesk (woff2)
     └── *.{svg,png,ico}         # logos, favicons
 ```
+
+## Pricing — `src/config/pricing.ts`
+
+The published ladder lives in **one file** and is rendered by both
+`PricingSection.astro` and the homepage JSON-LD `AggregateOffer`, so the SERP
+can't advertise a price the page doesn't show. Full rationale in
+`Resources/fleetlix-pricing-v2.md`; `Resources/Pricing.md` is the superseded v1.
+
+| Tier | Monthly | Annual | Drivers | Yard | Mechanics | Office | DWTS/mo |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| Operator | £99 | £990 | 2 | 1 | 1 | 1 | 500 |
+| Workshop | £219 | £2,190 | 8 | 2 | 3 | 3 | 2,000 |
+| **Depot** | **£419** | **£4,190** | 20 | 5 | 6 | 8 | 6,000 |
+| Haulier | £675 | £6,750 | 50 | 12 | 12 | 18 | 15,000 |
+| Network | £949 | £9,490 | ∞ | ∞ | ∞ | ∞ | ∞ |
+
+Rules that are easy to break by accident:
+
+- **Every figure excludes VAT and must say so on screen.** FLEETLIX LTD is VAT
+  registered; an unqualified price is a misquote to a business buyer. The cards
+  print "+VAT", the JSON-LD sets `valueAddedTaxIncluded: false`, and Stripe adds
+  the tax at checkout.
+- **Annual is exactly 10x monthly** — two months free. `annualSaving()` derives
+  the saving rather than storing it, so the pair can't drift.
+- **No tier carries a one-time fee.** Network's £499 onboarding was scrapped on
+  9 Aug 2026 for a self-serve migration tool in the app, and the trust row now
+  claims "No setup fees". Reintroducing a fee means pulling that chip *and*
+  reserving height in the card's price block — the blocks are currently a fixed
+  shape so every seat panel starts on the same line.
+- **Seats are four named pools** — Drivers, Yard, Mechanics, Office — mirroring
+  the roles the app assigns. The old catch-all "Users" is retired. Admin is a
+  permission flag, not a seat. Caps are enforced in the database, not just the UI.
+- **Depot unlocks each module's *core* version; Haulier unlocks its *power*
+  version.** That sentence sits at the TOP of the section — it's what explains
+  the whole ladder — not in a footnote.
+- The **monthly/annual toggle is CSS-only**: two radios plus `:has()` rules in
+  `global.css` (search "billing toggle"). No React island, no inline script, no
+  CSP hash, and both prices stay in the DOM for crawlers. `checkout.ts` reads the
+  same radios to pick the interval it sends to Stripe. Don't convert this to JS.
+- Changing a price means touching **only** `src/config/pricing.ts` — but it also
+  changes the homepage JSON-LD, so **regenerate the CSP hash** (see below).
+  Prose that quotes a price (FAQ answers, meta descriptions, `WhyPwa`, `WhoFor`)
+  is deliberately hand-written; grep for the old figure.
 
 ## Pages and section order
 
@@ -126,7 +170,7 @@ Always test at **375px (iPhone SE)** before merge — that's the narrowest targe
 
 ## Feature flags — `src/config/featureFlags.ts`
 
-- **`SHOW_PRICING`** (currently `true`) — when on: the Pricing nav link, `PricingSection` (five fixed plans mirroring `Resources/Pricing.md`: Operator £79 / Workshop £189 / Depot £350 / Haulier £550 / Network £899), and the hero "Prices from £79/month" CTA (→ `#pricing`) are rendered. `InterestForm` renders regardless of this flag. By default the per-plan CTAs anchor to `#register-interest`; `src/scripts/checkout.ts` progressively enhances them into Stripe checkout **only when a valid `?promo=` is in the URL** (see *Promo checkout* below). If `Resources/Pricing.md` and the app repo's `shared/plans/index.ts` disagree, the code wins.
+- **`SHOW_PRICING`** (currently `true`) — when on: the Pricing nav link, `PricingSection`, and the hero "Prices from £99/month" CTA (→ `#pricing`) are rendered. `InterestForm` renders regardless of this flag. By default the per-plan CTAs anchor to `#register-interest`; `src/scripts/checkout.ts` progressively enhances them into Stripe checkout **only when a valid `?promo=` is in the URL** (see *Promo checkout* below).
 - **`SHOW_CONTACT`** (currently `false`) — when off: "Book a demo" CTAs in Header + Hero, the Contact nav link, the `CtaFooter` section, and the footer email are all hidden. Legal pages keep their statutory data-protection contact regardless.
 
 Credentials and email addresses stay in source even when flags are off — only the rendered surface is cut.
@@ -168,15 +212,19 @@ The paid-signup entry point. **Checkout-first:** the customer pays on Stripe on 
 card QR / link → fleetlix.com/?promo=letsrecycle#pricing
   → src/scripts/checkout.ts sees a valid ?promo=, turns each pricing CTA into
     "Start N-day free trial" (otherwise CTAs stay #register-interest links)
-  → POST /api/checkout { plan, promo }        (functions/api/checkout.ts)
-    → Stripe Checkout Session (mode=subscription, trial_period_days from promo)
-      → hosted Stripe page collects details + card, starts the trial
+  → POST /api/checkout { plan, promo, interval }   (functions/api/checkout.ts)
+    → Stripe Checkout Session (mode=subscription, trial_period_days from promo,
+      automatic_tax + tax_id_collection on because prices are published ex VAT)
+      → hosted Stripe page collects details + card + VAT, starts the trial
         → success_url → fleetlix.app/onboarding?session_id=…  (APP repo — TBD)
           → app provisions the tenant + plan, user sets their password
 ```
 
 - **Promo is authoritative server-side.** `functions/api/checkout.ts` requires a valid promo (403 otherwise) and keeps its OWN copy of the promo/plan config — no import from `src/`, so the payment path can't break on a bundling change. The client copy lives in `src/config/checkout.ts`; **keep the two in sync**.
-- The promo sets the **trial length via `trial_period_days`**, not a Stripe coupon (coupons discount price, not time). **Monthly only** — no annual price ids.
+- The promo sets the **trial length via `trial_period_days`**, not a Stripe coupon (coupons discount price, not time).
+- **`interval` comes from the pricing toggle**, not a separate control — `checkout.ts` reads the `#billing-annual` radio at click time. Absent radios or an older cached client fall back to `month`.
+- **Stripe Tax is on by default** (`automatic_tax` + `tax_id_collection`). Every published price excludes VAT, so without it FLEETLIX LTD absorbs the VAT on each UK sale. It requires Stripe Tax enabled on the account *and* prices created with `tax_behavior: 'exclusive'` — otherwise session creation fails and every CTA shows "Couldn't start checkout." `STRIPE_AUTOMATIC_TAX=off` unblocks a test; it is not a launch setting.
+- **The live `STRIPE_PRICE_MAP` is stale** — it still points at the v1 £79–£899 prices while the site publishes the v2 ladder. Don't hand out a `?promo=` link until it's repointed; see `Resources/stripe-pricing-id.md`.
 - `checkout.ts` (client) imports the shared `src/scripts/lib/env.ts`, so it's an external `/_astro/*.js` under `script-src 'self'` — no CSP hash. Hosted Checkout is a redirect (no Stripe.js), so no CSP change either.
 - The function returns 503 until the Stripe env vars are set, so it's safe to ship ahead of them; non-promo visitors see no change.
 
@@ -185,11 +233,12 @@ card QR / link → fleetlix.com/?promo=letsrecycle#pricing
 | Var | Format | Notes |
 |---|---|---|
 | `STRIPE_SECRET_KEY` *(secret)* | `sk_live_…` | Live server-side key; used by `functions/api/checkout.ts`. |
-| `STRIPE_PRICE_MAP` | JSON `{"operator":"price_…","workshop":"price_…",…}` | Plan slug → **live monthly** Stripe price id. A slug with no entry (e.g. a plan not yet created in Stripe) returns a graceful 400. |
+| `STRIPE_PRICE_MAP` | JSON, either `{"operator":{"month":"price_…","year":"price_…"},…}` or the legacy flat `{"operator":"price_…",…}` | Plan slug → **live** Stripe price id per interval. The flat form is v1's and still works, but is monthly-only — an annual request against it returns a graceful 400 rather than billing the wrong thing. A slug with no entry does the same. |
 | `TEST_STRIPE_SECRET_KEY` *(secret, optional)* | `sk_test_…` | **Test override.** When set, the function runs entirely in test mode (this key + `TEST_STRIPE_PRICE_MAP`), leaving the live vars untouched. **Remove it to go live** — otherwise real customers get a test checkout they can't actually pay. |
 | `TEST_STRIPE_PRICE_MAP` | JSON, **test-mode** price ids | Required alongside `TEST_STRIPE_SECRET_KEY` — Stripe test prices are separate objects from live, so this must hold `price_…` ids created in test mode. |
 | `CHECKOUT_SUCCESS_URL` *(optional)* | `https://fleetlix.app/onboarding?session_id={CHECKOUT_SESSION_ID}` | Defaults to this. Keep the literal `{CHECKOUT_SESSION_ID}` placeholder. For testing, point it at `https://fleetlix.com/thank-you?session_id={CHECKOUT_SESSION_ID}` until the app onboarding exists. |
 | `CHECKOUT_CANCEL_URL` *(optional)* | `https://fleetlix.com/#pricing` | Defaults to this. |
+| `STRIPE_AUTOMATIC_TAX` *(optional)* | `off` | Escape hatch only. Stripe Tax is **on** unless this is exactly `off`. Turning it off means charging the ex-VAT figure with no VAT added — a real loss on every UK sale, not just a config nit. |
 
 ## DNS / Cloudflare snapshot
 

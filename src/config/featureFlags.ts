@@ -1,8 +1,8 @@
 // Marketing-site visibility flags.
 //
 // While SHOW_PRICING is true: the Pricing section (five fixed plans from
-// Resources/Pricing.md — Operator/Workshop/Depot/Haulier/Network), the
-// "Pricing" nav link, and the hero's "Prices from £79/month" CTA are all
+// src/config/pricing.ts — Operator/Workshop/Depot/Haulier/Network), the
+// "Pricing" nav link, and the hero's "Prices from £99/month" CTA are all
 // rendered. The InterestForm ALWAYS renders regardless of this flag — while
 // the product is pre-launch it stays the conversion action, and every pricing
 // CTA anchors to it. Stripe checkout links were removed with the old tier

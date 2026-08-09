@@ -15,6 +15,16 @@ const promo = resolvePromo(
 if (promo) {
   const trialLabel = `Start ${promo.trialDays}-day free trial`;
 
+  // The billing toggle is the same pair of radios global.css reads with :has()
+  // to swap the price blocks — no separate state to keep in sync. Read at click
+  // time, not on load, so a visitor can flip it after the page settles. Absent
+  // radios (toggle removed, or an older browser that never rendered it) fall
+  // back to monthly, which is what the cards show by default.
+  const billingInterval = (): "month" | "year" =>
+    document.querySelector<HTMLInputElement>("#billing-annual")?.checked
+      ? "year"
+      : "month";
+
   for (const cta of qsa<HTMLAnchorElement>("[data-checkout-cta]")) {
     const plan = cta.dataset.plan;
     if (!plan) continue;
@@ -38,7 +48,11 @@ if (promo) {
         const res = await fetch("/api/checkout", {
           method: "POST",
           headers: { "content-type": "application/json" },
-          body: JSON.stringify({ plan, promo: promo.code }),
+          body: JSON.stringify({
+            plan,
+            promo: promo.code,
+            interval: billingInterval(),
+          }),
         });
         const data = (await res.json().catch(() => ({}))) as {
           url?: string;

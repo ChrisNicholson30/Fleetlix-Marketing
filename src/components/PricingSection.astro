@@ -1,118 +1,29 @@
 ---
-// Pricing — mirrors Resources/Pricing.md (which itself mirrors the app repo's
-// shared/plans/index.ts; if they disagree, the code wins). Five fixed plans,
-// monthly GBP, no annual toggle, "Custom" scrapped. Every plan runs the full
-// operations core; tiers differ by seat limits and commercial modules, so the
-// section leads with seats and layers modules cumulatively ("Everything in X").
+// Pricing — the v2 ladder (Resources/fleetlix-pricing-v2.md). The tiers, seat
+// caps, DWTS allowances and prices all come from src/config/pricing.ts so the
+// homepage JSON-LD Offer reads the same numbers the cards render.
 //
-// No React island: the old billing toggle is gone, so this is a static .astro
-// component — it gets data-reveal / card-glow / data-spotlight for free and
-// drops one hydration bundle.
+// Three things this section has to get right, all of them commercial:
+//   1. Every published figure EXCLUDES VAT and says so. FLEETLIX LTD is VAT
+//      registered; an unqualified price is a misquote to a business buyer.
+//   2. The core/power rule ("Depot unlocks each module's core version, Haulier
+//      unlocks its power version") is the thing that explains the whole ladder,
+//      so it sits at the TOP of the section, not buried under the cards.
+//   3. Seats lead with DRIVERS — the only capacity number a yard owner can
+//      answer without checking. Yard/Mechanics/Office follow.
 //
-// CTAs server-render as #register-interest links. src/scripts/checkout.ts
-// progressively enhances them: when a valid ?promo= is in the URL (e.g. the
-// letsrecycle card promo), each becomes a "Start N-day free trial" button that
-// creates a Stripe Checkout Session via POST /api/checkout. Promo-gated — no
-// promo, no checkout. The data-checkout-cta / data-plan / data-checkout-label
-// hooks below are what the script targets.
+// No React island. The monthly/annual toggle is a pair of radios read by
+// :has() in global.css (search "billing toggle") — both price blocks are in the
+// DOM and CSS shows one. That keeps this a static .astro component: no
+// hydration bundle, no inline script, no CSP hash, and both prices stay
+// crawlable. src/scripts/checkout.ts reads the same radios to pick the billing
+// interval it sends to Stripe.
+//
+// CTAs server-render as #register-interest links; checkout.ts progressively
+// enhances them into Stripe Checkout only when a valid ?promo= is present.
+// data-checkout-cta / data-plan / data-checkout-label are its hooks.
 
-type Plan = {
-  name: string;
-  price: number;
-  blurb: string;
-  seats: { users: number; drivers: number; mechanics: number };
-  inherits: string | null;
-  features: string[];
-  icon: string;
-  accent: "amber" | "cyan";
-  featured?: boolean;
-  addon?: string;
-};
-
-const plans: Plan[] = [
-  {
-    name: "Operator",
-    price: 79,
-    blurb: "Sole trader, doing everything yourself.",
-    seats: { users: 3, drivers: 2, mechanics: 1 },
-    inherits: null,
-    features: [
-      "Full operations core",
-      "DWTS compliance submission",
-      "Basic invoicing",
-      "Register-interest bookings",
-    ],
-    icon: `<circle cx="12" cy="8" r="4"/><path d="M4 21v-2a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v2"/>`,
-    accent: "cyan",
-  },
-  {
-    name: "Workshop",
-    price: 189,
-    blurb: "Small fleet with a yard and a mechanic.",
-    seats: { users: 12, drivers: 8, mechanics: 4 },
-    inherits: "Operator",
-    features: [
-      "Branded invoice PDFs",
-      "Read-only customer portal",
-      "Basic online cart",
-      "CRM contacts",
-      "Basic BI counts",
-    ],
-    icon: `<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.6-3.6a6 6 0 0 1-7.9 7.9l-6.9 6.9a2.1 2.1 0 0 1-3-3l6.9-6.9a6 6 0 0 1 7.9-7.9l-3.6 3.6z"/>`,
-    accent: "amber",
-  },
-  {
-    name: "Depot",
-    price: 350,
-    blurb: "A full single operation.",
-    seats: { users: 40, drivers: 30, mechanics: 8 },
-    inherits: "Workshop",
-    features: [
-      "Paid online cart",
-      "Brokerage margin tracking",
-      "Drag-and-drop routing",
-      "Per-role dashboards",
-      "Recycling & CO₂ portal",
-      "Xero sync (1-way)",
-    ],
-    icon: `<path d="M3 21V9l9-5 9 5v12"/><path d="M9 21v-8h6v8"/>`,
-    accent: "amber",
-    featured: true,
-  },
-  {
-    name: "Haulier",
-    price: 550,
-    blurb: "The commercial operator.",
-    seats: { users: 120, drivers: 90, mechanics: 15 },
-    inherits: "Depot",
-    features: [
-      "Map route optimisation",
-      "Subcontractor logins + auto-PO",
-      "Booking from the portal",
-      "Custom dashboards",
-      "CRM pipeline & tasks",
-      "2-way Xero + QuickBooks",
-    ],
-    icon: `<path d="M3 6.5h11v8.5H3z"/><path d="M14 9h3.5l3 3v3H14z"/><circle cx="7" cy="17.5" r="1.7"/><circle cx="17" cy="17.5" r="1.7"/>`,
-    accent: "cyan",
-  },
-  {
-    name: "Network",
-    price: 899,
-    blurb: "Multi-site, multi-depot, audit-ready.",
-    seats: { users: 500, drivers: 400, mechanics: 40 },
-    inherits: "Haulier",
-    features: [
-      "Multi-depot routing",
-      "BI drill-down",
-      "Higher DWTS volume",
-      "SSO (Google, Microsoft)",
-    ],
-    icon: `<circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>`,
-    accent: "cyan",
-    addon: "+ £499 one-time onboarding",
-  },
-];
+import { TIERS, annualSaving, formatCap, gbp } from "../config/pricing";
 
 // The operations core — identical in every plan.
 const core = [
@@ -129,6 +40,10 @@ const core = [
 const trust: { icon: string; label: string }[] = [
   { icon: `<path d="M16 3l4 4-4 4"/><path d="M4 7h16"/><path d="M8 21l-4-4 4-4"/><path d="M20 17H4"/>`, label: "Change plan anytime" },
   { icon: `<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>`, label: "Cancel anytime" },
+  // True on every tier since the Network onboarding fee was scrapped in favour
+  // of a self-serve migration tool in the app. If a paid onboarding line ever
+  // comes back, this chip has to go with it.
+  { icon: `<path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0l-7.2-7.2A2 2 0 0 1 3 12V5a2 2 0 0 1 2-2h7a2 2 0 0 1 1.4.6l7.2 7.2a2 2 0 0 1 0 2.6z"/><circle cx="7.6" cy="7.6" r="1.1"/>`, label: "No setup fees" },
   { icon: `<path d="M4 21V4"/><path d="M4 4h12l-2 4 2 4H4"/>`, label: "UK-built, EU-hosted" },
   { icon: `<ellipse cx="12" cy="5.5" rx="7" ry="2.5"/><path d="M5 5.5v13c0 1.4 3.1 2.5 7 2.5s7-1.1 7-2.5v-13"/><path d="M5 12c0 1.4 3.1 2.5 7 2.5s7-1.1 7-2.5"/>`, label: "EU data residency" },
 ];
@@ -145,20 +60,54 @@ const stagger = [
 
 <section id="pricing" class="overflow-clip bg-[color:var(--color-offwhite)] border-y border-[color:var(--color-mist)]">
   <div class="mx-auto max-w-7xl px-6 py-20 md:py-28">
-    <div class="max-w-2xl">
-      <p class="text-xs font-semibold tracking-[0.18em] uppercase text-[color:var(--color-cyan)]" data-reveal>Pricing</p>
-      <h2 class="mt-3 font-[family-name:var(--font-display)] font-extrabold text-3xl md:text-4xl lg:text-5xl text-[color:var(--color-graphite)] tracking-tight [--stagger:80ms]" data-reveal="clip">
-        Five plans. One product. No locked doors.
-      </h2>
-      <p class="mt-4 text-[color:var(--color-slate)] text-lg [--stagger:160ms]" data-reveal>
-        Every plan runs the full operations platform — the tiers differ by team
-        size and which commercial modules are unlocked. Prices per month, GBP.
-      </p>
+    <div class="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
+      <div class="max-w-2xl">
+        <p class="text-xs font-semibold tracking-[0.18em] uppercase text-[color:var(--color-cyan)]" data-reveal>Pricing</p>
+        <h2 class="mt-3 font-[family-name:var(--font-display)] font-extrabold text-3xl md:text-4xl lg:text-5xl text-[color:var(--color-graphite)] tracking-tight [--stagger:80ms]" data-reveal="clip">
+          Five plans. One product. No locked doors.
+        </h2>
+        <p class="mt-4 text-[color:var(--color-slate)] text-lg [--stagger:160ms]" data-reveal>
+          Every plan runs the full operations platform — the tiers differ by
+          team size and which commercial modules are unlocked. All prices in
+          GBP and <strong class="font-semibold text-[color:var(--color-graphite)]">exclude VAT</strong>.
+        </p>
+      </div>
+
+      <!-- Billing toggle. Two radios; global.css swaps the price blocks with
+           :has(). Labels wrap their input so has-[:checked] styles the pill. -->
+      <fieldset class="shrink-0 [--stagger:200ms]" data-reveal>
+        <legend class="sr-only">Billing interval</legend>
+        <div class="inline-flex rounded-xl border border-[color:var(--color-mist)] bg-white p-1 shadow-sm">
+          <label class="cursor-pointer rounded-lg px-4 py-2.5 text-sm font-semibold text-[color:var(--color-slate)] transition has-[:checked]:bg-[color:var(--color-graphite)] has-[:checked]:text-white has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-[color:var(--color-cyan)]">
+            <input type="radio" name="billing" id="billing-monthly" class="sr-only" checked />
+            Monthly
+          </label>
+          <label class="cursor-pointer rounded-lg px-4 py-2.5 text-sm font-semibold text-[color:var(--color-slate)] transition has-[:checked]:bg-[color:var(--color-graphite)] has-[:checked]:text-white has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-[color:var(--color-cyan)]">
+            <input type="radio" name="billing" id="billing-annual" class="sr-only" />
+            Annual
+            <span class="ml-1.5 rounded-full bg-[color:var(--color-amber)]/20 px-2 py-0.5 text-[11px] font-bold text-[color:var(--color-graphite)]">2 months free</span>
+          </label>
+        </div>
+      </fieldset>
     </div>
 
+    <!-- The rule that explains the whole ladder. Promoted from the footnote it
+         used to be: a buyer who reads this knows which tier they need. -->
+    <p class="mt-8 flex items-start gap-3 rounded-xl border border-[color:var(--color-graphite)]/12 bg-white px-4 py-3.5 text-sm text-[color:var(--color-slate)] md:text-base [--stagger:240ms]" data-reveal>
+      <span class="mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[color:var(--color-cyan)]/15 text-[color:var(--color-cyan)]">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 16v-5" /><path d="M12 8h.01" /><circle cx="12" cy="12" r="9" />
+        </svg>
+      </span>
+      <span>
+        <strong class="font-semibold text-[color:var(--color-graphite)]">Depot unlocks each module's <em>core</em> version. Haulier unlocks its <em>power</em> version.</strong>{" "}
+        Nothing is removed as you go down the ladder — the modules simply get deeper.
+      </span>
+    </p>
+
     <!-- Plan cards -->
-    <div class="mt-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-5">
-      {plans.map((p, i) => (
+    <div class="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-5">
+      {TIERS.map((p, i) => (
         <article
           class={`card-glow group relative flex flex-col rounded-2xl p-6 transition duration-300 hover:-translate-y-1 ${
             p.featured
@@ -189,32 +138,62 @@ const stagger = [
 
           <p class={`mt-2 text-sm min-h-[2.5rem] ${p.featured ? "text-white/70" : "text-[color:var(--color-slate)]"}`}>{p.blurb}</p>
 
+          <!-- Both intervals render; CSS shows one. The two blocks are the same
+               shape (figure + one sub-line) so cards don't jump on toggle and
+               every seat panel starts on the same line. There is no one-time
+               fee on any tier — don't add a conditional line here without
+               reserving its height, or one card's seats fall out of step. -->
           <div class="mt-4">
-            <span class={`font-[family-name:var(--font-display)] font-extrabold text-4xl tracking-tight ${p.featured ? "text-white" : "text-[color:var(--color-graphite)]"}`}>
-              £{p.price}
-            </span>
-            <span class={`text-sm ml-1 ${p.featured ? "text-white/60" : "text-[color:var(--color-slate)]"}`}>/mo</span>
-            {p.addon && (
-              <p class={`mt-1 text-xs ${p.featured ? "text-white/55" : "text-[color:var(--color-slate)]/80"}`}>{p.addon}</p>
-            )}
+            <div data-billing="monthly">
+              <span class={`font-[family-name:var(--font-display)] font-extrabold text-4xl tracking-tight ${p.featured ? "text-white" : "text-[color:var(--color-graphite)]"}`}>
+                £{gbp(p.monthly)}
+              </span>
+              <span class={`text-sm ml-1 ${p.featured ? "text-white/60" : "text-[color:var(--color-slate)]"}`}>/mo</span>
+              <span class={`ml-1 text-xs font-semibold ${p.featured ? "text-white/45" : "text-[color:var(--color-slate)]/70"}`}>+VAT</span>
+              <p class={`mt-1 text-xs ${p.featured ? "text-white/55" : "text-[color:var(--color-slate)]/80"}`}>
+                or £{gbp(p.annual)}/yr — save £{gbp(annualSaving(p))}
+              </p>
+            </div>
+            <div data-billing="annual">
+              <span class={`font-[family-name:var(--font-display)] font-extrabold text-4xl tracking-tight ${p.featured ? "text-white" : "text-[color:var(--color-graphite)]"}`}>
+                £{gbp(p.annual)}
+              </span>
+              <span class={`text-sm ml-1 ${p.featured ? "text-white/60" : "text-[color:var(--color-slate)]"}`}>/yr</span>
+              <span class={`ml-1 text-xs font-semibold ${p.featured ? "text-white/45" : "text-[color:var(--color-slate)]/70"}`}>+VAT</span>
+              <p class={`mt-1 text-xs font-semibold ${p.featured ? "text-[color:var(--color-amber)]" : "text-[color:var(--color-success)]"}`}>
+                Save £{gbp(annualSaving(p))} a year
+              </p>
+            </div>
           </div>
 
-          <!-- Seat limits — the defining axis of the tiers. Rows (not columns):
-               at xl the five-across cards leave ~47px per column, which can't
-               fit the "Mechanics" label at any legible size. -->
+          <!-- Capacity. Drivers leads and is set larger: it's the number a yard
+               owner can answer without checking, and every step lands on a
+               recognisable fleet size. Yard/Mechanics/Office mirror the roles
+               the app actually assigns (Admin is a permission, not a seat).
+               Rows, not columns — at xl the five-across cards leave ~47px per
+               column, which can't fit "Mechanics" at any legible size. -->
           <dl class={`mt-4 rounded-xl px-3.5 divide-y ${
             p.featured
               ? "bg-white/8 border border-white/10 divide-white/10"
               : "bg-[color:var(--color-offwhite)] border border-[color:var(--color-mist)] divide-[color:var(--color-mist)]"
           }`}>
+            <div class="flex items-center justify-between gap-2 py-2">
+              <dt class={`text-[10px] font-bold tracking-[0.08em] uppercase ${p.featured ? "text-white/70" : "text-[color:var(--color-graphite)]/70"}`}>Drivers</dt>
+              <dd class={`font-[family-name:var(--font-display)] font-extrabold tabular-nums text-base leading-tight ${p.featured ? "text-white" : "text-[color:var(--color-graphite)]"}`}>
+                {formatCap(p.seats.drivers)}
+              </dd>
+            </div>
             {[
-              { v: p.seats.users, l: "Users" },
-              { v: p.seats.drivers, l: "Drivers" },
+              { v: p.seats.yard, l: "Yard" },
               { v: p.seats.mechanics, l: "Mechanics" },
+              { v: p.seats.office, l: "Office" },
+              { v: p.dwts, l: "DWTS/mo" },
             ].map((s) => (
               <div class="flex items-center justify-between gap-2 py-1.5">
                 <dt class={`text-[10px] font-medium tracking-[0.08em] uppercase ${p.featured ? "text-white/50" : "text-[color:var(--color-slate)]/70"}`}>{s.l}</dt>
-                <dd class={`font-[family-name:var(--font-display)] font-bold tabular-nums text-sm leading-tight ${p.featured ? "text-white" : "text-[color:var(--color-graphite)]"}`}>{s.v}</dd>
+                <dd class={`font-[family-name:var(--font-display)] font-bold tabular-nums text-sm leading-tight ${p.featured ? "text-white" : "text-[color:var(--color-graphite)]"}`}>
+                  {formatCap(s.v)}
+                </dd>
               </div>
             ))}
           </dl>
@@ -238,7 +217,7 @@ const stagger = [
           <a
             href="#register-interest"
             data-checkout-cta
-            data-plan={p.name.toLowerCase()}
+            data-plan={p.slug}
             class={`mt-auto pt-5 block`}
           >
             <span class={`btn-sheen block rounded-xl px-4 py-2.5 text-center text-sm font-semibold transition ${
@@ -254,8 +233,9 @@ const stagger = [
     </div>
 
     <p class="mt-6 text-sm text-[color:var(--color-slate)]/80" data-reveal>
-      Depot unlocks each module's <em>core</em> — Haulier unlocks its <em>power</em> version.
-      Seat limits are enforced in the database, not just the UI.
+      Seat limits are enforced in the database, not just the UI. Admin is a
+      permission an Office or Yard user holds — it never costs a seat. Annual
+      plans are billed once, up front; VAT is added at checkout.
     </p>
 
     <!-- The operations core: identical in every plan -->
@@ -289,8 +269,8 @@ const stagger = [
         </p>
         <p class="mt-2 text-sm text-white/70 leading-relaxed">
           DEFRA Digital Waste Tracking is a legal mandate — so every plan
-          submits to DWTS. Only submission volume scales with tier; the
-          capability never does.
+          submits to DWTS, from Operator up. Only the monthly submission
+          allowance scales with tier; the capability never does.
         </p>
         <a href="#compliance" class="group mt-auto pt-4 inline-flex items-center gap-2 text-sm font-semibold text-[color:var(--color-cyan)] hover:text-white transition-colors">
           See the deadlines

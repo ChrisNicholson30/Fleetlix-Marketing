@@ -319,6 +319,19 @@
 .nav-link.is-active::after { transform: scaleX(1); }
 .nav-link.is-active { color: var(--color-graphite); }
 
+/* ---- Pricing billing toggle ----
+ * Monthly/annual with no JavaScript: PricingSection renders BOTH price blocks
+ * per card and a pair of radios, and :has() on the section shows one. Chosen
+ * over a React island or an inline script because it costs no hydration and no
+ * CSP hash, and it leaves both figures in the DOM for crawlers.
+ * Guarded by @supports so a browser without :has() (pre-2022) can't end up
+ * hiding the annual block with no way to reveal it — there, both simply show. */
+@supports selector(:has(*)) {
+  #pricing [data-billing="annual"] { display: none; }
+  #pricing:has(#billing-annual:checked) [data-billing="annual"] { display: block; }
+  #pricing:has(#billing-annual:checked) [data-billing="monthly"] { display: none; }
+}
+
 /* ---- Button sheen ---- a single slow pass of light on hover. */
 .btn-sheen { position: relative; overflow: hidden; isolation: isolate; }
 .btn-sheen::after {
