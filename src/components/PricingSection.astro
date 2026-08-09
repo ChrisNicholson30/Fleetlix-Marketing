@@ -85,7 +85,12 @@ const stagger = [
           <label class="cursor-pointer rounded-lg px-4 py-2.5 text-sm font-semibold text-[color:var(--color-slate)] transition has-[:checked]:bg-[color:var(--color-graphite)] has-[:checked]:text-white has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-[color:var(--color-cyan)]">
             <input type="radio" name="billing" id="billing-annual" class="sr-only" />
             Annual
-            <span class="ml-1.5 rounded-full bg-[color:var(--color-amber)]/20 px-2 py-0.5 text-[11px] font-bold text-[color:var(--color-graphite)]">2 months free</span>
+            <!-- Solid amber, not a tint: this pill sits on white when Annual is
+                 unselected and on graphite when it is, and a translucent amber
+                 turns to mud over the dark half (graphite text on it is barely
+                 legible). Solid #FF8A00 with graphite text is 7.1:1 on both —
+                 the same treatment as the "Most popular" badge below. -->
+            <span class="ml-1.5 rounded-full bg-[color:var(--color-amber)] px-2 py-0.5 text-[11px] font-bold text-[color:var(--color-graphite)]">2 months free</span>
           </label>
         </div>
       </fieldset>
