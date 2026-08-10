@@ -154,9 +154,9 @@ export const FLEETLIX_STAGES: FleetlixStage[] = [
   },
   {
     id: "pat",
-    when: "July 2026",
-    title: "13 of Defra's 14 approval scenarios passed",
-    body: "Defra sets fourteen production approval tests a provider must demonstrate before going live. Thirteen pass. The fourteenth is an open query we raised with Defra on 7 July 2026, where the test service accepts a movement its own scenario says it should reject.",
+    when: "August 2026",
+    title: "All 14 of Defra's approval scenarios passed",
+    body: "Defra sets fourteen production approval tests a provider must demonstrate before it is allowed near production. All fourteen pass. One of them was held up by a discrepancy we raised with Defra on 7 July 2026, where the test service accepted a movement its own scenario said it should reject; Defra came back and confirmed the correct behaviour.",
     state: "done",
   },
   {
@@ -167,10 +167,17 @@ export const FLEETLIX_STAGES: FleetlixStage[] = [
     state: "done",
   },
   {
-    id: "production",
-    when: "Waiting on Defra",
-    title: "Production credentials, with Defra",
-    body: "There is no code left to write for Phase 1. Going live needs Defra to issue production credentials, and each operator to register for Report receipt of waste in their own name to get their API code — a fee only the operator can pay.",
+    id: "approved",
+    when: "August 2026",
+    title: "Approved by Defra, and on the GOV.UK register",
+    body: "Defra accepted the approval tests and issued production credentials, and Fleetlix now appears on the GOV.UK list of software providers for Report receipt of waste — listed as Fleetlix Ltd, noted there as formerly CN Design Ltd. That register is the only reliable way to check any provider's claim, including ours.",
+    state: "done",
+  },
+  {
+    id: "first-operator",
+    when: "Now",
+    title: "First operators going live",
+    body: "The first receiving site's own API code is configured and filing against Defra production. Every operator still has to register for Report receipt of waste in its own name to get a code for each permitted site — that registration and its fee are the operator's to do, and no software provider can do them for you.",
     state: "active",
   },
   {
@@ -287,7 +294,7 @@ export const dwtsFaqItems: DwtsFaqItem[] = [
   {
     question: "Is Fleetlix approved by Defra for digital waste tracking?",
     answer:
-      "Fleetlix has built the Phase 1 Receipt of Waste integration and proven it end to end against Defra's test environment, passing 13 of Defra's 14 production approval scenarios. The fourteenth is an open query with Defra about its own test service. We are waiting on Defra to issue production credentials, at which point we expect to appear on the GOV.UK list of approved software providers. We would rather tell you exactly where we are than display a badge we have not earned.",
+      "Yes, for Phase 1. Fleetlix passed all 14 of Defra's production approval scenarios, Defra issued production credentials, and Fleetlix is listed on the GOV.UK page Report receipt of waste: choose a software provider. Check it yourself rather than taking our word for it — the entry reads Fleetlix Ltd, noted as formerly CN Design Ltd. Phase 2, the carrier leg that becomes mandatory in October 2027, is a separate Defra API that has not been published yet, so no provider is approved for it.",
   },
   {
     question: "What do I need before software can file on my behalf?",
