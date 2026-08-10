@@ -1,0 +1,263 @@
+---
+// The live DWTS timeline. Appears on the homepage (variant "home") and again
+// at the top of /digital-waste-tracking (variant "guide").
+//
+// "Live" in two senses. Statuses, the rail fill and the countdown are computed
+// HERE at build time, so no-JS visitors and crawlers get a correct, finished
+// timeline — then src/scripts/dwts-timeline.ts recomputes the same things in
+// the browser against the reader's own clock, so a build that goes stale over
+// a deadline corrects itself rather than misinforming an operator.
+//
+// The geometry (vertical on phones, horizontal from lg up) lives in the
+// .dwts-* block in src/styles/global.css. This file only feeds it dates.
+import {
+  DWTS_MILESTONES,
+  STATUS_LABEL,
+  milestoneStatus,
+  nextMilestone,
+  segmentProgress,
+} from "../config/dwts";
+
+interface Props {
+  variant?: "home" | "guide";
+}
+const { variant = "home" } = Astro.props;
+
+const now = Date.now();
+const statuses = DWTS_MILESTONES.map((_, i) =>
+  milestoneStatus(DWTS_MILESTONES, i, now),
+);
+
+// How much of each rail segment has elapsed. Full once the milestone it runs
+// to has passed, empty until the one it runs from has, part-filled in between
+// — and that part-filled segment is the one carrying the "you are here" dot.
+const segments = DWTS_MILESTONES.map((milestone, i) => {
+  const to = DWTS_MILESTONES[i + 1];
+  if (!to) return null;
+  if (new Date(to.iso).getTime() <= now) return 1;
+  if (new Date(milestone.iso).getTime() <= now)
+    return segmentProgress(milestone, to, now);
+  return 0;
+});
+
+// Frozen-at-build countdown to the next milestone; the script takes over.
+const next = nextMilestone(DWTS_MILESTONES, now);
+const totalSecs = next
+  ? Math.max(0, Math.floor((new Date(next.iso).getTime() - now) / 1000))
+  : 0;
+const pad = (n: number) => String(n).padStart(2, "0");
+const tiles = [
+  { label: "Days", value: String(Math.floor(totalSecs / 86400)), attr: "data-cd-days" },
+  { label: "Hours", value: pad(Math.floor((totalSecs % 86400) / 3600)), attr: "data-cd-hours" },
+  { label: "Mins", value: pad(Math.floor((totalSecs % 3600) / 60)), attr: "data-cd-mins" },
+  { label: "Secs", value: pad(totalSecs % 60), attr: "data-cd-secs" },
+];
+---
+
+<section
+  id={variant === "home" ? "compliance" : "timeline"}
+  class="relative overflow-clip bg-[color:var(--color-graphite)] text-white"
+  data-dwts
+>
+  <!-- Decorative field; pointer-transparent and motion-gated in global.css. -->
+  <div class="aurora" aria-hidden="true">
+    <div class="aurora-blob aurora-blob--cyan absolute -left-24 top-0 h-72 w-72 opacity-25"></div>
+    <div class="aurora-blob aurora-blob--amber absolute -right-24 bottom-0 h-80 w-80 opacity-20"></div>
+  </div>
+
+  <div class="relative mx-auto max-w-7xl px-6 py-20 md:py-28">
+    <div class="grid lg:grid-cols-12 gap-10 lg:gap-16 items-start">
+      <!-- The claim -->
+      <div class="lg:col-span-7" data-reveal="left">
+        <p class="text-xs font-semibold tracking-[0.18em] uppercase text-[color:var(--color-cyan)]">
+          {variant === "home" ? "Digital Waste Tracking" : "Live status"}
+        </p>
+        <h2 class="mt-3 font-[family-name:var(--font-display)] font-extrabold text-3xl md:text-4xl lg:text-5xl tracking-tight leading-[1.06] text-white">
+          {variant === "home" ? (
+            <Fragment>
+              Waste paperwork is going digital,<br class="hidden sm:block" />
+              <span class="text-gradient text-gradient--animate"> in stages.</span>
+            </Fragment>
+          ) : (
+            <Fragment>Where the rollout has actually got to.</Fragment>
+          )}
+        </h2>
+        <p class="mt-5 text-white/70 text-lg leading-relaxed max-w-2xl">
+          {variant === "home" ? (
+            <Fragment>
+              Every load of waste in the UK is becoming a digital record filed
+              with the regulator. Permitted receiving sites go first, carriers
+              follow in October 2027. Fleetlix has already built and proven the
+              first phase, so when your date arrives the work is done.
+            </Fragment>
+          ) : (
+            <Fragment>
+              This timeline is generated from the dates in the statutory
+              instruments and Defra's own policy paper, and it recalculates
+              itself in your browser — so what you see below is where the
+              rollout stands today, not when this page was written.
+            </Fragment>
+          )}
+        </p>
+
+        <!-- Fleetlix's own position, stated plainly. -->
+        <div class="mt-7 grid sm:grid-cols-2 gap-3">
+          <div class="rounded-xl border border-[color:var(--color-cyan)]/25 bg-[color:var(--color-cyan)]/[0.07] p-4">
+            <div class="flex items-center gap-2">
+              <span class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-[color:var(--color-cyan)] text-white">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M20 6 9 17l-5-5" />
+                </svg>
+              </span>
+              <p class="font-semibold text-white">Phase 1 · Receiving sites</p>
+            </div>
+            <p class="mt-2 text-sm text-white/65 leading-relaxed">
+              Built, and proven end to end against Defra's test service.
+            </p>
+          </div>
+          <div class="rounded-xl border border-[color:var(--color-amber)]/25 bg-[color:var(--color-amber)]/[0.07] p-4">
+            <div class="flex items-center gap-2">
+              <span class="inline-flex h-5 w-5 items-center justify-center rounded-full border-2 border-[color:var(--color-amber)] text-[color:var(--color-amber)]">
+                <span class="h-1.5 w-1.5 rounded-full bg-[color:var(--color-amber)]"></span>
+              </span>
+              <p class="font-semibold text-white">Phase 2 · Carriers</p>
+            </div>
+            <p class="mt-2 text-sm text-white/65 leading-relaxed">
+              In design against the October 2027 mandate.
+            </p>
+          </div>
+        </div>
+
+        {variant === "home" && (
+          <a
+            href="/digital-waste-tracking"
+            class="group mt-7 inline-flex items-center gap-2 text-[color:var(--color-cyan)] font-semibold hover:text-white transition-colors"
+          >
+            Read the full guide to digital waste tracking
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true" class="transition-transform group-hover:translate-x-1">
+              <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </a>
+        )}
+      </div>
+
+      <!-- Countdown to whichever milestone is next -->
+      <div class="lg:col-span-5 w-full" data-reveal="right">
+        <div class="rounded-2xl border border-white/12 bg-white/[0.04] p-6 sm:p-7 backdrop-blur-md" data-dwts-countdown>
+          <p class="text-xs font-semibold tracking-[0.16em] uppercase text-white/45">
+            Next milestone
+          </p>
+          <p class="mt-2 font-[family-name:var(--font-display)] font-bold text-xl sm:text-2xl text-white" data-cd-title>
+            {next?.title ?? "Every published phase is in force"}
+          </p>
+          <p class="mt-1 text-[color:var(--color-amber)] font-semibold" data-cd-date>
+            {next ? `${next.nations} · ${next.dateLabel}` : ""}
+          </p>
+
+          <p class="sr-only">
+            {next
+              ? `The next digital waste tracking milestone is ${next.title} for ${next.nations} on ${next.dateLabel}.`
+              : "Every published digital waste tracking milestone is now in force."}
+          </p>
+
+          <div class="mt-5 grid grid-cols-4 gap-2 sm:gap-3" data-cd-tiles aria-hidden="true" hidden={!next}>
+            {tiles.map((tile) => (
+              <div class="rounded-xl border border-white/12 bg-white/[0.04] px-1.5 py-3 sm:px-3 sm:py-4 text-center">
+                <span
+                  class="block font-[family-name:var(--font-display)] font-bold tabular-nums text-2xl sm:text-3xl leading-none text-white"
+                  {...{ [tile.attr]: "" }}
+                >
+                  {tile.value}
+                </span>
+                <span class="mt-2 block text-[10px] sm:text-xs font-medium tracking-[0.14em] uppercase text-white/45">
+                  {tile.label}
+                </span>
+              </div>
+            ))}
+          </div>
+
+          <p class="mt-5 text-sm text-white/60 leading-relaxed" data-cd-complete hidden={!!next}>
+            Every published phase of the Digital Waste Tracking Service is now
+            in force across the United Kingdom.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- The rail -->
+    <ol class="dwts-track mt-14 lg:mt-20" data-dwts-track data-reveal>
+      {DWTS_MILESTONES.map((milestone, i) => (
+        <li
+          class="dwts-item"
+          data-milestone
+          data-iso={milestone.iso}
+          data-title={milestone.title}
+          data-date-label={`${milestone.nations} · ${milestone.dateLabel}`}
+          data-status={statuses[i]}
+          style={`--stagger:${i * 90}ms`}
+        >
+          <span class="dwts-node" aria-hidden="true">
+            <span class="dwts-pulse"></span>
+            <svg data-icon="done" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20 6 9 17l-5-5" />
+            </svg>
+            <span data-icon="pending" class="h-2 w-2 rounded-full bg-current"></span>
+          </span>
+
+          {segments[i] !== null && (
+            <span
+              class="dwts-seg"
+              data-seg
+              data-seg-active={segments[i]! > 0 && segments[i]! < 1 ? "" : undefined}
+              style={`--seg:${segments[i]!.toFixed(4)}`}
+            >
+              <span class="dwts-seg-fill"></span>
+              <span class="dwts-marker" aria-hidden="true">
+                <span class="dwts-marker-label">Today</span>
+                <span class="dwts-marker-dot"></span>
+              </span>
+            </span>
+          )}
+
+          <div class="pt-1 lg:pt-0">
+            <div class="flex flex-wrap items-center gap-2">
+              <span class={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold tracking-[0.1em] uppercase ${
+                milestone.phase === 1
+                  ? "bg-[color:var(--color-cyan)]/15 text-[color:var(--color-cyan)]"
+                  : "bg-[color:var(--color-amber)]/15 text-[color:var(--color-amber)]"
+              }`}>
+                Phase {milestone.phase}
+              </span>
+              <span class="text-[11px] font-semibold tracking-[0.1em] uppercase text-white/40" data-status-label>
+                {STATUS_LABEL[statuses[i]!]}
+              </span>
+            </div>
+            <p class="mt-2 font-[family-name:var(--font-display)] font-bold text-white text-lg leading-tight">
+              {milestone.dateLabel}
+            </p>
+            <p class="mt-1 font-semibold text-white/85 text-sm leading-snug">
+              {milestone.title}
+            </p>
+            <p class="mt-1 text-sm text-white/50 leading-snug">
+              {milestone.nations}
+            </p>
+          </div>
+        </li>
+      ))}
+    </ol>
+
+    <p class="mt-8 text-xs text-white/40 leading-relaxed max-w-3xl">
+      Dates marked as a season are Defra's own wording — no exact day has been
+      published for them. Sources: the Digital Waste Tracking Regulations for
+      England, Wales (WSI 2026/105) and Scotland (SSI 2026/145), and Defra's
+      Digital Waste Tracking Service policy paper.
+    </p>
+  </div>
+</section>
+
+<script>
+  // Imports a shared module so Astro emits this as an external /_astro/*.js
+  // file (script-src 'self'), not an inline hashed <script>. Travelling with
+  // the component means the timeline is live wherever it is used.
+  import "../scripts/dwts-timeline.ts";
+</script>
