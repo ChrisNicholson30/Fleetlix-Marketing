@@ -189,6 +189,25 @@ const trust = [
         </a>
       </div>
 
+      <!-- Deliberately a quiet text link, not a third button. The two CTAs above
+           are the load-bearing above-the-fold actions and a third competing
+           button would flatten both. This also stays appropriate while the
+           recording is still in production — /walkthrough says so honestly
+           rather than promising a video that isn't there. -->
+      <p class="hero-rise [--stagger:380ms] mt-4">
+        <a
+          href="/walkthrough"
+          class="group inline-flex items-center gap-2 text-sm font-medium text-white/70 hover:text-white transition-colors"
+        >
+          <span class="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white/10 ring-1 ring-white/20">
+            <svg viewBox="0 0 24 24" width="10" height="10" fill="currentColor" aria-hidden="true">
+              <path d="M8 5.14v13.72L19 12z" />
+            </svg>
+          </span>
+          Watch the 10-minute walkthrough
+        </a>
+      </p>
+
       <!-- Trust chips -->
       <ul
         class="hero-rise [--stagger:420ms] mt-7 flex flex-wrap gap-x-4 gap-y-2.5 text-sm text-white/80"

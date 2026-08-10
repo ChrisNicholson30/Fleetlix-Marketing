@@ -98,6 +98,8 @@ fleetlix-marketing/
 | ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `/`          | Homepage: Hero → BuiltForRoad → ProductShowcase → StatBand → FrontReveal → MotionProduct → FeatureGrid → WhyPwa → WhoFor → DwtsTimeline → (PricingSection when SHOW_PRICING) → Faq → InterestForm → (CtaFooter when SHOW_CONTACT) → SiteFooter. `ProductShowcase` (`#product-tour`) is a hand-built CSS/SVG mock of the app (no screenshots); `StatBand` shows count-up market figures. `InterestForm` always renders — it's the conversion action while pre-launch, and every pricing CTA anchors to it. |
 | `/digital-waste-tracking` | The DWTS pillar page — a full operator's guide to the Digital Waste Tracking Service, and the site's main organic-search asset. Renders `DwtsTimeline` with `variant="guide"`, then scope, the record contents, the two-working-day rule, fees, penalties, sector specifics, Fleetlix's own status, a DWTS-specific FAQ and the GOV.UK sources. Every date and figure comes from `src/config/dwts.ts`. Update its `lastUpdated` const when the substance changes. |
+| `/walkthrough` | The product recording, behind a **click-to-load facade**. The page ships zero video weight: the poster is a code-drawn SVG and no request reaches Cloudflare Stream until the visitor presses play. Chapters come from `src/config/walkthrough.ts` and are both the visible copy and the seek targets. **The video does not exist yet** — everything keys off `hasVideo`, which is false until the two env vars below are set, and the page renders an honest "filming now" state instead of a dead play button. See _Walkthrough video_ below. |
+| `/install`   | PWA install guide for iPhone, iPad, Android, Windows and Mac, from `src/config/install.ts`. Platform tabs are **CSS-only** (radios + `:has()`), so all five platforms are in the DOM and crawlable and the page works with JS off; `src/scripts/install.ts` only pre-selects the tab matching the visitor's device. Device-support lists sit in `<details>`. Content describes **fleetlix.app** (the app repo) — its Settings paths can go stale without anything here failing, so re-check before a rollout. |
 | `/privacy`   | UK GDPR policy. Update the `lastUpdated` const when material content changes.                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | `/cookies`   | PECR cookie policy. Asserts "no first-party cookies, no analytics".                                                                                                                                                                                                                                                                                                                                                                                                                                              |
 | `/thank-you` | Post-payment landing. Links to `https://app.fleetlix.com` (not yet live).                                                                                                                                                                                                                                                                                                                                                                                                                                        |
@@ -148,6 +150,48 @@ Digital Waste Tracking is the site's strongest commercial argument (a legal mand
 The limit that still matters: **approval covers Phase 1 only.** Defra has not published the Phase 2 carrier API, so nobody is approved for it, and both the homepage and the guide say so explicitly. Never let "Defra-approved" appear unqualified next to a Phase 2 or carrier claim. Check the app repo's `Resources/Defra/` before changing any of this.
 
 **How "live" works.** The component computes statuses, the rail fill and the countdown at build time, so no-JS visitors and crawlers get a finished, correct timeline. Then `src/scripts/dwts-timeline.ts` recomputes all three in the browser from the `data-iso` attributes, against the reader's clock — a build that goes stale over a mandate date corrects itself instead of misinforming someone. The geometry (vertical on phones, horizontal from `lg:`) is the `.dwts-*` block in `global.css`: each item owns the rail segment running to the *next* node, so `--seg` (0–1) is all the JS ever writes. No measuring, no absolute percentages.
+
+## Walkthrough video
+
+The `/walkthrough` player is the **only third-party content on the site**, and it
+is the one exception to the "no third-party network requests" rule below. It is
+allowed because it is **click-to-load**: no iframe exists until the visitor
+presses play, so pressing play _is_ the consent. That is what keeps the embed
+lawful under PECR without a consent banner, and it is what `/cookies` §4 and §5
+now say in writing.
+
+**Three rules, all load-bearing:**
+
+1. **Never preload, prefetch, `<link rel=preconnect>` or hover-trigger the
+   iframe.** Any of those makes the third-party request happen without consent
+   and turns the cookie policy into a false statement.
+2. **`frame-src` only.** The player's own scripts run inside the iframe under
+   Cloudflare's policy, not ours. The poster is a code-drawn SVG from this
+   origin, which is why `img-src` stays `'self' data:` — switching to a Stream
+   thumbnail would need an `img-src` entry and an extra third-party request.
+3. **Any other video host is blocked outright.** That's intended. Disclose in
+   `/cookies` before widening the CSP.
+
+### Dropping the video in
+
+Set both in Pages Production and redeploy — **no code change, no CSP change**:
+
+| Var | Format | Notes |
+| --- | ------ | ----- |
+| `PUBLIC_STREAM_UID` | Cloudflare Stream video UID | Both halves are required; one without the other builds an origin that 404s, and `hasVideo` stays false. |
+| `PUBLIC_STREAM_CUSTOMER_CODE` | the `customer-<code>` subdomain | The CSP allows `https://*.cloudflarestream.com`, so any customer code works without a header edit. |
+
+Then, in the same pass: **retime `chapters` in `src/config/walkthrough.ts`
+against the final cut** (the timestamps there are the plan for the recording, not
+measurements of it — a chapter button that seeks to the wrong moment is worse
+than no chapter list), and set `RUNTIME_LABEL` to the real duration.
+
+The page's JSON-LD is deliberately **BreadcrumbList only** — no `VideoObject`.
+Claiming a video that isn't published is a manual-action risk, and keeping the
+graph static means setting the env vars never changes the page's script hash
+(verified: a build with both vars set produces the same seven hashes). Adding
+`VideoObject` later **will** change it — regenerate and update `_headers` in the
+same commit.
 
 ## Interest form pipeline
 
@@ -245,15 +289,21 @@ Both JSON-LD scripts (the sitewide Organization and the homepage `@graph`) contr
 
 `public/_headers` ships strict headers on every response. Two parts deserve care:
 
-**`script-src` whitelists exactly five inline-script SHA-256 hashes — all stable:**
+**`script-src` whitelists exactly seven inline-script SHA-256 hashes — all stable:**
 
 1. Sitewide Organization JSON-LD (every page, from `Base.astro`)
 2. Astro's `client:visible` IntersectionObserver bootstrap
 3. Astro's `astro-island` custom-element registration
 4. Homepage JSON-LD `@graph` — WebSite + SoftwareApplication + FAQPage (from `src/pages/index.astro`)
 5. `/digital-waste-tracking` JSON-LD `@graph` — Article + FAQPage + BreadcrumbList. It is built from `src/config/dwts.ts`, so **editing `dwtsFaqItems` changes this hash** even though no markup moved.
+6. `/walkthrough` JSON-LD `@graph` — BreadcrumbList only (see _Walkthrough video_ above for why there's no VideoObject)
+7. `/install` JSON-LD `@graph` — BreadcrumbList only
 
-The mobile-menu handler (`src/scripts/header-menu.ts`), the homepage `cinematic.ts` bundle and `dwts-timeline.ts` are **no longer inline**: each imports a shared module (`src/scripts/lib/env.ts`, or `lib/motion.ts` which imports it), which Rollup code-splits into a shared chunk, so Astro emits them as **external `/_astro/*.js` files covered by `script-src 'self'`** — no hash. This is deliberate. On 13 Jul 2026 a Cloudflare build-image change altered how esbuild minified those two inline scripts, so their hashes drifted from `_headers` and both were CSP-blocked in prod (blank homepage). External `'self'` scripts can't drift. **Don't reinline them** (keep the shared `env.ts` import) and don't hardcode `/_astro` filenames anywhere.
+**`frame-src 'self' https://*.cloudflarestream.com`** is the only third-party
+allowance in the policy, and it exists for the click-to-load walkthrough player.
+Read _Walkthrough video_ before touching it.
+
+The mobile-menu handler (`src/scripts/header-menu.ts`), the homepage `cinematic.ts` bundle, `dwts-timeline.ts`, `walkthrough.ts` and `install.ts` are **no longer inline**: each imports a shared module (`src/scripts/lib/env.ts`, or `lib/motion.ts` which imports it), which Rollup code-splits into a shared chunk, so Astro emits them as **external `/_astro/*.js` files covered by `script-src 'self'`** — no hash. This is deliberate. **New client scripts must follow the same pattern** — import from `lib/env.ts` even if you only need one helper. On 13 Jul 2026 a Cloudflare build-image change altered how esbuild minified those two inline scripts, so their hashes drifted from `_headers` and both were CSP-blocked in prod (blank homepage). External `'self'` scripts can't drift. **Don't reinline them** (keep the shared `env.ts` import) and don't hardcode `/_astro` filenames anywhere.
 
 The FAQ accordion (`Faq.astro`) is native `<details>` with no JS, so adding/editing FAQs does **not** touch the hash list — but editing the FAQ _schema_ in `index.astro`'s `@graph` does.
 
@@ -266,6 +316,12 @@ The FAQ accordion (`Faq.astro`) is native `<details>` with no JS, so adding/edit
 ## Privacy
 
 Hard rule: **no analytics, no marketing tags, no advertising pixels, no behavioural tracking, no third-party widgets.** That's what `/cookies` promises in writing.
+
+**One documented exception:** the `/walkthrough` Cloudflare Stream player, which
+loads **only when the visitor presses play**. It was signed off on 10 Aug 2026 on
+that basis, disclosed in `/cookies` §4, and allowed in the CSP via `frame-src`.
+It is not a precedent for embeds that load on their own — the click *is* the
+consent, and that is the entire justification. See _Walkthrough video_ above.
 
 If you add **any** third-party script — GA, Plausible, a chat widget, a YouTube embed, anything that sets a cookie or makes a third-party network request — you must:
 

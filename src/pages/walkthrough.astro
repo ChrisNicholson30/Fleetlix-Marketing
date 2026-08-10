@@ -1,0 +1,270 @@
+---
+// /walkthrough — the full product recording, behind a click-to-load facade.
+//
+// Two things this page is built around:
+//
+// 1. THE VIDEO ISN'T HERE YET. Everything keys off `hasVideo` in
+//    src/config/walkthrough.ts, which is false until PUBLIC_STREAM_UID and
+//    PUBLIC_STREAM_CUSTOMER_CODE are both set in Cloudflare Pages. Until then
+//    the page renders as a complete, honest "in production" page — real
+//    chapters, real descriptions, no play button, no runtime, no VideoObject
+//    structured data claiming a video that doesn't exist. Adding the video is
+//    two env vars and a redeploy; no code change, and no CSP hash to regenerate
+//    (see the JSON-LD note below).
+//
+// 2. ZERO third-party weight until a deliberate click. The poster is drawn in
+//    SVG — no image bytes, nothing fetched — and the Stream iframe is only
+//    created by src/scripts/walkthrough.ts on press. The CSP allows
+//    frame-src https://*.cloudflarestream.com for exactly that moment, and
+//    /cookies discloses it. Don't preload, prefetch or hover-trigger the iframe:
+//    that would make the embed load without consent and the cookie policy wrong.
+//
+// TODO when the video lands:
+//   - Retime `chapters` in src/config/walkthrough.ts against the final cut.
+//   - Set RUNTIME_LABEL to the real duration.
+//   - Optional: add a VideoObject to the @graph below for video rich results.
+//     It needs a real contentUrl/embedUrl, uploadDate, thumbnailUrl and
+//     duration — and it WILL change this page's inline-script hash, so
+//     regenerate and update public/_headers in the same commit.
+//   - Optional: write /walkthrough/transcript and re-enable the link at the
+//     foot of this page. It is deliberately not linked while it 404s.
+
+import Base from "../layouts/Base.astro";
+import Header from "../components/Header.astro";
+import SiteFooter from "../components/SiteFooter.astro";
+import {
+  chapters,
+  fmtTime,
+  hasVideo,
+  RUNTIME_LABEL,
+  STREAM_ORIGIN,
+  STREAM_UID,
+} from "../config/walkthrough";
+
+// Breadcrumbs only. Static regardless of whether the video is configured, so
+// this page's script hash is stable across the "video dropped in" change —
+// which is the whole point of not emitting a VideoObject speculatively.
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "BreadcrumbList",
+      "@id": "https://fleetlix.com/walkthrough#breadcrumbs",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Home", item: "https://fleetlix.com" },
+        { "@type": "ListItem", position: 2, name: "Walkthrough", item: "https://fleetlix.com/walkthrough" },
+      ],
+    },
+  ],
+};
+---
+
+<Base
+  title="Fleetlix Walkthrough — See the Whole System in 10 Minutes"
+  description="A full walk-through of Fleetlix: taking a booking, dispatching a driver, capturing signatures, filing the waste transfer note, and closing the month."
+>
+  <Header />
+
+  <main class="bg-[color:var(--color-offwhite)]">
+    <article class="mx-auto max-w-4xl px-6 py-16 md:py-24">
+      <header>
+        <p class="text-xs font-semibold tracking-[0.18em] uppercase text-[color:var(--color-cyan)]">
+          Walkthrough{hasVideo && ` · ${RUNTIME_LABEL}`}
+        </p>
+        <h1 class="mt-3 font-[family-name:var(--font-display)] font-extrabold text-3xl sm:text-4xl lg:text-5xl tracking-tight text-[color:var(--color-graphite)] text-balance">
+          See a job go from phone call to invoice
+        </h1>
+        <p class="mt-4 max-w-2xl text-lg text-[color:var(--color-slate)] leading-relaxed">
+          One recording, start to finish, on a real yard's worth of data — no
+          slides and no edits that skip the awkward bits. Jump to any section
+          using the chapter list below the player.
+        </p>
+      </header>
+
+      <!-- Facade. The box is sized by aspect-ratio in global.css before
+           anything loads, so pressing play shifts nothing on the page. -->
+      <div
+        class="wt-player mt-10 overflow-hidden rounded-2xl bg-[color:var(--color-graphite)] ring-1 ring-[color:var(--color-graphite)]/15"
+        data-player
+        data-origin={STREAM_ORIGIN}
+        data-uid={STREAM_UID}
+      >
+        <!-- Code-drawn poster: zero media bytes, same discipline as the hero
+             backdrop. Swap for a real still once there's a video to still. -->
+        <svg
+          viewBox="0 0 1600 900"
+          class="absolute inset-0 h-full w-full"
+          preserveAspectRatio="xMidYMid slice"
+          aria-hidden="true"
+        >
+          <defs>
+            <linearGradient id="wt-sky" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#1A1D21" />
+              <stop offset="55%" stop-color="#20252B" />
+              <stop offset="100%" stop-color="#171A1E" />
+            </linearGradient>
+            <radialGradient id="wt-glow" cx="50%" cy="45%" r="55%">
+              <stop offset="0%" stop-color="#0098C7" stop-opacity="0.28" />
+              <stop offset="100%" stop-color="#0098C7" stop-opacity="0" />
+            </radialGradient>
+            <pattern id="wt-grid" width="80" height="80" patternUnits="userSpaceOnUse">
+              <path d="M80 0H0v80" fill="none" stroke="#FFFFFF" stroke-opacity="0.05" stroke-width="1" />
+            </pattern>
+          </defs>
+          <rect width="1600" height="900" fill="url(#wt-sky)" />
+          <rect width="1600" height="900" fill="url(#wt-grid)" />
+          <rect width="1600" height="900" fill="url(#wt-glow)" />
+          <!-- One route arc with its stops: the shape of the whole video. -->
+          <path
+            d="M120 690C380 690 470 470 700 470s330 200 560 200"
+            fill="none"
+            stroke="#FF8A00"
+            stroke-opacity="0.5"
+            stroke-width="3"
+            stroke-linecap="round"
+            stroke-dasharray="14 12"
+          />
+          <circle cx="120" cy="690" r="9" fill="#FF8A00" fill-opacity="0.85" />
+          <circle cx="700" cy="470" r="9" fill="#0098C7" fill-opacity="0.9" />
+          <circle cx="1260" cy="670" r="9" fill="#0098C7" fill-opacity="0.9" />
+        </svg>
+
+        <!-- Play button only when there's something to play. The alternative
+             branch is an honest "filming now" placeholder rather than a dead
+             button that does nothing when a visitor presses it. -->
+        {hasVideo ? (
+          <button
+            type="button"
+            data-play
+            class="group absolute inset-0 flex h-full w-full cursor-pointer flex-col items-center justify-center gap-4 focus-visible:outline-2 focus-visible:outline-offset-[-4px] focus-visible:outline-[color:var(--color-cyan)]"
+            aria-label={`Play the Fleetlix walkthrough, ${RUNTIME_LABEL}`}
+          >
+            <span class="inline-flex h-20 w-20 items-center justify-center rounded-full bg-[color:var(--color-amber)] text-[color:var(--color-graphite)] shadow-xl shadow-black/30 transition-transform duration-200 group-hover:scale-105 motion-reduce:transition-none motion-reduce:group-hover:scale-100">
+              <svg viewBox="0 0 24 24" width="30" height="30" fill="currentColor" aria-hidden="true">
+                <path d="M8 5.14v13.72L19 12z" />
+              </svg>
+            </span>
+            <span class="rounded-full bg-black/55 px-3.5 py-1.5 text-sm font-semibold text-white backdrop-blur-sm">
+              Play · {RUNTIME_LABEL}
+            </span>
+          </button>
+        ) : (
+          <div class="absolute inset-0 flex flex-col items-center justify-center gap-4 px-6 text-center">
+            <span class="inline-flex items-center gap-2 rounded-full bg-[color:var(--color-amber)] px-4 py-1.5 text-sm font-bold text-[color:var(--color-graphite)]">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" />
+              </svg>
+              Filming now
+            </span>
+            <p class="max-w-md font-[family-name:var(--font-display)] text-lg font-bold text-white">
+              The walkthrough is being recorded
+            </p>
+            <p class="max-w-md text-sm text-white/70">
+              Every section below is in the cut. Register your interest and
+              we'll send you the link the day it goes live.
+            </p>
+          </div>
+        )}
+      </div>
+
+      <!-- Chapters. These are the page's indexable content as much as they are
+           seek targets, which is why each carries a description rather than a
+           bare label — before the video exists they are the only thing here
+           worth reading, and after it exists they are what a search engine can
+           actually see. -->
+      <nav class="mt-10" aria-label="Chapters">
+        <h2 class="font-[family-name:var(--font-display)] text-xl font-bold text-[color:var(--color-graphite)]">
+          What's covered
+        </h2>
+        <ol class="mt-4 divide-y divide-[color:var(--color-mist)] overflow-hidden rounded-2xl border border-[color:var(--color-mist)] bg-white">
+          {chapters.map((c) => (
+            <li>
+              {hasVideo ? (
+                <button
+                  type="button"
+                  data-at={c.at}
+                  class="flex w-full cursor-pointer items-start gap-4 px-4 py-4 text-left transition-colors hover:bg-[color:var(--color-offwhite)] focus-visible:bg-[color:var(--color-offwhite)] focus-visible:outline-2 focus-visible:outline-[color:var(--color-cyan)] sm:px-5"
+                >
+                  <span class="mt-0.5 inline-flex shrink-0 items-center gap-1.5 rounded-md bg-[color:var(--color-graphite)]/6 px-2 py-1 font-[family-name:var(--font-display)] text-xs font-bold tabular-nums text-[color:var(--color-graphite)]">
+                    <svg viewBox="0 0 24 24" width="11" height="11" fill="currentColor" aria-hidden="true">
+                      <path d="M8 5.14v13.72L19 12z" />
+                    </svg>
+                    {fmtTime(c.at)}
+                  </span>
+                  <span>
+                    <span class="block font-semibold text-[color:var(--color-graphite)]">{c.label}</span>
+                    <span class="mt-1 block text-sm leading-relaxed text-[color:var(--color-slate)]">{c.blurb}</span>
+                  </span>
+                </button>
+              ) : (
+                <div class="flex items-start gap-4 px-4 py-4 sm:px-5">
+                  <span class="mt-0.5 inline-flex shrink-0 items-center rounded-md bg-[color:var(--color-graphite)]/6 px-2 py-1 font-[family-name:var(--font-display)] text-xs font-bold tabular-nums text-[color:var(--color-slate)]">
+                    {fmtTime(c.at)}
+                  </span>
+                  <span>
+                    <span class="block font-semibold text-[color:var(--color-graphite)]">{c.label}</span>
+                    <span class="mt-1 block text-sm leading-relaxed text-[color:var(--color-slate)]">{c.blurb}</span>
+                  </span>
+                </div>
+              )}
+            </li>
+          ))}
+        </ol>
+      </nav>
+
+      <p class="mt-6 text-sm text-[color:var(--color-slate)]/85">
+        {hasVideo
+          ? "Captions are on by default. The player loads from Cloudflare Stream only when you press play — nothing is requested from a third party before that."
+          : "When the recording is published it will play here. Nothing is loaded from a third party until you press play."}
+        {" "}
+        <a href="/cookies" class="underline underline-offset-2 hover:text-[color:var(--color-graphite)]">
+          How that works
+        </a>.
+      </p>
+
+      <!-- Second route out of the page: someone who watches a 10-minute
+           walkthrough is the warmest traffic on the site, so the conversion
+           action is here rather than a link back to the homepage. -->
+      <div class="mt-14 rounded-2xl border border-[color:var(--color-mist)] bg-white p-6 md:p-8">
+        <h2 class="font-[family-name:var(--font-display)] text-2xl font-bold text-[color:var(--color-graphite)]">
+          Seen enough?
+        </h2>
+        <p class="mt-2 text-[color:var(--color-slate)]">
+          Fleetlix launches on 1 October 2026. Register your interest and you'll
+          get the walkthrough link, the launch date, and nothing else.
+        </p>
+        <div class="mt-6 flex flex-wrap gap-3">
+          <a
+            href="/#register-interest"
+            class="btn-sheen inline-flex items-center justify-center rounded-xl bg-[color:var(--color-amber)] px-5 py-3 text-sm font-semibold text-[color:var(--color-graphite)] ring-1 ring-[color:var(--color-amber)]/40 transition hover:brightness-105"
+          >
+            Register your interest
+          </a>
+          <a
+            href="/#pricing"
+            class="inline-flex items-center justify-center rounded-xl border border-[color:var(--color-graphite)]/25 px-5 py-3 text-sm font-semibold text-[color:var(--color-graphite)] transition hover:bg-[color:var(--color-graphite)] hover:text-white"
+          >
+            See pricing
+          </a>
+          <a
+            href="/install"
+            class="inline-flex items-center justify-center rounded-xl border border-[color:var(--color-graphite)]/25 px-5 py-3 text-sm font-semibold text-[color:var(--color-graphite)] transition hover:bg-[color:var(--color-graphite)] hover:text-white"
+          >
+            Install guide
+          </a>
+        </div>
+      </div>
+    </article>
+  </main>
+
+  <SiteFooter />
+
+  <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+</Base>
+
+<script>
+  // Imports a shared module, so Astro emits this as an external /_astro/*.js
+  // file under script-src 'self' — no CSP hash to drift. See
+  // src/scripts/walkthrough.ts and src/scripts/lib/env.ts.
+  import "../scripts/walkthrough.ts";
+</script>
