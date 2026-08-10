@@ -23,15 +23,28 @@
 // enhances them into Stripe Checkout only when a valid ?promo= is present.
 // data-checkout-cta / data-plan / data-checkout-label are its hooks.
 
-import { TIERS, annualSaving, formatCap, gbp } from "../config/pricing";
+import { TIERS, COMING_LABEL, annualSaving, formatCap, gbp } from "../config/pricing";
 
-// The operations core — identical in every plan.
+// The operations core — identical in every plan, because none of it is gated.
+//
+// The routing family and the booking widget landed here in the 2026-08-10
+// pricing audit. All four were being sold as tier unlocks while having ZERO
+// gate call sites: migration 078 built a Depot-gated Rounds surface, 079 deleted
+// it as redundant, the board stayed core for every tier, and the pricing lines
+// outlived the deletion. Gating them now would leave an Operator planning from a
+// flat job list with no driver lanes — which is not a "full operations core".
+// So the card was fixed instead of the code, and these read as what they are:
+// capability every plan gets. Don't promote them back onto a tier unless a real
+// `moduleAtLeast(...)` branch lands with them.
 const core = [
   "DVSA walk-around checks, offline + replay",
-  "Kanban dispatch board + live map",
+  "Drag-and-drop dispatch board + live map",
+  "Route optimisation with distance saved",
+  "Multi-depot views once you run two sites",
   "Weighbridge, tickets & waste capture",
   "WTN PDFs with carrier sign-off",
   "Maintenance, VOR & compliance dates",
+  "Online booking requests from your website",
   "Team messaging",
   "Public job-tracking links",
   "Installable, offline-capable PWA",
@@ -97,7 +110,13 @@ const stagger = [
     </div>
 
     <!-- The rule that explains the whole ladder. Promoted from the footnote it
-         used to be: a buyer who reads this knows which tier they need. -->
+         used to be: a buyer who reads this knows which tier they need.
+         It used to read "Depot unlocks each module's core version" — which the
+         cards below disprove, since Workshop visibly holds the portal, CRM and
+         BI cores. A headline a buyer can falsify from the same screen costs
+         more trust than it buys, so it now claims only what the ladder does:
+         the COMMERCIAL modules (weight pricing, credit accounts, brokerage,
+         accounting) genuinely all start at Depot. -->
     <p class="mt-8 flex items-start gap-3 rounded-xl border border-[color:var(--color-graphite)]/12 bg-white px-4 py-3.5 text-sm text-[color:var(--color-slate)] md:text-base [--stagger:240ms]" data-reveal>
       <span class="mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[color:var(--color-cyan)]/15 text-[color:var(--color-cyan)]">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -105,8 +124,9 @@ const stagger = [
         </svg>
       </span>
       <span>
-        <strong class="font-semibold text-[color:var(--color-graphite)]">Depot unlocks each module's <em>core</em> version. Haulier unlocks its <em>power</em> version.</strong>{" "}
-        Nothing is removed as you go down the ladder — the modules simply get deeper.
+        <strong class="font-semibold text-[color:var(--color-graphite)]">Depot unlocks the commercial modules. Haulier unlocks their <em>power</em> versions.</strong>{" "}
+        Workshop covers the customer-facing basics — branding, portal, CRM and
+        BI. Nothing is ever taken away as you move up; the modules simply get deeper.
       </span>
     </p>
 
@@ -218,6 +238,34 @@ const stagger = [
               </li>
             ))}
           </ul>
+
+          <!-- Announced but not built. Three signals separate this from the
+               included list, none of them colour alone: a dashed rule boxes it
+               off, the dated heading says when, and the marker is a hollow ring
+               rather than the success tick. A buyer skimming ticks cannot pick
+               one of these up by accident. The date comes from COMING_LABEL so
+               five cards can't quote five dates. -->
+          {p.coming && p.coming.length > 0 && (
+            <div class={`mt-4 rounded-xl border border-dashed px-3.5 py-3 ${
+              p.featured ? "border-white/25" : "border-[color:var(--color-graphite)]/20"
+            }`}>
+              <p class={`text-[10px] font-bold tracking-[0.08em] uppercase ${
+                p.featured ? "text-white/55" : "text-[color:var(--color-slate)]/80"
+              }`}>
+                {COMING_LABEL}
+              </p>
+              <ul class={`mt-2 space-y-1.5 text-sm ${p.featured ? "text-white/60" : "text-[color:var(--color-slate)]/80"}`}>
+                {p.coming.map((f) => (
+                  <li class="flex items-start gap-2">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" class="mt-0.5 shrink-0 opacity-70">
+                      <circle cx="12" cy="12" r="8" />
+                    </svg>
+                    {f}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
 
           <a
             href="#register-interest"

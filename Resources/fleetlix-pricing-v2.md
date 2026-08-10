@@ -74,49 +74,118 @@ Caps stay enforced in the database, not just the UI.
 
 ## Feature gates
 
-Unchanged from the current model. The governing rule, currently buried in the page footer, needs promoting to the top of the pricing section:
+**Rewritten 10 August 2026** against [[Pricing v2 — code audit]], which read every
+`hasModule` / `moduleAtLeast` call site in the app. The list below had been
+carried forward unchanged from v1 and was substantially wrong: of 21 published
+bullets, 4 described capability that **does not exist**, 4 described capability
+**every tier already has**, and 3 gated, saleable modules were **missing
+entirely**. The card now prints only what the code gates.
 
-> **Depot unlocks each module's core version. Haulier unlocks its power version.**
+The governing rule was also reworded. It used to read _"Depot unlocks each
+module's core version"_, which a buyer can disprove from the same card —
+Workshop visibly holds the portal, CRM and BI cores. It is now:
+
+> **Depot unlocks the commercial modules. Haulier unlocks their power versions.**
+
+That is true as stated: `weight_pricing`, `commercial_accounts`, `brokerage` and
+`accounting` all start at Depot, and Haulier deepens them.
+
+**The standing rule for this list: a bullet requires a gate.** If the app does
+not branch on the plan, the capability is not a tier feature — it either belongs
+in the operations core (ungated, everyone gets it) or in _Coming_ (unbuilt).
 
 ### Operator
 
 - Full operations core
+- **Drag-and-drop dispatch board** — _added._ Ungated core, but at £99 it is the
+  reason a sole trader buys and the core panel sits below the cards.
 - DWTS compliance submission
 - Basic invoicing
-- Register-interest bookings
+- ~~Register-interest bookings~~ — _removed._ Describes a cap on `cart`, which
+  has **zero gate call sites**. It undersold Operator with a restriction that
+  isn't real.
 
 ### Workshop — everything in Operator, plus
 
 - Branded invoice PDFs
 - Read-only customer portal
-- Basic online cart
 - CRM contacts
 - Basic BI counts
+- ~~Basic online cart~~ — _removed._ No basic-vs-paid distinction exists in code.
+
+Four bullets, four gates — this tier is now exactly `billing: branded`,
+`portal: read_only`, `crm: contacts`, `bi: counts`.
 
 ### Depot — everything in Workshop, plus
 
-- Paid online cart
+- **Weight & tonnage pricing** — _added._ `weight_pricing`, enforced, was being
+  given away silently.
+- **Credit accounts & credit limits** — _added._ `commercial_accounts: credit`.
+  Nine enforcement sites, the most thoroughly gated module in the codebase.
 - Brokerage margin tracking
-- Drag-and-drop routing
+- **CRM opportunities & pipeline** — _moved down from Haulier._ `crm:
+  opportunities` unlocks here; the card had it a tier too high.
 - Per-role dashboards
 - Recycling and CO₂ portal
-- Xero sync (one-way)
+- **Xero & QuickBooks CSV export** — _rewritten_ from "Xero sync (one-way)". It
+  is an export, not a sync, and one boolean opens **both** formats at this tier,
+  so QuickBooks was never Haulier-only.
+- ~~Paid online cart~~, ~~drag-and-drop routing~~ — _removed._ Neither module is
+  gated.
 
 ### Haulier — everything in Depot, plus
 
-- Map route optimisation
-- Subcontractor logins and auto-PO
-- Booking from the portal
+- Booking from the portal — the best-defended claim on the card: gated in the UI
+  **and** backstopped in SQL, which raises for any plan outside haulier/network.
+- **Multi-site customer accounts** + **per-site, per-waste rate matrix** —
+  _added._ `commercial_accounts: multi_site`, a genuine Haulier unlock that was
+  unadvertised.
 - Custom dashboards
-- CRM pipeline and tasks
-- Two-way Xero and QuickBooks
+- **CRM tasks & activities** — _corrected_ from "CRM pipeline and tasks", which
+  was wrong in both directions: the pipeline is Depot's, only tasks are Haulier's.
+- ~~Map route optimisation~~ — _removed._ `optimiseRoute` is called
+  unconditionally, so it is free at every tier. Moved to the operations core.
+
+_Coming December 2026:_ subcontractor logins & auto-PO, two-way Xero &
+QuickBooks sync. Neither is built — no subcontractor login path, no PO
+generation, and the two-way sync needs per-tenant OAuth apps and a token store.
 
 ### Network — everything in Haulier, plus
 
-- Multi-depot routing
-- BI drill-down
-- Higher DWTS volume
-- SSO (Google, Microsoft)
+**Capacity-led, by necessity.** The audit found **zero network-only gates** in
+the app beyond `bi: drill_down`. Multi-depot routing self-hides below two sites
+rather than checking the plan, and `portal: white_label` is already given away
+(migration 183 brands the portal at every tier). So headroom is what this tier
+actually sells, and the card now says that rather than listing three things
+Haulier already has.
+
+- Unlimited seats across every role
+- Unlimited DWTS submissions
+- BI drill-down to source records
+- ~~Multi-depot routing~~ — _removed,_ ungated. Moved to the operations core.
+- ~~Higher DWTS volume~~ — _removed_ as a bullet: the capacity block already
+  prints "DWTS/mo — Unlimited", which says it better. (No submission counter
+  exists anywhere, so **all five published DWTS figures are currently
+  unmetered** — an unenforced ceiling, not a broken promise, but see below.)
+
+_Coming December 2026:_ SSO (Google & Microsoft). No OAuth or SAML path exists.
+
+### Moved into the operations core (ungated, every plan)
+
+Migration 078 built a Depot-gated Rounds surface; 079 deleted it as redundant
+with the dispatch board, which stayed core for every tier. **The pricing lines
+outlived the deletion.** Gating the board now would leave an Operator planning
+from a flat job list with no driver lanes — which is not a "full operations
+core" — so the card was fixed rather than the code:
+
+- Drag-and-drop dispatch board + live map
+- Route optimisation with distance saved
+- Multi-depot views once you run two sites
+- Online booking requests from your website (`cart` — ungated at every level;
+  paid checkout additionally needs the operator to connect Stripe)
+
+The `routing` row in `shared/plans/index.ts` is now dead config that nothing
+reads. Either delete it or wire it up — leaving it looks like a gate.
 
 ---
 
@@ -206,12 +275,61 @@ the v1 prices**, so a checkout today would advertise £99 and charge £79. See
 
 ## Application changes
 
+**Launch-blocking — the site now publishes these, the app does not yet honour them:**
+
+- [ ] **`PLAN_META` prices are still the v1 ladder** (£79/£189/£350/£550/£899).
+      The `/fleetlix` console computes MRR from it, so from the moment v2 sells,
+      Fleetlix's own revenue reporting understates every tenant by 20–25%.
+- [ ] **Operator's seat caps break the published card.** The site publishes 5
+      seats (2 drivers + 1 yard + 1 mechanic + 1 office); `seatLimit` is **3**,
+      so the `private.enforce_seat_limit` trigger hard-raises `SEAT_LIMIT` on the
+      buyer's 4th login — an over-promise enforced by a raise, on the entry tier,
+      at the moment of setup. **Decision 10 Aug 2026: the card is right and the
+      database catches up.** Reconcile `PLAN_META` and `set_tenant_plan()` to the
+      published matrix in one edit:
+
+      | Tier     | Total | Drivers | Yard | Mechanics | Office |
+      | -------- | ----: | ------: | ---: | --------: | -----: |
+      | Operator |     5 |       2 |    1 |         1 |      1 |
+      | Workshop |    16 |       8 |    2 |         3 |      3 |
+      | Depot    |    39 |      20 |    5 |         6 |      8 |
+      | Haulier  |    92 |      50 |   12 |        12 |     18 |
+      | Network  |     ∞ |       ∞ |    ∞ |         ∞ |      ∞ |
+
+- [ ] **There is no `yard_limit` and no `office_limit` column.** Only
+      `seat_limit`, `driver_limit` and `maintenance_limit` exist, so two of the
+      four published pools are unenforceable — while the card states "seat limits
+      are enforced in the database, not just the UI". Add the two columns with
+      the caps above.
+- [ ] **Network publishes "Unlimited" five times; the trigger refuses at 500
+      users / 400 drivers / 40 mechanics.** No customer will reach 400 drivers,
+      but that is not what "Unlimited" means. Raise the caps or make them null.
 - [ ] New Stripe price IDs into the Supabase tier config
-- [ ] Seat enforcement updated to the new caps, database-level
 - [ ] Annual billing path through checkout
 - [ ] VAT number and country capture at signup
 - [ ] Setup fee webhook removed (no tier has a one-time fee) — and the annual subscription path exercised end to end
 - [ ] **Self-serve migration tool** — the replacement for paid onboarding. Needs to exist before Network is sold, since it's now the whole answer to "how do I get my data in?"
+
+**Needed before the December 2026 date on the cards:** subcontractor logins &
+auto-PO, two-way Xero/QuickBooks sync, SSO. All three are now printed with a date
+against them, so the date is a commitment — if one slips, edit `COMING_LABEL` in
+`src/config/pricing.ts` (one constant, all five cards) before it goes stale.
+
+**Not blocking, but worth knowing:**
+
+- **DWTS allowances are unmetered.** `submit_high_volume` has zero call sites and
+  no counter exists, so the five published per-month figures are decorative. A
+  customer gets *at least* what is advertised, so this under-delivers on
+  enforcement rather than on capability — but nothing stops a tenant on Operator
+  submitting 50,000.
+- **"Change plan anytime" is a Fleetlix-side action.** Since migration 174 a
+  tenant admin cannot change their own plan — `set_tenant_plan` is platform-admin
+  only. The trust chip is defensible (the plan *can* change on request) but any
+  future copy implying instant self-serve upgrade would be wrong until Stripe
+  billing lands.
+- **The accounting export hard-codes VAT at 20%** and ignores the per-line rates
+  migration 182 added, so a mixed-rate invoice exports wrong. The site now names
+  that export on the Depot card — worth fixing before a customer reconciles with it.
 
 ---
 
