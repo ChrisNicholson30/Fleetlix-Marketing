@@ -1,14 +1,26 @@
 ---
 import { SHOW_CONTACT, SHOW_PRICING } from "../config/featureFlags";
 
-const nav = [
+interface NavItem {
+  href: string;
+  label: string;
+  /**
+   * Desktop-nav only: hold this item back until md. The inline nav is already
+   * near its width budget at exactly 640px, so a sixth link would make the
+   * anchors wrap. The mobile menu lists everything regardless.
+   */
+  mdOnly?: boolean;
+}
+
+const nav: NavItem[] = [
   { href: "#product", label: "Product" },
   { href: "#why-pwa", label: "Why a PWA" },
   { href: "#who", label: "Who it's for" },
+  { href: "/digital-waste-tracking", label: "Waste tracking", mdOnly: true },
   { href: "#faq", label: "FAQ" },
   SHOW_PRICING ? { href: "#pricing", label: "Pricing" } : null,
   SHOW_CONTACT ? { href: "#contact", label: "Contact" } : null,
-].filter((item): item is { href: string; label: string } => item !== null);
+].filter((item): item is NavItem => item !== null);
 ---
 
 <header class="sticky top-0 z-40 backdrop-blur-md bg-[color:var(--color-offwhite)]/80 border-b border-[color:var(--color-mist)]">
@@ -22,7 +34,11 @@ const nav = [
     <!-- Desktop nav: sm and up -->
     <nav class="hidden sm:flex items-center gap-6 md:gap-8 text-sm font-medium text-[color:var(--color-slate)]">
       {nav.map((item) => (
-        <a href={item.href} data-nav-link class="nav-link hover:text-[color:var(--color-graphite)] transition-colors">
+        <a
+          href={item.href}
+          data-nav-link
+          class:list={["nav-link hover:text-[color:var(--color-graphite)] transition-colors", item.mdOnly && "hidden md:inline"]}
+        >
           {item.label}
         </a>
       ))}

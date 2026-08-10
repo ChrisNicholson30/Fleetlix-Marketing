@@ -23,7 +23,7 @@ Reference colours via `[color:var(--color-graphite)]` etc. — never hardcode he
 
 **No tests, linter, or formatter** are configured. Don't add any without asking — they'd need wiring into the Pages build pipeline too.
 
-**No analytics, no third-party scripts, no tracking pixels.** This is a hard rule. See *Privacy* below.
+**No analytics, no third-party scripts, no tracking pixels.** This is a hard rule. See _Privacy_ below.
 
 ## Local commands
 
@@ -38,10 +38,10 @@ pnpm preview     # serve the build locally
 
 `docker-compose.dev.yml` defines two services under the `fleetlix` project (so both group with the operations app in OrbStack). It is **not** an auto-discovered Compose filename, so every command below passes `-f docker-compose.dev.yml`:
 
-| Service | Profile | Dockerfile | Image | Container | Serves |
-|---|---|---|---|---|---|
-| `marketing` | *(default)* | `Dockerfile.dev` | `fleetlix-marketing:dev` | `fleetlix-marketing` | `astro dev` (HMR) on 4321 |
-| `marketing-prod` | `prod` | `Dockerfile` | `fleetlix-marketing:latest` | `fleetlix-marketing-prod` | static `dist/` via nginx on 4321 |
+| Service          | Profile     | Dockerfile       | Image                       | Container                 | Serves                           |
+| ---------------- | ----------- | ---------------- | --------------------------- | ------------------------- | -------------------------------- |
+| `marketing`      | _(default)_ | `Dockerfile.dev` | `fleetlix-marketing:dev`    | `fleetlix-marketing`      | `astro dev` (HMR) on 4321        |
+| `marketing-prod` | `prod`      | `Dockerfile`     | `fleetlix-marketing:latest` | `fleetlix-marketing-prod` | static `dist/` via nginx on 4321 |
 
 ```bash
 docker compose -f docker-compose.dev.yml up -d              # dev server (HMR) → localhost:4321
@@ -63,6 +63,7 @@ docker --context mini-server compose -f docker-compose.dev.yml --profile prod do
 Name `marketing-prod` explicitly — `--profile prod` alone would also start the dev service and clash on 4321.
 
 Notes:
+
 - **Dev:** source is bind-mounted (HMR); `node_modules` lives in an anonymous volume so the container keeps its Linux binaries (sharp/esbuild are platform-specific). `astro.config.mjs` sets `server.host: true` + `vite.server.allowedHosts` (`mini-server.local`, `.orb.local`, `.ts.net`) so the dev server is reachable over LAN / OrbStack / Tailscale.
 - Both images pin Node 22.13-slim and pnpm 11.0.8 — Cloudflare Pages still builds production with `NODE_VERSION=22.12.0`, but pnpm 11.0.8 was retroactively bumped to require Node ≥ 22.13, so the images are one minor ahead. The prod `Dockerfile` uses a BuildKit heredoc (`# syntax=…`) for its nginx config; OrbStack enables BuildKit by default.
 - **The prod image is a static mirror.** The `/api/register-interest` Pages Function and the `public/_headers` CSP are Cloudflare-only and do **not** run in nginx — the interest form won't deliver from the Mini, and only the vCard content-type + asset caching are reproduced in the nginx config. The real site stays on Cloudflare Pages; to test the Function locally use `wrangler pages dev`.
@@ -77,8 +78,10 @@ fleetlix-marketing/
 │   ├── layouts/Base.astro      # <html>, meta, font preload, single <slot/>
 │   ├── components/             # Astro sections + React islands
 │   ├── config/featureFlags.ts  # SHOW_PRICING, SHOW_CONTACT
-│   ├── config/pricing.ts       # the price ladder — cards + JSON-LD read this
-│   ├── scripts/cinematic.ts    # scroll-reveal IntersectionObserver + lazy hero video
+│   ├── config/dwts.ts          # DWTS milestones, Fleetlix build stages, facts, FAQ
+│   ├── scripts/lib/motion.ts   # shared reveal/scroll/count-up/spotlight initialisers
+│   ├── scripts/cinematic.ts    # homepage bundle — composes the motion initialisers
+│   ├── scripts/dwts-timeline.ts # recomputes the DWTS timeline against the reader's clock
 │   ├── styles/global.css       # colour tokens, Tailwind base, html/body overflow-clip
 │   └── assets/hero/            # source PNGs; Astro <Picture> emits avif/webp
 ├── functions/api/
@@ -89,58 +92,16 @@ fleetlix-marketing/
     └── *.{svg,png,ico}         # logos, favicons
 ```
 
-## Pricing — `src/config/pricing.ts`
-
-The published ladder lives in **one file** and is rendered by both
-`PricingSection.astro` and the homepage JSON-LD `AggregateOffer`, so the SERP
-can't advertise a price the page doesn't show. Full rationale in
-`Resources/fleetlix-pricing-v2.md`; `Resources/Pricing.md` is the superseded v1.
-
-| Tier | Monthly | Annual | Drivers | Yard | Mechanics | Office | DWTS/mo |
-|---|---:|---:|---:|---:|---:|---:|---:|
-| Operator | £99 | £990 | 2 | 1 | 1 | 1 | 500 |
-| Workshop | £219 | £2,190 | 8 | 2 | 3 | 3 | 2,000 |
-| **Depot** | **£419** | **£4,190** | 20 | 5 | 6 | 8 | 6,000 |
-| Haulier | £675 | £6,750 | 50 | 12 | 12 | 18 | 15,000 |
-| Network | £949 | £9,490 | ∞ | ∞ | ∞ | ∞ | ∞ |
-
-Rules that are easy to break by accident:
-
-- **Every figure excludes VAT and must say so on screen.** FLEETLIX LTD is VAT
-  registered; an unqualified price is a misquote to a business buyer. The cards
-  print "+VAT", the JSON-LD sets `valueAddedTaxIncluded: false`, and Stripe adds
-  the tax at checkout.
-- **Annual is exactly 10x monthly** — two months free. `annualSaving()` derives
-  the saving rather than storing it, so the pair can't drift.
-- **No tier carries a one-time fee.** Network's £499 onboarding was scrapped on
-  9 Aug 2026 for a self-serve migration tool in the app, and the trust row now
-  claims "No setup fees". Reintroducing a fee means pulling that chip *and*
-  reserving height in the card's price block — the blocks are currently a fixed
-  shape so every seat panel starts on the same line.
-- **Seats are four named pools** — Drivers, Yard, Mechanics, Office — mirroring
-  the roles the app assigns. The old catch-all "Users" is retired. Admin is a
-  permission flag, not a seat. Caps are enforced in the database, not just the UI.
-- **Depot unlocks each module's *core* version; Haulier unlocks its *power*
-  version.** That sentence sits at the TOP of the section — it's what explains
-  the whole ladder — not in a footnote.
-- The **monthly/annual toggle is CSS-only**: two radios plus `:has()` rules in
-  `global.css` (search "billing toggle"). No React island, no inline script, no
-  CSP hash, and both prices stay in the DOM for crawlers. `checkout.ts` reads the
-  same radios to pick the interval it sends to Stripe. Don't convert this to JS.
-- Changing a price means touching **only** `src/config/pricing.ts` — but it also
-  changes the homepage JSON-LD, so **regenerate the CSP hash** (see below).
-  Prose that quotes a price (FAQ answers, meta descriptions, `WhyPwa`, `WhoFor`)
-  is deliberately hand-written; grep for the old figure.
-
 ## Pages and section order
 
-| Route | Purpose |
-|---|---|
-| `/` | Homepage: Hero → BuiltForRoad → ProductShowcase → StatBand → FrontReveal → MotionProduct → FeatureGrid → WhyPwa → WhoFor → ComplianceCountdown → (PricingSection when SHOW_PRICING) → Faq → InterestForm → (CtaFooter when SHOW_CONTACT) → SiteFooter. `ProductShowcase` (`#product-tour`) is a hand-built CSS/SVG mock of the app (no screenshots); `StatBand` shows count-up market figures. `InterestForm` always renders — it's the conversion action while pre-launch, and every pricing CTA anchors to it. |
-| `/privacy` | UK GDPR policy. Update the `lastUpdated` const when material content changes. |
-| `/cookies` | PECR cookie policy. Asserts "no first-party cookies, no analytics". |
-| `/thank-you` | Post-payment landing. Links to `https://app.fleetlix.com` (not yet live). |
-| `/404` | Custom not-found page (`src/pages/404.astro`). `noindex`; Astro emits `dist/404.html`, which Cloudflare Pages serves for unmatched routes. |
+| Route        | Purpose                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/`          | Homepage: Hero → BuiltForRoad → ProductShowcase → StatBand → FrontReveal → MotionProduct → FeatureGrid → WhyPwa → WhoFor → DwtsTimeline → (PricingSection when SHOW_PRICING) → Faq → InterestForm → (CtaFooter when SHOW_CONTACT) → SiteFooter. `ProductShowcase` (`#product-tour`) is a hand-built CSS/SVG mock of the app (no screenshots); `StatBand` shows count-up market figures. `InterestForm` always renders — it's the conversion action while pre-launch, and every pricing CTA anchors to it. |
+| `/digital-waste-tracking` | The DWTS pillar page — a full operator's guide to the Digital Waste Tracking Service, and the site's main organic-search asset. Renders `DwtsTimeline` with `variant="guide"`, then scope, the record contents, the two-working-day rule, fees, penalties, sector specifics, Fleetlix's own status, a DWTS-specific FAQ and the GOV.UK sources. Every date and figure comes from `src/config/dwts.ts`. Update its `lastUpdated` const when the substance changes. |
+| `/privacy`   | UK GDPR policy. Update the `lastUpdated` const when material content changes.                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| `/cookies`   | PECR cookie policy. Asserts "no first-party cookies, no analytics".                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| `/thank-you` | Post-payment landing. Links to `https://app.fleetlix.com` (not yet live).                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| `/404`       | Custom not-found page (`src/pages/404.astro`). `noindex`; Astro emits `dist/404.html`, which Cloudflare Pages serves for unmatched routes.                                                                                                                                                                                                                                                                                                                                                                       |
 
 ### Conversion path
 
@@ -152,16 +113,17 @@ Rules that are easy to break by accident:
 
 Tailwind 4 defaults, declared explicitly in `@theme` (`src/styles/global.css`) so the design system has a single source of truth:
 
-| Modifier | Min width | What it targets |
-|---|---|---|
-| *(default)* | 0 | Phones in portrait |
-| `sm:` | 640px | Large phones, phones in landscape |
-| `md:` | 768px | Tablets in portrait (iPad Mini) |
-| `lg:` | 1024px | Tablets in landscape, small laptops |
-| `xl:` | 1280px | Standard desktops |
-| `2xl:` | 1536px | Large desktops / monitors |
+| Modifier    | Min width | What it targets                     |
+| ----------- | --------- | ----------------------------------- |
+| _(default)_ | 0         | Phones in portrait                  |
+| `sm:`       | 640px     | Large phones, phones in landscape   |
+| `md:`       | 768px     | Tablets in portrait (iPad Mini)     |
+| `lg:`       | 1024px    | Tablets in landscape, small laptops |
+| `xl:`       | 1280px    | Standard desktops                   |
+| `2xl:`      | 1536px    | Large desktops / monitors           |
 
 Layout decisions that depend on these:
+
 - Header nav: hamburger below `sm:`, inline anchors at `sm:` and up.
 - Hero typography: steps up at `sm:`, again at `lg:`.
 - Interest form: stacked below `lg:`, two-column at `lg:` and up.
@@ -170,10 +132,20 @@ Always test at **375px (iPhone SE)** before merge — that's the narrowest targe
 
 ## Feature flags — `src/config/featureFlags.ts`
 
-- **`SHOW_PRICING`** (currently `true`) — when on: the Pricing nav link, `PricingSection`, and the hero "Prices from £99/month" CTA (→ `#pricing`) are rendered. `InterestForm` renders regardless of this flag. By default the per-plan CTAs anchor to `#register-interest`; `src/scripts/checkout.ts` progressively enhances them into Stripe checkout **only when a valid `?promo=` is in the URL** (see *Promo checkout* below).
+- **`SHOW_PRICING`** (currently `true`) — when on: the Pricing nav link, `PricingSection` (five fixed plans mirroring `Resources/Pricing.md`: Operator £79 / Workshop £189 / Depot £350 / Haulier £550 / Network £899), and the hero "Prices from £79/month" CTA (→ `#pricing`) are rendered. `InterestForm` renders regardless of this flag. By default the per-plan CTAs anchor to `#register-interest`; `src/scripts/checkout.ts` progressively enhances them into Stripe checkout **only when a valid `?promo=` is in the URL** (see _Promo checkout_ below). If `Resources/Pricing.md` and the app repo's `shared/plans/index.ts` disagree, the code wins.
 - **`SHOW_CONTACT`** (currently `false`) — when off: "Book a demo" CTAs in Header + Hero, the Contact nav link, the `CtaFooter` section, and the footer email are all hidden. Legal pages keep their statutory data-protection contact regardless.
 
 Credentials and email addresses stay in source even when flags are off — only the rendered surface is cut.
+
+## DWTS — `src/config/dwts.ts` and `DwtsTimeline.astro`
+
+Digital Waste Tracking is the site's strongest commercial argument (a legal mandate with dates on it) and its biggest organic-search opportunity, so it gets a live timeline on the homepage and a full guide at `/digital-waste-tracking`. Both read **one config**: `src/config/dwts.ts` holds the statutory milestones, Fleetlix's own build stages, the shared figures (`DWTS_FACTS`) and the DWTS FAQ. Don't hardcode a date or a penalty anywhere else.
+
+**Accuracy is the product here.** Every figure in that config traces to a primary source — an SI on legislation.gov.uk, Defra's policy paper, or the Scottish BRIA. Two things stay visible on screen rather than being smoothed over: Northern Ireland's date is a genuine source conflict (Jan 2027 per GOV.UK as updated 5 Aug 2026, but earlier reported as Oct 2026), and the Phase 2 SI had not been laid as of Aug 2026. The guide also names two widely-quoted figures we could not stand up (the "£5,000 per incident" penalty and Scotland's "£40,000 cap"). Operators plan spend against these dates; being the page that is *right* is the whole point.
+
+**Don't overclaim Fleetlix's Defra status.** As of Aug 2026 the Phase 1 Receipt of Waste integration is built and proven against Defra's test environment, 13 of Defra's 14 production approval scenarios pass (C01 is an open query raised with Defra on 7 Jul 2026), and we are **waiting on production credentials** — so Fleetlix is **not** on the GOV.UK provider register and has filed **nothing** to production. The guide says exactly that, deliberately. Check the app repo's `Resources/Defra/` before changing any of it.
+
+**How "live" works.** The component computes statuses, the rail fill and the countdown at build time, so no-JS visitors and crawlers get a finished, correct timeline. Then `src/scripts/dwts-timeline.ts` recomputes all three in the browser from the `data-iso` attributes, against the reader's clock — a build that goes stale over a mandate date corrects itself instead of misinforming someone. The geometry (vertical on phones, horizontal from `lg:`) is the `.dwts-*` block in `global.css`: each item owns the rail segment running to the *next* node, so `--seg` (0–1) is all the JS ever writes. No measuring, no absolute percentages.
 
 ## Interest form pipeline
 
@@ -188,13 +160,13 @@ visitor submits InterestForm (React island)
 
 ### Required env vars (Pages Production)
 
-| Var | Format | Notes |
-|---|---|---|
-| `RESEND_API_KEY` *(secret)* | `re_…` | Scope to **Sending access** on the **fleetlix.com** domain. A key scoped to "no domain" or a different domain returns Resend 403 *"API key not authorized for this domain"*. |
-| `INTEREST_TO_EMAIL` | `contact@fleetlix.com` | Where leads land. |
-| `INTEREST_FROM_EMAIL` | `Fleetlix <contact@fleetlix.com>` | Must use the verified `fleetlix.com` domain. Display-name form recommended; bare `<addr>` with no display name is invalid and Resend rejects with 422. Both sends now use `contact@` — the lead notification is therefore addressed from `contact@` **to** `INTEREST_TO_EMAIL` (also `contact@`); a self-addressed mail is fine but is likelier to spam-bin for the first few sends. |
-| `TURNSTILE_SECRET_KEY` *(optional)* | from Cloudflare Turnstile | Only set this once the frontend also adds a Turnstile widget — the function *requires* the token when this var is present. |
-| `NODE_VERSION` | `22.12.0` | Build-time only. |
+| Var                                 | Format                            | Notes                                                                                                                                                                                                                                                                                                                                                                                |
+| ----------------------------------- | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `RESEND_API_KEY` _(secret)_         | `re_…`                            | Scope to **Sending access** on the **fleetlix.com** domain. A key scoped to "no domain" or a different domain returns Resend 403 _"API key not authorized for this domain"_.                                                                                                                                                                                                         |
+| `INTEREST_TO_EMAIL`                 | `contact@fleetlix.com`            | Where leads land.                                                                                                                                                                                                                                                                                                                                                                    |
+| `INTEREST_FROM_EMAIL`               | `Fleetlix <contact@fleetlix.com>` | Must use the verified `fleetlix.com` domain. Display-name form recommended; bare `<addr>` with no display name is invalid and Resend rejects with 422. Both sends now use `contact@` — the lead notification is therefore addressed from `contact@` **to** `INTEREST_TO_EMAIL` (also `contact@`); a self-addressed mail is fine but is likelier to spam-bin for the first few sends. |
+| `TURNSTILE_SECRET_KEY` _(optional)_ | from Cloudflare Turnstile         | Only set this once the frontend also adds a Turnstile widget — the function _requires_ the token when this var is present.                                                                                                                                                                                                                                                           |
+| `NODE_VERSION`                      | `22.12.0`                         | Build-time only.                                                                                                                                                                                                                                                                                                                                                                     |
 
 **Env var changes require a redeploy** to take effect (Pages → Deployments → ⋯ → Retry deployment).
 
@@ -206,55 +178,50 @@ visitor submits InterestForm (React island)
 
 ## Promo checkout pipeline
 
-The paid-signup entry point. **Checkout-first:** the customer pays on Stripe on the marketing site, *then* creates their login on the app (`fleetlix.app`). Gated to promo-code holders.
+The paid-signup entry point. **Checkout-first:** the customer pays on Stripe on the marketing site, _then_ creates their login on the app (`fleetlix.app`). Gated to promo-code holders.
 
 ```
 card QR / link → fleetlix.com/?promo=letsrecycle#pricing
   → src/scripts/checkout.ts sees a valid ?promo=, turns each pricing CTA into
     "Start N-day free trial" (otherwise CTAs stay #register-interest links)
-  → POST /api/checkout { plan, promo, interval }   (functions/api/checkout.ts)
-    → Stripe Checkout Session (mode=subscription, trial_period_days from promo,
-      automatic_tax + tax_id_collection on because prices are published ex VAT)
-      → hosted Stripe page collects details + card + VAT, starts the trial
+  → POST /api/checkout { plan, promo }        (functions/api/checkout.ts)
+    → Stripe Checkout Session (mode=subscription, trial_period_days from promo)
+      → hosted Stripe page collects details + card, starts the trial
         → success_url → fleetlix.app/onboarding?session_id=…  (APP repo — TBD)
           → app provisions the tenant + plan, user sets their password
 ```
 
 - **Promo is authoritative server-side.** `functions/api/checkout.ts` requires a valid promo (403 otherwise) and keeps its OWN copy of the promo/plan config — no import from `src/`, so the payment path can't break on a bundling change. The client copy lives in `src/config/checkout.ts`; **keep the two in sync**.
-- The promo sets the **trial length via `trial_period_days`**, not a Stripe coupon (coupons discount price, not time).
-- **`interval` comes from the pricing toggle**, not a separate control — `checkout.ts` reads the `#billing-annual` radio at click time. Absent radios or an older cached client fall back to `month`.
-- **Stripe Tax is on by default** (`automatic_tax` + `tax_id_collection`). Every published price excludes VAT, so without it FLEETLIX LTD absorbs the VAT on each UK sale. It requires Stripe Tax enabled on the account *and* prices created with `tax_behavior: 'exclusive'` — otherwise session creation fails and every CTA shows "Couldn't start checkout." `STRIPE_AUTOMATIC_TAX=off` unblocks a test; it is not a launch setting.
-- **The live `STRIPE_PRICE_MAP` is stale** — it still points at the v1 £79–£899 prices while the site publishes the v2 ladder. Don't hand out a `?promo=` link until it's repointed; see `Resources/stripe-pricing-id.md`.
+- The promo sets the **trial length via `trial_period_days`**, not a Stripe coupon (coupons discount price, not time). **Monthly only** — no annual price ids.
 - `checkout.ts` (client) imports the shared `src/scripts/lib/env.ts`, so it's an external `/_astro/*.js` under `script-src 'self'` — no CSP hash. Hosted Checkout is a redirect (no Stripe.js), so no CSP change either.
 - The function returns 503 until the Stripe env vars are set, so it's safe to ship ahead of them; non-promo visitors see no change.
 
 ### Checkout env vars (Pages Production)
 
-| Var | Format | Notes |
-|---|---|---|
-| `STRIPE_SECRET_KEY` *(secret)* | `sk_live_…` | Live server-side key; used by `functions/api/checkout.ts`. |
-| `STRIPE_PRICE_MAP` | JSON, either `{"operator":{"month":"price_…","year":"price_…"},…}` or the legacy flat `{"operator":"price_…",…}` | Plan slug → **live** Stripe price id per interval. The flat form is v1's and still works, but is monthly-only — an annual request against it returns a graceful 400 rather than billing the wrong thing. A slug with no entry does the same. |
-| `TEST_STRIPE_SECRET_KEY` *(secret, optional)* | `sk_test_…` | **Test override.** When set, the function runs entirely in test mode (this key + `TEST_STRIPE_PRICE_MAP`), leaving the live vars untouched. **Remove it to go live** — otherwise real customers get a test checkout they can't actually pay. |
-| `TEST_STRIPE_PRICE_MAP` | JSON, **test-mode** price ids | Required alongside `TEST_STRIPE_SECRET_KEY` — Stripe test prices are separate objects from live, so this must hold `price_…` ids created in test mode. |
-| `CHECKOUT_SUCCESS_URL` *(optional)* | `https://fleetlix.app/onboarding?session_id={CHECKOUT_SESSION_ID}` | Defaults to this. Keep the literal `{CHECKOUT_SESSION_ID}` placeholder. For testing, point it at `https://fleetlix.com/thank-you?session_id={CHECKOUT_SESSION_ID}` until the app onboarding exists. |
-| `CHECKOUT_CANCEL_URL` *(optional)* | `https://fleetlix.com/#pricing` | Defaults to this. |
-| `STRIPE_AUTOMATIC_TAX` *(optional)* | `off` | Escape hatch only. Stripe Tax is **on** unless this is exactly `off`. Turning it off means charging the ex-VAT figure with no VAT added — a real loss on every UK sale, not just a config nit. |
+| Var                                           | Format                                                             | Notes                                                                                                                                                                                                                                        |
+| --------------------------------------------- | ------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `STRIPE_SECRET_KEY` _(secret)_                | `sk_live_…`                                                        | Live server-side key; used by `functions/api/checkout.ts`.                                                                                                                                                                                   |
+| `STRIPE_PRICE_MAP`                            | JSON `{"operator":"price_…","workshop":"price_…",…}`               | Plan slug → **live monthly** Stripe price id. A slug with no entry (e.g. a plan not yet created in Stripe) returns a graceful 400.                                                                                                           |
+| `TEST_STRIPE_SECRET_KEY` _(secret, optional)_ | `sk_test_…`                                                        | **Test override.** When set, the function runs entirely in test mode (this key + `TEST_STRIPE_PRICE_MAP`), leaving the live vars untouched. **Remove it to go live** — otherwise real customers get a test checkout they can't actually pay. |
+| `TEST_STRIPE_PRICE_MAP`                       | JSON, **test-mode** price ids                                      | Required alongside `TEST_STRIPE_SECRET_KEY` — Stripe test prices are separate objects from live, so this must hold `price_…` ids created in test mode.                                                                                       |
+| `CHECKOUT_SUCCESS_URL` _(optional)_           | `https://fleetlix.app/onboarding?session_id={CHECKOUT_SESSION_ID}` | Defaults to this. Keep the literal `{CHECKOUT_SESSION_ID}` placeholder. For testing, point it at `https://fleetlix.com/thank-you?session_id={CHECKOUT_SESSION_ID}` until the app onboarding exists.                                          |
+| `CHECKOUT_CANCEL_URL` _(optional)_            | `https://fleetlix.com/#pricing`                                    | Defaults to this.                                                                                                                                                                                                                            |
 
 ## DNS / Cloudflare snapshot
 
 These are the records that need to stay correct for the site + email to keep working:
 
-| Type | Name | Value | Purpose |
-|---|---|---|---|
-| CNAME (proxied) | `fleetlix.com` | `fleetlix-marketing.pages.dev` | Apex → Pages |
-| A (proxied) | `www` | any IP | Resolves so the redirect rule can fire |
-| MX | `fleetlix.com` | `route1/2/3.mx.cloudflare.net` (priorities 11/26/86) | Cloudflare Email Routing inbound |
-| TXT | `fleetlix.com` | `v=spf1 include:_spf.mx.cloudflare.net ~all` | SPF for Email Routing |
-| MX | `send` | `feedback-smtp.eu-west-1.amazonses.com` (10) | Resend bounce handling |
-| TXT | `send` | `v=spf1 include:amazonses.com ~all` | SPF for Resend's bounce domain |
-| TXT | `resend._domainkey` | DKIM key (long) | Resend DKIM signing |
+| Type            | Name                | Value                                                | Purpose                                |
+| --------------- | ------------------- | ---------------------------------------------------- | -------------------------------------- |
+| CNAME (proxied) | `fleetlix.com`      | `fleetlix-marketing.pages.dev`                       | Apex → Pages                           |
+| A (proxied)     | `www`               | any IP                                               | Resolves so the redirect rule can fire |
+| MX              | `fleetlix.com`      | `route1/2/3.mx.cloudflare.net` (priorities 11/26/86) | Cloudflare Email Routing inbound       |
+| TXT             | `fleetlix.com`      | `v=spf1 include:_spf.mx.cloudflare.net ~all`         | SPF for Email Routing                  |
+| MX              | `send`              | `feedback-smtp.eu-west-1.amazonses.com` (10)         | Resend bounce handling                 |
+| TXT             | `send`              | `v=spf1 include:amazonses.com ~all`                  | SPF for Resend's bounce domain         |
+| TXT             | `resend._domainkey` | DKIM key (long)                                      | Resend DKIM signing                    |
 
-A Cloudflare **Redirect Rule** (Rules → Redirect Rules, *"Redirect from WWW to root"* template) 301-redirects `www.fleetlix.com/*` → `fleetlix.com/*`.
+A Cloudflare **Redirect Rule** (Rules → Redirect Rules, _"Redirect from WWW to root"_ template) 301-redirects `www.fleetlix.com/*` → `fleetlix.com/*`.
 
 Cloudflare **Email Routing** has one route: `contact@fleetlix.com` → `chris@cn-design.co.uk` (Verified). Disable Email Routing only when a real fleetlix.com mailbox provider is being set up — the MX records can't be shared.
 
@@ -266,6 +233,7 @@ Cloudflare **Email Routing** has one route: `contact@fleetlix.com` → `chris@cn
 - **Structured data (JSON-LD):**
   - `Base.astro` emits a sitewide **Organization** entity in `<head>` (`@id` `#organization`; Fleetlix as its own legal entity — `legalName` FLEETLIX LTD, company no. 17331348, London registered office, `foundingDate` 2026-07-09 — plus `areaServed` UK and a sales `contactPoint`).
   - `src/pages/index.astro` emits a single homepage **`@graph`** before `</body>` — **WebSite** (`#website`), **SoftwareApplication** (`#software`: product, pricing, audience, features), and **FAQPage** (`#faq`). Both reference the sitewide Organization via `@id`. One `@graph` = one inline script = one CSP hash.
+  - `src/pages/digital-waste-tracking.astro` emits its own `@graph` — **Article** (`#article`), **FAQPage** (`#faq`) and **BreadcrumbList** (`#breadcrumbs`) — again referencing the sitewide Organization as author and publisher. Its FAQ entities are generated from `dwtsFaqItems` in `src/config/dwts.ts`, the same array the visible accordion renders.
   - The visible FAQ accordion (`Faq.astro`) and its schema both read `src/config/faq.ts`, so the structured data can never drift from the on-page copy. Edit the Q&A in one place.
 - **Target keywords:** the homepage `<title>` and `<meta description>` lead with "waste & haulage software" / "UK skip-hire and fleet operators". Keep titles ≤ ~60 chars and descriptions ≤ ~160 so they don't truncate in the SERP. When you write new homepage copy, keep these phrases findable without it reading like SEO sludge.
 
@@ -275,17 +243,19 @@ Both JSON-LD scripts (the sitewide Organization and the homepage `@graph`) contr
 
 `public/_headers` ships strict headers on every response. Two parts deserve care:
 
-**`script-src` whitelists exactly four inline-script SHA-256 hashes — all stable:**
+**`script-src` whitelists exactly five inline-script SHA-256 hashes — all stable:**
+
 1. Sitewide Organization JSON-LD (every page, from `Base.astro`)
 2. Astro's `client:visible` IntersectionObserver bootstrap
 3. Astro's `astro-island` custom-element registration
 4. Homepage JSON-LD `@graph` — WebSite + SoftwareApplication + FAQPage (from `src/pages/index.astro`)
+5. `/digital-waste-tracking` JSON-LD `@graph` — Article + FAQPage + BreadcrumbList. It is built from `src/config/dwts.ts`, so **editing `dwtsFaqItems` changes this hash** even though no markup moved.
 
-The mobile-menu handler (`src/scripts/header-menu.ts`) and the homepage `cinematic.ts` bundle are **no longer inline**: each imports the shared `src/scripts/lib/env.ts`, which Rollup code-splits into a shared chunk, so Astro emits them as **external `/_astro/*.js` files covered by `script-src 'self'`** — no hash. This is deliberate. On 13 Jul 2026 a Cloudflare build-image change altered how esbuild minified those two inline scripts, so their hashes drifted from `_headers` and both were CSP-blocked in prod (blank homepage). External `'self'` scripts can't drift. **Don't reinline them** (keep the shared `env.ts` import) and don't hardcode `/_astro` filenames anywhere.
+The mobile-menu handler (`src/scripts/header-menu.ts`), the homepage `cinematic.ts` bundle and `dwts-timeline.ts` are **no longer inline**: each imports a shared module (`src/scripts/lib/env.ts`, or `lib/motion.ts` which imports it), which Rollup code-splits into a shared chunk, so Astro emits them as **external `/_astro/*.js` files covered by `script-src 'self'`** — no hash. This is deliberate. On 13 Jul 2026 a Cloudflare build-image change altered how esbuild minified those two inline scripts, so their hashes drifted from `_headers` and both were CSP-blocked in prod (blank homepage). External `'self'` scripts can't drift. **Don't reinline them** (keep the shared `env.ts` import) and don't hardcode `/_astro` filenames anywhere.
 
-The FAQ accordion (`Faq.astro`) is native `<details>` with no JS, so adding/editing FAQs does **not** touch the hash list — but editing the FAQ *schema* in `index.astro`'s `@graph` does.
+The FAQ accordion (`Faq.astro`) is native `<details>` with no JS, so adding/editing FAQs does **not** touch the hash list — but editing the FAQ _schema_ in `index.astro`'s `@graph` does.
 
-**Regenerate the hashes only after** an Astro version bump **or** after editing `src/layouts/Base.astro`'s JSON-LD or `src/pages/index.astro`'s JSON-LD `@graph` (the four remaining hashes are JSON-LD + Astro runtime, which don't re-minify per build). The one-liner is in the comment at the top of `_headers`. **Do not regenerate from a local build unless you've confirmed it matches production** — local and Cloudflare esbuild have differed; hash the live site (`curl https://fleetlix.com/ | …`) when in doubt.
+**Regenerate the hashes only after** an Astro version bump **or** after editing the JSON-LD in `src/layouts/Base.astro`, `src/pages/index.astro`, `src/pages/digital-waste-tracking.astro`, or the `dwtsFaqItems` array in `src/config/dwts.ts` that the last of those serialises (all five hashes are JSON-LD + Astro runtime, which don't re-minify per build). The one-liner is in the comment at the top of `_headers`. **Do not regenerate from a local build unless you've confirmed it matches production** — local and Cloudflare esbuild have differed; hash the live site (`curl https://fleetlix.com/ | …`) when in doubt.
 
 **`style-src 'self' 'unsafe-inline'`** — React style props, the modal's `<style>` block, and various `style="…"` attributes from Astro components all need this. We've traded style-XSS hardening for not having to hash every inline style. Don't tighten this without first rewriting the inline styles out.
 
@@ -309,7 +279,7 @@ The "no analytics" stance is a feature, not laziness. Don't reverse it casually.
 iPhone is a first-class target. The bar is **the apple.com/uk pattern**: vertical scroll only; no section can push the page sideways; no side-to-side rubber-band under touch drag. Violating this is a release blocker.
 
 - **No horizontal page scroll, ever.** Both `html` and `body` set `overflow-x: clip` in `src/styles/global.css`. Use `clip`, not `hidden` — `clip` doesn't establish a new scroll containing block, so the sticky Header keeps working. Don't remove the guard.
-- **Sections with decorative bleed clip themselves.** Any section that puts blurs, gradients, glows, or shapes outside its own box (negative offsets like `-left-32`, large translates, oversized absolute children) sets `overflow-hidden` or `overflow-clip` on the section. The global guard catches misses; the *correct* fix is at the section so the offending element stays local and findable.
+- **Sections with decorative bleed clip themselves.** Any section that puts blurs, gradients, glows, or shapes outside its own box (negative offsets like `-left-32`, large translates, oversized absolute children) sets `overflow-hidden` or `overflow-clip` on the section. The global guard catches misses; the _correct_ fix is at the section so the offending element stays local and findable.
 - **Test at iPhone SE width (375 CSS px) before merge.** If the page rubber-bands sideways even a few pixels at 375px, something exceeds the viewport — find the offender, don't paper over it with a parent wrapper.
 - **Don't use `100vw` for full-bleed.** It includes the desktop scrollbar gutter and silently breaks this. Use `w-full` inside a clipped parent, or `width: 100%` on the outer wrapper.
 - **Respect iOS safe-area insets.** Hero CTAs, the scroll-cue, and full-bleed footers use `pb-[max(…,env(safe-area-inset-bottom))]`. Nothing under the home indicator or behind the notch.
@@ -334,12 +304,12 @@ iPhone is a first-class target. The bar is **the apple.com/uk pattern**: vertica
 - **Internal links use root-relative paths** (`/privacy`, not `https://fleetlix.com/privacy`). External links use full URLs and `rel="noopener" target="_blank"` where appropriate.
 - **British English** in user-facing copy ("optimise", "behaviour", "colour"). Legal pages reference UK GDPR, PECR, ICO — keep that consistent.
 - **No emojis** in source, comments, or commit messages unless explicitly asked.
-- **Commit messages explain the *why***, not the *what*. Match the existing tone — short subject, paragraph body when context is needed.
+- **Commit messages explain the _why_**, not the _what_. Match the existing tone — short subject, paragraph body when context is needed.
 - **Don't commit `dist/` or `node_modules/`.** Already gitignored — keep it that way.
 
 ## Ask before doing
 
-- Adding any third-party script or network request from the site (see *Privacy*).
+- Adding any third-party script or network request from the site (see _Privacy_).
 - Tightening or loosening the CSP.
 - Adding tests, linters, or formatters.
 - Changing the build / deploy pipeline.

@@ -1,0 +1,1005 @@
+---
+// The DWTS pillar page — a genuine reference on the Digital Waste Tracking
+// Service, not a product pitch with a regulation stapled to it. It exists to
+// be the page a skip-hire owner sends to their office manager, which means it
+// has to be right first and persuasive second.
+//
+// Editorial rules for anyone changing this page:
+//   1. Every date and figure comes from src/config/dwts.ts, which is sourced
+//      from the SIs and Defra's policy paper. Don't hardcode a new one here.
+//   2. Where the primary sources conflict, say so on screen. The Northern
+//      Ireland date and the Phase 2 SI are both genuinely unsettled.
+//   3. Don't repeat a claim about Fleetlix's Defra status that we can't
+//      evidence. We are not on the GOV.UK provider register yet, and this page
+//      says exactly that — which is worth more than a badge nobody verifies.
+//   4. Update `lastUpdated` whenever the substance changes.
+import Base from "../layouts/Base.astro";
+import Header from "../components/Header.astro";
+import SiteFooter from "../components/SiteFooter.astro";
+import DwtsTimeline from "../components/DwtsTimeline.astro";
+import {
+  DWTS_MILESTONES,
+  DWTS_FACTS,
+  FLEETLIX_STAGES,
+  dwtsFaqItems,
+} from "../config/dwts";
+
+const lastUpdated = "10 August 2026";
+
+const contents = [
+  { href: "#timeline", label: "Live timeline" },
+  { href: "#what", label: "What it is" },
+  { href: "#scope", label: "Am I in scope?" },
+  { href: "#record", label: "What you must record" },
+  { href: "#dates", label: "The dates in detail" },
+  { href: "#comply", label: "Four ways to comply" },
+  { href: "#cost", label: "Fees and penalties" },
+  { href: "#skips", label: "Skips, tippers and bulkers" },
+  { href: "#fleetlix", label: "How Fleetlix handles it" },
+  { href: "#faq", label: "Questions" },
+  { href: "#sources", label: "Sources" },
+];
+
+// Nation-by-nation, because "October 2026" is only true for two of the four.
+const nations = [
+  {
+    nation: "England",
+    phase1: "1 October 2026",
+    regulator: "Environment Agency",
+    note: "Digital Waste Tracking (England) Regulations 2026. Household waste recycling centres must also record commercial waste received into permitted sites from Phase 1.",
+  },
+  {
+    nation: "Wales",
+    phase1: "1 October 2026",
+    regulator: "Natural Resources Wales",
+    note: "WSI 2026/105, agreed by the Senedd in March 2026. Commercial waste taken to household waste recycling centres is excluded.",
+  },
+  {
+    nation: "Scotland",
+    phase1: "1 January 2027",
+    regulator: "SEPA",
+    note: "SSI 2026/145. Hazardous waste is Special Waste in Scotland and the service uses that term. Local-authority authorisations for recycling centres and bulking transfer stations are a defined exception.",
+  },
+  {
+    nation: "Northern Ireland",
+    phase1: "January 2027",
+    regulator: "DAERA / NIEA",
+    note: "Per Defra's policy paper as updated on 5 August 2026. Earlier coverage grouped Northern Ireland with England and Wales at October 2026, so confirm before you plan against it.",
+  },
+];
+
+const recordFields = [
+  {
+    title: "The movement",
+    items: [
+      "Your receiving site's API code and permit or authorisation number",
+      "The date and time the waste was received",
+      "Your own reference — a weighbridge ticket or transfer note number",
+      "The hazardous consignment note code, where there is one",
+    ],
+  },
+  {
+    title: "The waste itself",
+    items: [
+      "One or more EWC codes, with a description of each",
+      "Physical form, and the number and type of containers",
+      "Weight, and whether that weight is an estimate or a weighed figure",
+      "A disposal or recovery code for every EWC code, each with its own weight",
+    ],
+  },
+  {
+    title: "Hazardous and POPs",
+    items: [
+      "Whether the load contains hazardous waste or persistent organic pollutants",
+      "HP hazard codes, HP1 to HP15, where hazardous",
+      "Chemical or POP components and their concentrations",
+      "Whether that detail came with the waste or was not provided",
+    ],
+  },
+  {
+    title: "Who brought it",
+    items: [
+      "The carrier's registration number, or a reason there isn't one",
+      "The carrier's organisation name and means of transport",
+      "The broker or dealer, if one was involved",
+      "The receipt address and postcode",
+    ],
+  },
+];
+
+const routes = [
+  {
+    accent: "cyan",
+    title: "Defra's own web service",
+    body: "Key each load into the GOV.UK Report receipt of waste service by hand. Free beyond the registration fee, and fine for a site taking a few loads a week. At twenty loads a day it becomes a full-time job with a two-working-day clock attached.",
+    fit: "Very low volume",
+  },
+  {
+    accent: "cyan",
+    title: "Spreadsheet upload",
+    body: "A temporary bulk route for receivers without software, expected to stay available until at least October 2027. It is explicitly transitional — building your process around it means rebuilding that process later.",
+    fit: "A stopgap, not a plan",
+  },
+  {
+    accent: "amber",
+    title: "Software that files for you",
+    body: "Your operations system creates the record from data it already holds and files it through Defra's API, returning the Waste Tracking ID against the job. No rekeying, and the two-working-day deadline is tracked rather than remembered.",
+    fit: "Any site with real volume",
+  },
+  {
+    accent: "cyan",
+    title: "Digitally excluded",
+    body: "If you genuinely cannot use a digital service, you can register with your regulator instead of using the service. It is a narrow exemption for people without practical digital access, not an opt-out for firms that would rather not.",
+    fit: "Narrow exemption",
+  },
+];
+
+const skipPoints = [
+  {
+    title: "Season tickets are ending",
+    body: "Season-ticket transfer notes have covered regular, repeating collections for three decades. They are expected to end under digital tracking, so every lift on a recurring round becomes its own record — which is only tolerable if your system generates it from the schedule automatically.",
+  },
+  {
+    title: "Carrier rounds are hard to record",
+    body: "A compaction vehicle doing twenty lifts on one run is one journey but twenty movements. The industry body CIWM has flagged this specifically as one of the least resolved parts of the design.",
+  },
+  {
+    title: "The kerbside estimate versus the weighbridge",
+    body: "The driver records an estimate at the kerb; the weighbridge records the real figure hours later. The service models this directly with a flag for estimated weights, so the sensible pattern is to capture the estimate, then update the record once the load is weighed — inside the same two-working-day window.",
+  },
+  {
+    title: "No signal at the kerb",
+    body: "Capture is allowed offline provided the record reaches the service within the two working days. That makes offline-first capture on the driver's phone a requirement rather than a nicety.",
+  },
+  {
+    title: "Receivers will ask before the law does",
+    body: "Phase 1 makes receiving sites liable for the quality of the data they file — including your carrier registration number and vehicle details. Expect tips to start demanding clean data from carriers well before October 2027 makes carriers directly liable.",
+  },
+];
+
+const sources = [
+  {
+    label: "Digital Waste Tracking Service — Defra policy paper",
+    href: "https://www.gov.uk/government/publications/digital-waste-tracking-service/digital-waste-tracking-service",
+  },
+  {
+    label: "Report receipt of waste — the GOV.UK service",
+    href: "https://www.gov.uk/guidance/report-receipt-of-waste",
+  },
+  {
+    label: "Report receipt of waste: choose a software provider",
+    href: "https://www.gov.uk/government/publications/report-receipt-of-waste-choose-a-software-provider",
+  },
+  {
+    label: "Defra waste tracking developer documentation",
+    href: "https://defra.github.io/waste-tracking-service/production/",
+  },
+];
+
+// One @graph, one inline script, one CSP hash — same pattern as the homepage.
+// Adding or removing an entity here changes the hash in public/_headers.
+const pageUrl = "https://fleetlix.com/digital-waste-tracking";
+const guideJsonLd = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Article",
+      "@id": `${pageUrl}#article`,
+      headline: "The UK Digital Waste Tracking Service, explained",
+      description:
+        "Who must file digital waste records, when each UK nation's deadline falls, what has to be recorded for every load, and what it costs to get it wrong.",
+      about: {
+        "@type": "Thing",
+        name: "Digital Waste Tracking Service",
+        description:
+          "The UK government service that replaces paper waste transfer notes with digital records of every waste movement.",
+      },
+      inLanguage: "en-GB",
+      isAccessibleForFree: true,
+      dateModified: "2026-08-10",
+      author: { "@id": "https://fleetlix.com/#organization" },
+      publisher: { "@id": "https://fleetlix.com/#organization" },
+      mainEntityOfPage: pageUrl,
+      image: "https://fleetlix.com/og-image.png",
+    },
+    {
+      "@type": "FAQPage",
+      "@id": `${pageUrl}#faq`,
+      mainEntity: dwtsFaqItems.map((item) => ({
+        "@type": "Question",
+        name: item.question,
+        acceptedAnswer: { "@type": "Answer", text: item.answer },
+      })),
+    },
+    {
+      "@type": "BreadcrumbList",
+      "@id": `${pageUrl}#breadcrumbs`,
+      itemListElement: [
+        {
+          "@type": "ListItem",
+          position: 1,
+          name: "Fleetlix",
+          item: "https://fleetlix.com",
+        },
+        {
+          "@type": "ListItem",
+          position: 2,
+          name: "Digital Waste Tracking",
+          item: pageUrl,
+        },
+      ],
+    },
+  ],
+};
+---
+
+<Base
+  title="Digital Waste Tracking (DWTS): UK Deadlines & Rules | Fleetlix"
+  description="What the UK Digital Waste Tracking Service means for waste and skip-hire firms: who must file, the 2026 and 2027 deadlines, fees, penalties and how to comply."
+>
+  <Header />
+  <main>
+    <!-- Hero -->
+    <section class="relative overflow-clip bg-[color:var(--color-offwhite)] border-b border-[color:var(--color-mist)]">
+      <div class="mx-auto max-w-7xl px-6 pt-14 pb-16 md:pt-20 md:pb-20">
+        <nav aria-label="Breadcrumb" class="text-sm text-[color:var(--color-slate)]/70">
+          <a href="/" class="hover:text-[color:var(--color-graphite)]">Fleetlix</a>
+          <span class="mx-2" aria-hidden="true">/</span>
+          <span class="text-[color:var(--color-graphite)]">Digital Waste Tracking</span>
+        </nav>
+
+        <div class="mt-8 grid lg:grid-cols-12 gap-10 lg:gap-16 items-start">
+          <div class="lg:col-span-7">
+            <p class="text-xs font-semibold tracking-[0.18em] uppercase text-[color:var(--color-amber)]">
+              Operator's guide · Updated {lastUpdated}
+            </p>
+            <h1 class="mt-3 font-[family-name:var(--font-display)] font-extrabold text-4xl md:text-5xl lg:text-[3.4rem] tracking-tight leading-[1.05] text-[color:var(--color-graphite)]">
+              The UK Digital Waste Tracking Service, explained.
+            </h1>
+            <p class="mt-5 text-lg md:text-xl text-[color:var(--color-slate)] leading-relaxed">
+              Every load of waste in the United Kingdom is becoming a digital
+              record filed with the regulator. Here is who it catches, when your
+              date falls, exactly what has to be recorded, and what happens if
+              it isn't — written for the people who actually run the yard.
+            </p>
+            <p class="mt-5 text-sm text-[color:var(--color-slate)]/80 leading-relaxed max-w-2xl">
+              We publish this because we built the integration and had to read
+              all of it anyway. It is a plain-English summary of published
+              government sources, not legal advice — the regulations themselves
+              are linked at the bottom.
+            </p>
+          </div>
+
+          <!-- Dates at a glance -->
+          <div class="lg:col-span-5 w-full">
+            <div class="rounded-2xl border border-[color:var(--color-mist)] bg-white p-6 sm:p-7">
+              <p class="text-xs font-semibold tracking-[0.16em] uppercase text-[color:var(--color-cyan)]">
+                The three dates that matter
+              </p>
+              <dl class="mt-4 space-y-4">
+                <div class="flex gap-4">
+                  <dt class="w-28 shrink-0 font-[family-name:var(--font-display)] font-bold text-[color:var(--color-graphite)]">
+                    Oct 2026
+                  </dt>
+                  <dd class="text-sm text-[color:var(--color-slate)]">
+                    Receiving sites in <strong class="text-[color:var(--color-graphite)]">England &amp; Wales</strong> must file.
+                  </dd>
+                </div>
+                <div class="flex gap-4 border-t border-[color:var(--color-mist)] pt-4">
+                  <dt class="w-28 shrink-0 font-[family-name:var(--font-display)] font-bold text-[color:var(--color-graphite)]">
+                    Jan 2027
+                  </dt>
+                  <dd class="text-sm text-[color:var(--color-slate)]">
+                    Receiving sites in <strong class="text-[color:var(--color-graphite)]">Scotland &amp; Northern Ireland</strong> must file.
+                  </dd>
+                </div>
+                <div class="flex gap-4 border-t border-[color:var(--color-mist)] pt-4">
+                  <dt class="w-28 shrink-0 font-[family-name:var(--font-display)] font-bold text-[color:var(--color-graphite)]">
+                    Oct 2027
+                  </dt>
+                  <dd class="text-sm text-[color:var(--color-slate)]">
+                    <strong class="text-[color:var(--color-graphite)]">Carriers, brokers and dealers</strong> must file, UK-wide. This is the one that catches most skip-hire firms.
+                  </dd>
+                </div>
+              </dl>
+            </div>
+          </div>
+        </div>
+
+        <!-- Contents -->
+        <nav aria-label="On this page" class="mt-12 border-t border-[color:var(--color-mist)] pt-6">
+          <p class="text-xs font-semibold tracking-[0.16em] uppercase text-[color:var(--color-slate)]/60">
+            On this page
+          </p>
+          <ul class="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-sm">
+            {contents.map((item) => (
+              <li>
+                <a href={item.href} class="text-[color:var(--color-slate)] hover:text-[color:var(--color-graphite)] underline-offset-4 hover:underline">
+                  {item.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      </div>
+    </section>
+
+    <DwtsTimeline variant="guide" />
+
+    <!-- What it is -->
+    <section id="what" class="bg-[color:var(--color-offwhite)]">
+      <div class="mx-auto max-w-4xl px-6 py-20 md:py-24">
+        <p class="text-xs font-semibold tracking-[0.18em] uppercase text-[color:var(--color-cyan)]" data-reveal>
+          The basics
+        </p>
+        <h2 class="mt-3 font-[family-name:var(--font-display)] font-extrabold text-3xl md:text-4xl tracking-tight text-[color:var(--color-graphite)]" data-reveal>
+          What the Digital Waste Tracking Service actually is.
+        </h2>
+        <div class="mt-6 space-y-5 text-[color:var(--color-slate)] text-lg leading-relaxed" data-reveal>
+          <p>
+            It is a single government service that replaces paper waste
+            paperwork with a digital record of where waste goes. Every load
+            recorded gets a unique <strong class="text-[color:var(--color-graphite)]">Waste Tracking ID</strong>,
+            so a movement can be followed from the site that produced it to the
+            site that finally treated it.
+          </p>
+          <p>
+            It is run by Defra for all four UK nations and enforced separately
+            in each — the Environment Agency in England, SEPA in Scotland,
+            Natural Resources Wales in Wales, and DAERA in Northern Ireland.
+            The legal power comes from sections 34CA and 34CB of the
+            Environmental Protection Act 1990, inserted by the Environment Act
+            2021.
+          </p>
+          <p>
+            The problem it is meant to fix is waste crime, which the Environmental
+            Services Association has costed at <strong class="text-[color:var(--color-graphite)]">{DWTS_FACTS.wasteCrimeCost} a year</strong> to
+            the English economy alone. Paper transfer notes cannot be
+            cross-checked at scale; a national digital record can.
+          </p>
+        </div>
+
+        <div class="mt-8 rounded-2xl border border-[color:var(--color-mist)] bg-white p-6 md:p-7" data-reveal>
+          <p class="font-[family-name:var(--font-display)] font-bold text-lg text-[color:var(--color-graphite)]">
+            This has been tried before, voluntarily, and it failed.
+          </p>
+          <p class="mt-2 text-[color:var(--color-slate)] leading-relaxed">
+            The electronic duty of care system, edoc, ran from 2014 until it
+            closed in 2021 with just over 11,000 registered users, most of them
+            inactive, and it never handled hazardous consignments. That is
+            precisely why this round is mandatory, phased, and carries
+            penalties.
+          </p>
+        </div>
+
+        <div class="mt-6 grid sm:grid-cols-3 gap-4" data-reveal>
+          {[
+            { figure: DWTS_FACTS.siteOperators, label: "waste site operators in scope, UK-wide" },
+            { figure: DWTS_FACTS.carriersBrokersDealers, label: "registered carriers, brokers and dealers" },
+            { figure: DWTS_FACTS.microShare, label: "of the businesses affected are micro-sized" },
+          ].map((stat) => (
+            <div class="rounded-xl border border-[color:var(--color-mist)] bg-white p-5">
+              <p class="font-[family-name:var(--font-display)] font-extrabold text-2xl md:text-3xl text-[color:var(--color-graphite)] tabular-nums">
+                {stat.figure}
+              </p>
+              <p class="mt-1 text-sm text-[color:var(--color-slate)] leading-snug">{stat.label}</p>
+            </div>
+          ))}
+        </div>
+        <p class="mt-3 text-xs text-[color:var(--color-slate)]/70">
+          A further {DWTS_FACTS.exemptionHolders} registered waste exemption
+          holders are caught in Phase 2, and {DWTS_FACTS.smallShare} of affected
+          businesses are small rather than micro. The costs are largely fixed,
+          so they land hardest on the smallest operators.
+        </p>
+      </div>
+    </section>
+
+    <!-- Scope -->
+    <section id="scope" class="bg-white border-y border-[color:var(--color-mist)]">
+      <div class="mx-auto max-w-5xl px-6 py-20 md:py-24">
+        <p class="text-xs font-semibold tracking-[0.18em] uppercase text-[color:var(--color-cyan)]" data-reveal>
+          Scope
+        </p>
+        <h2 class="mt-3 font-[family-name:var(--font-display)] font-extrabold text-3xl md:text-4xl tracking-tight text-[color:var(--color-graphite)]" data-reveal>
+          Am I in scope, and when?
+        </h2>
+        <p class="mt-4 text-lg text-[color:var(--color-slate)] leading-relaxed max-w-3xl" data-reveal>
+          The rollout is split by what you do with waste, not by how big you
+          are. Plenty of firms are caught by both phases — if you collect
+          waste <em>and</em> run a permitted tip, your first date is the Phase 1 one.
+        </p>
+
+        <div class="mt-10 grid md:grid-cols-2 gap-5">
+          <div class="rounded-2xl border-2 border-[color:var(--color-cyan)]/30 bg-[color:var(--color-cyan)]/[0.04] p-6 md:p-7" data-reveal>
+            <span class="inline-flex items-center rounded-full bg-[color:var(--color-cyan)]/15 px-3 py-1 text-xs font-bold tracking-[0.1em] uppercase text-[color:var(--color-cyan)]">
+              Phase 1 · First
+            </span>
+            <h3 class="mt-4 font-[family-name:var(--font-display)] font-bold text-2xl text-[color:var(--color-graphite)]">
+              Sites that receive waste
+            </h3>
+            <p class="mt-2 font-semibold text-[color:var(--color-graphite)]">
+              October 2026 in England and Wales · January 2027 in Scotland and Northern Ireland
+            </p>
+            <p class="mt-3 text-[color:var(--color-slate)] leading-relaxed">
+              Any site with a permit or licence that takes waste in: transfer
+              stations, materials recovery facilities, landfill, energy-from-waste
+              plants, composting sites, scrap yards, and treatment or recovery
+              facilities.
+            </p>
+            <p class="mt-3 text-sm text-[color:var(--color-slate)] leading-relaxed">
+              Sites operating under an exemption alone are <strong class="text-[color:var(--color-graphite)]">not</strong> in
+              Phase 1 — they arrive with the carriers in Phase 2. Movements
+              between two permits on the same physical site still need a record
+              each.
+            </p>
+          </div>
+
+          <div class="rounded-2xl border-2 border-[color:var(--color-amber)]/35 bg-[color:var(--color-amber)]/[0.05] p-6 md:p-7" data-reveal>
+            <span class="inline-flex items-center rounded-full bg-[color:var(--color-amber)]/15 px-3 py-1 text-xs font-bold tracking-[0.1em] uppercase text-[color:var(--color-amber)]">
+              Phase 2 · Most operators
+            </span>
+            <h3 class="mt-4 font-[family-name:var(--font-display)] font-bold text-2xl text-[color:var(--color-graphite)]">
+              Carriers, brokers and dealers
+            </h3>
+            <p class="mt-2 font-semibold text-[color:var(--color-graphite)]">
+              October 2027, all four nations
+            </p>
+            <p class="mt-3 text-[color:var(--color-slate)] leading-relaxed">
+              Registered waste carriers, brokers, dealers, exempt waste
+              operations and exporters. If you run skips, tippers, bulkers or
+              grab lorries and you don't hold a permit for a site, this is your
+              date.
+            </p>
+            <p class="mt-3 text-sm text-[color:var(--color-slate)] leading-relaxed">
+              Phase 2 covers the collection leg, so it adds the producer's
+              details and SIC code, your carrier registration, collection times,
+              and the intended waste-hierarchy option and treatment method.
+            </p>
+          </div>
+        </div>
+
+        <!-- Nation table. Scrolls inside its own box rather than pushing the
+             page sideways — see the mobile protocol in CLAUDE.md. -->
+        <div class="mt-10 overflow-x-auto rounded-2xl border border-[color:var(--color-mist)]" data-reveal>
+          <table class="w-full min-w-[38rem] text-left text-sm">
+            <caption class="sr-only">
+              Phase 1 mandatory dates and enforcing regulator by UK nation
+            </caption>
+            <thead class="bg-[color:var(--color-offwhite)] text-[color:var(--color-graphite)]">
+              <tr>
+                <th scope="col" class="px-5 py-3 font-semibold">Nation</th>
+                <th scope="col" class="px-5 py-3 font-semibold">Phase 1 date</th>
+                <th scope="col" class="px-5 py-3 font-semibold">Regulator</th>
+                <th scope="col" class="px-5 py-3 font-semibold">Notes</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-[color:var(--color-mist)] text-[color:var(--color-slate)]">
+              {nations.map((row) => (
+                <tr class="bg-white align-top">
+                  <th scope="row" class="px-5 py-4 font-semibold text-[color:var(--color-graphite)] whitespace-nowrap">
+                    {row.nation}
+                  </th>
+                  <td class="px-5 py-4 whitespace-nowrap font-medium text-[color:var(--color-graphite)]">{row.phase1}</td>
+                  <td class="px-5 py-4 whitespace-nowrap">{row.regulator}</td>
+                  <td class="px-5 py-4 leading-relaxed">{row.note}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p class="mt-3 text-xs text-[color:var(--color-slate)]/70">
+          Phase 2 is October 2027 in all four nations.
+        </p>
+      </div>
+    </section>
+
+    <!-- What you must record -->
+    <section id="record" class="bg-[color:var(--color-offwhite)]">
+      <div class="mx-auto max-w-5xl px-6 py-20 md:py-24">
+        <p class="text-xs font-semibold tracking-[0.18em] uppercase text-[color:var(--color-cyan)]" data-reveal>
+          The duty
+        </p>
+        <h2 class="mt-3 font-[family-name:var(--font-display)] font-extrabold text-3xl md:text-4xl tracking-tight text-[color:var(--color-graphite)]" data-reveal>
+          What you have to record, for every single load.
+        </h2>
+
+        <!-- The two-working-day rule gets its own treatment: it is the single
+             most commonly missed requirement and the one with a fine on it. -->
+        <div class="mt-8 rounded-2xl bg-[color:var(--color-graphite)] text-white p-6 md:p-8 overflow-clip relative" data-reveal>
+          <div class="relative">
+            <p class="text-xs font-semibold tracking-[0.16em] uppercase text-[color:var(--color-amber)]">
+              The rule with a fine attached
+            </p>
+            <p class="mt-3 font-[family-name:var(--font-display)] font-bold text-2xl md:text-3xl leading-snug">
+              Every record must be complete by {DWTS_FACTS.filingWindow}.
+            </p>
+            <p class="mt-4 text-white/70 leading-relaxed max-w-3xl">
+              Waste received at nine on Monday morning must be filed before
+              midnight on Wednesday. Weekends don't count. Anything you learn
+              later — the weighed figure, the disposal or recovery code — has to
+              be updated inside the same window.
+            </p>
+            <p class="mt-4 text-white/70 leading-relaxed max-w-3xl">
+              And you are only compliant when the service returns a Waste
+              Tracking ID. An upload that was attempted, or rejected, is not a
+              filed record. In England, missing this deadline is the most likely
+              trigger for the {DWTS_FACTS.fixedPenalty} fixed penalty.
+            </p>
+          </div>
+        </div>
+
+        <div class="mt-8 grid sm:grid-cols-2 gap-5">
+          {recordFields.map((group) => (
+            <div class="rounded-2xl border border-[color:var(--color-mist)] bg-white p-6" data-reveal>
+              <h3 class="font-[family-name:var(--font-display)] font-bold text-lg text-[color:var(--color-graphite)]">
+                {group.title}
+              </h3>
+              <ul class="mt-3 space-y-2.5">
+                {group.items.map((item) => (
+                  <li class="flex gap-2.5 text-sm text-[color:var(--color-slate)] leading-relaxed">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="mt-1 shrink-0 text-[color:var(--color-cyan)]">
+                      <path d="M20 6 9 17l-5-5" />
+                    </svg>
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+
+        <div class="mt-8 rounded-2xl border border-[color:var(--color-amber)]/30 bg-[color:var(--color-amber)]/[0.06] p-6" data-reveal>
+          <h3 class="font-[family-name:var(--font-display)] font-bold text-lg text-[color:var(--color-graphite)]">
+            Your paperwork does not go away yet
+          </h3>
+          <p class="mt-2 text-[color:var(--color-slate)] leading-relaxed">
+            Paper waste transfer notes and hazardous waste consignment notes
+            remain legally required alongside the digital record in Phase 1.
+            Digital tracking is an additional duty for now, not a replacement,
+            and quarterly returns continue as they are. Over time the service is
+            intended to replace transfer notes, consignment notes, season
+            tickets and Annex VII forms — but that needs a revised Duty of Care
+            Code of Practice and its own consultation first.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Dates in detail -->
+    <section id="dates" class="bg-white border-y border-[color:var(--color-mist)]">
+      <div class="mx-auto max-w-4xl px-6 py-20 md:py-24">
+        <p class="text-xs font-semibold tracking-[0.18em] uppercase text-[color:var(--color-cyan)]" data-reveal>
+          The rollout
+        </p>
+        <h2 class="mt-3 font-[family-name:var(--font-display)] font-extrabold text-3xl md:text-4xl tracking-tight text-[color:var(--color-graphite)]" data-reveal>
+          Every milestone, in detail.
+        </h2>
+
+        <ol class="mt-10 space-y-4">
+          {DWTS_MILESTONES.map((milestone) => (
+            <li
+              class="rounded-2xl border border-[color:var(--color-mist)] bg-[color:var(--color-offwhite)] p-6 md:p-7"
+              data-reveal
+            >
+              <div class="flex flex-wrap items-center gap-3">
+                <span class={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-bold tracking-[0.1em] uppercase ${
+                  milestone.phase === 1
+                    ? "bg-[color:var(--color-cyan)]/12 text-[color:var(--color-cyan)]"
+                    : "bg-[color:var(--color-amber)]/15 text-[color:var(--color-amber)]"
+                }`}>
+                  Phase {milestone.phase}
+                </span>
+                <span class="font-[family-name:var(--font-display)] font-bold text-[color:var(--color-graphite)]">
+                  {milestone.dateLabel}
+                </span>
+                <span class="text-sm text-[color:var(--color-slate)]/70">{milestone.nations}</span>
+              </div>
+              <h3 class="mt-3 font-[family-name:var(--font-display)] font-bold text-xl text-[color:var(--color-graphite)]">
+                {milestone.title}
+              </h3>
+              <p class="mt-2 text-[color:var(--color-slate)] leading-relaxed">{milestone.body}</p>
+              {milestone.caveat && (
+                <p class="mt-4 flex gap-2.5 rounded-xl border border-[color:var(--color-mist)] bg-white p-4 text-sm text-[color:var(--color-slate)] leading-relaxed">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="mt-0.5 shrink-0 text-[color:var(--color-amber)]">
+                    <path d="M12 9v4M12 17h.01" />
+                    <path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z" />
+                  </svg>
+                  <span><strong class="text-[color:var(--color-graphite)]">Worth knowing.</strong> {milestone.caveat}</span>
+                </p>
+              )}
+            </li>
+          ))}
+        </ol>
+      </div>
+    </section>
+
+    <!-- Four ways to comply -->
+    <section id="comply" class="bg-[color:var(--color-offwhite)]">
+      <div class="mx-auto max-w-5xl px-6 py-20 md:py-24">
+        <p class="text-xs font-semibold tracking-[0.18em] uppercase text-[color:var(--color-cyan)]" data-reveal>
+          Getting compliant
+        </p>
+        <h2 class="mt-3 font-[family-name:var(--font-display)] font-extrabold text-3xl md:text-4xl tracking-tight text-[color:var(--color-graphite)]" data-reveal>
+          Four ways to file, and who each one suits.
+        </h2>
+        <p class="mt-4 text-lg text-[color:var(--color-slate)] leading-relaxed max-w-3xl" data-reveal>
+          Before any of them, you have to register your own organisation for
+          Report receipt of waste on GOV.UK and pay the fee. Registration gives
+          you an API code for each permitted site. A software provider <strong class="text-[color:var(--color-graphite)]">cannot</strong> register
+          or pay on your behalf, so start there.
+        </p>
+
+        <div class="mt-10 grid sm:grid-cols-2 gap-5">
+          {routes.map((route) => (
+            <div
+              class={`card-glow rounded-2xl border bg-white p-6 md:p-7 ${
+                route.accent === "amber"
+                  ? "border-[color:var(--color-amber)]/35 glow-amber"
+                  : "border-[color:var(--color-mist)] glow-cyan"
+              }`}
+              data-reveal
+              data-spotlight
+            >
+              <span class={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-bold tracking-[0.1em] uppercase ${
+                route.accent === "amber"
+                  ? "bg-[color:var(--color-amber)]/15 text-[color:var(--color-amber)]"
+                  : "bg-[color:var(--color-mist)]/70 text-[color:var(--color-slate)]"
+              }`}>
+                {route.fit}
+              </span>
+              <h3 class="mt-3 font-[family-name:var(--font-display)] font-bold text-xl text-[color:var(--color-graphite)]">
+                {route.title}
+              </h3>
+              <p class="mt-2 text-[color:var(--color-slate)] leading-relaxed">{route.body}</p>
+            </div>
+          ))}
+        </div>
+
+        <div class="mt-8 rounded-2xl border border-[color:var(--color-mist)] bg-white p-6 md:p-7" data-reveal>
+          <h3 class="font-[family-name:var(--font-display)] font-bold text-xl text-[color:var(--color-graphite)]">
+            How to check a software provider properly
+          </h3>
+          <p class="mt-3 text-[color:var(--color-slate)] leading-relaxed">
+            Defra publishes an official register, <em>Report receipt of waste:
+            choose a software provider</em>, first published in June 2026.
+            Appearing on it means that provider has integrated with the Receipt
+            of Waste API and demonstrated Defra's fourteen production approval
+            scenarios. It is the only reliable cross-check — most
+            &ldquo;Defra approved&rdquo; badges on vendor websites are self-reported, and
+            claims about how many providers have passed are usually marketing.
+          </p>
+          <p class="mt-3 text-[color:var(--color-slate)] leading-relaxed">
+            Two caveats worth carrying into a sales conversation. The register
+            is lightly vetted — trade press reported in July 2026 that a
+            convicted illegal waste exporter appeared on it — so a listing
+            proves a technical integration, not that a company is a sound
+            supplier. And ask directly whether a provider covers Phase 2 as
+            well as Phase 1, because a weighbridge-oriented system that files
+            receipts perfectly may do nothing at all for your carrier duty in
+            October 2027.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Cost and penalties -->
+    <section id="cost" class="bg-white border-y border-[color:var(--color-mist)]">
+      <div class="mx-auto max-w-5xl px-6 py-20 md:py-24">
+        <p class="text-xs font-semibold tracking-[0.18em] uppercase text-[color:var(--color-cyan)]" data-reveal>
+          Money
+        </p>
+        <h2 class="mt-3 font-[family-name:var(--font-display)] font-extrabold text-3xl md:text-4xl tracking-tight text-[color:var(--color-graphite)]" data-reveal>
+          What it costs, and what it costs to get wrong.
+        </h2>
+
+        <div class="mt-10 grid md:grid-cols-2 gap-5">
+          <div class="rounded-2xl border border-[color:var(--color-mist)] bg-[color:var(--color-offwhite)] p-6 md:p-7" data-reveal>
+            <p class="font-[family-name:var(--font-display)] font-extrabold text-4xl text-[color:var(--color-graphite)]">
+              {DWTS_FACTS.fee}<span class="text-lg font-bold text-[color:var(--color-slate)]">/year</span>
+            </p>
+            <h3 class="mt-2 font-[family-name:var(--font-display)] font-bold text-xl text-[color:var(--color-graphite)]">
+              The registration fee
+            </h3>
+            <p class="mt-2 text-[color:var(--color-slate)] leading-relaxed">
+              Charged per legal entity that creates or edits records — not per
+              movement, not per user, and not per site. Payable to Defra on
+              first use once the service is mandatory, and then on each
+              anniversary.
+            </p>
+            <p class="mt-3 text-sm text-[color:var(--color-slate)] leading-relaxed">
+              Waste disposal authorities receiving household waste from domestic
+              property, and people who are digitally excluded, are exempt from
+              registering and from the fee.
+            </p>
+          </div>
+
+          <div class="rounded-2xl border border-[color:var(--color-error)]/25 bg-[color:var(--color-error)]/[0.04] p-6 md:p-7" data-reveal>
+            <p class="font-[family-name:var(--font-display)] font-extrabold text-4xl text-[color:var(--color-graphite)]">
+              {DWTS_FACTS.fixedPenalty}
+            </p>
+            <h3 class="mt-2 font-[family-name:var(--font-display)] font-bold text-xl text-[color:var(--color-graphite)]">
+              The fixed penalty in England
+            </h3>
+            <p class="mt-2 text-[color:var(--color-slate)] leading-relaxed">
+              Set by Schedule 2 of the England regulations, with missing the
+              two-working-day deadline the most likely trigger. Alongside it sit
+              variable monetary penalties with <strong class="text-[color:var(--color-graphite)]">no upper limit</strong>,
+              recovery of the regulator's investigation and legal costs,
+              compliance notices, and criminal prosecution.
+            </p>
+            <p class="mt-3 text-sm text-[color:var(--color-slate)] leading-relaxed">
+              Scotland runs its own civil penalty regime under SSI 2026/145,
+              enforced by SEPA. Wales is enforced by Natural Resources Wales and
+              Northern Ireland by DAERA.
+            </p>
+          </div>
+        </div>
+
+        <div class="mt-6 rounded-2xl border border-[color:var(--color-mist)] bg-[color:var(--color-offwhite)] p-6" data-reveal>
+          <h3 class="font-[family-name:var(--font-display)] font-bold text-lg text-[color:var(--color-graphite)]">
+            Two figures doing the rounds that we could not stand up
+          </h3>
+          <p class="mt-2 text-[color:var(--color-slate)] leading-relaxed">
+            You will see &ldquo;£5,000 per incident&rdquo; quoted widely. It does not appear
+            in the England regulations as laid — the real figures are the
+            {" "}{DWTS_FACTS.fixedPenalty} fixed penalty, uncapped variable
+            penalties, and cost recovery. A &ldquo;£40,000 cap&rdquo; for Scotland also
+            circulates in trade coverage; check it against SSI 2026/145 before
+            you rely on it. If a supplier quotes either figure at you, ask them
+            for the source.
+          </p>
+        </div>
+
+        <div class="mt-6 rounded-2xl border border-[color:var(--color-mist)] bg-[color:var(--color-offwhite)] p-6" data-reveal>
+          <h3 class="font-[family-name:var(--font-display)] font-bold text-lg text-[color:var(--color-graphite)]">
+            Will enforcement really start on day one?
+          </h3>
+          <p class="mt-2 text-[color:var(--color-slate)] leading-relaxed">
+            No formal grace period is written into the England regulations. In
+            practice the public beta since April 2026 is the soft landing, and
+            regulators have signalled an educational posture at first. Do not
+            plan around that: the whole point of a digital audit trail is that
+            non-compliance becomes trivial to spot, and serious or persistent
+            breaches can put a permit or a carrier licence at risk.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Sector specifics -->
+    <section id="skips" class="bg-[color:var(--color-offwhite)]">
+      <div class="mx-auto max-w-4xl px-6 py-20 md:py-24">
+        <p class="text-xs font-semibold tracking-[0.18em] uppercase text-[color:var(--color-cyan)]" data-reveal>
+          The sharp end
+        </p>
+        <h2 class="mt-3 font-[family-name:var(--font-display)] font-extrabold text-3xl md:text-4xl tracking-tight text-[color:var(--color-graphite)]" data-reveal>
+          If you run skips, tippers or bulkers, read this bit.
+        </h2>
+        <p class="mt-4 text-lg text-[color:var(--color-slate)] leading-relaxed" data-reveal>
+          Most of the published guidance is written for weighbridges and
+          transfer stations. These are the five things that actually bite a
+          collection business.
+        </p>
+
+        <div class="mt-10 space-y-4">
+          {skipPoints.map((point, i) => (
+            <div class="flex gap-5 rounded-2xl border border-[color:var(--color-mist)] bg-white p-6" data-reveal>
+              <span class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[color:var(--color-graphite)] font-[family-name:var(--font-display)] font-bold text-sm text-white">
+                {i + 1}
+              </span>
+              <div>
+                <h3 class="font-[family-name:var(--font-display)] font-bold text-lg text-[color:var(--color-graphite)]">
+                  {point.title}
+                </h3>
+                <p class="mt-2 text-[color:var(--color-slate)] leading-relaxed">{point.body}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <!-- How Fleetlix handles it -->
+    <section id="fleetlix" class="relative overflow-clip bg-[color:var(--color-graphite)] text-white">
+      <div class="aurora" aria-hidden="true">
+        <div class="aurora-blob aurora-blob--amber absolute -right-20 -top-10 h-72 w-72 opacity-20"></div>
+      </div>
+      <div class="relative mx-auto max-w-5xl px-6 py-20 md:py-28">
+        <p class="text-xs font-semibold tracking-[0.18em] uppercase text-[color:var(--color-amber)]" data-reveal>
+          Where we are
+        </p>
+        <h2 class="mt-3 font-[family-name:var(--font-display)] font-extrabold text-3xl md:text-4xl tracking-tight text-white" data-reveal>
+          How Fleetlix handles digital waste tracking.
+        </h2>
+        <p class="mt-4 text-lg text-white/70 leading-relaxed max-w-3xl" data-reveal>
+          Fleetlix files the record from data the job already holds, tracks the
+          two-working-day deadline for you, and holds a separate Defra API code
+          for every permitted site you run. Here is the honest state of it,
+          milestone by milestone.
+        </p>
+
+        <ol class="mt-10 space-y-3">
+          {FLEETLIX_STAGES.map((stage) => (
+            <li
+              class={`rounded-2xl border p-6 ${
+                stage.state === "active"
+                  ? "border-[color:var(--color-amber)]/40 bg-[color:var(--color-amber)]/[0.07]"
+                  : "border-white/12 bg-white/[0.04]"
+              }`}
+              data-reveal
+            >
+              <div class="flex flex-wrap items-center gap-3">
+                {stage.state === "done" && (
+                  <span class="inline-flex items-center gap-1.5 rounded-full bg-[color:var(--color-cyan)]/15 px-2.5 py-0.5 text-[11px] font-bold tracking-[0.1em] uppercase text-[color:var(--color-cyan)]">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <path d="M20 6 9 17l-5-5" />
+                    </svg>
+                    Done
+                  </span>
+                )}
+                {stage.state === "active" && (
+                  <span class="inline-flex items-center gap-1.5 rounded-full bg-[color:var(--color-amber)]/20 px-2.5 py-0.5 text-[11px] font-bold tracking-[0.1em] uppercase text-[color:var(--color-amber)]">
+                    <span class="live-dot h-1.5 w-1.5 rounded-full bg-[color:var(--color-amber)]"></span>
+                    In progress
+                  </span>
+                )}
+                {stage.state === "planned" && (
+                  <span class="inline-flex items-center rounded-full bg-white/10 px-2.5 py-0.5 text-[11px] font-bold tracking-[0.1em] uppercase text-white/60">
+                    Planned
+                  </span>
+                )}
+                <span class="text-sm font-semibold text-white/50">{stage.when}</span>
+              </div>
+              <h3 class="mt-3 font-[family-name:var(--font-display)] font-bold text-xl text-white">
+                {stage.title}
+              </h3>
+              <p class="mt-2 text-white/70 leading-relaxed">{stage.body}</p>
+            </li>
+          ))}
+        </ol>
+
+        <div class="mt-8 rounded-2xl border border-white/12 bg-white/[0.04] p-6 md:p-7" data-reveal>
+          <h3 class="font-[family-name:var(--font-display)] font-bold text-lg text-white">
+            What we are not claiming
+          </h3>
+          <p class="mt-2 text-white/70 leading-relaxed">
+            Fleetlix is not yet listed on the GOV.UK register of approved
+            software providers, because Defra has not yet issued us production
+            credentials. Other providers are already on that register, and you
+            should check it before you buy from anyone — including us, once we
+            are on it. We would rather tell you exactly where we stand than put
+            a badge on the page that nobody verifies.
+          </p>
+        </div>
+
+        <div class="mt-10 flex flex-col sm:flex-row gap-4" data-reveal>
+          <a
+            href="/#register-interest"
+            class="btn-sheen inline-flex items-center justify-center rounded-lg bg-[color:var(--color-amber)] px-6 py-3.5 font-semibold text-[color:var(--color-graphite)] shadow-sm hover:brightness-110 transition"
+          >
+            Register your interest
+          </a>
+          <a
+            href="/#pricing"
+            class="inline-flex items-center justify-center rounded-lg border border-white/25 px-6 py-3.5 font-semibold text-white hover:bg-white/10 transition"
+          >
+            See plans and pricing
+          </a>
+        </div>
+        <p class="mt-4 text-sm text-white/50">
+          Digital waste tracking submission is included in every Fleetlix plan.
+          It is a legal duty, not a premium feature — only the monthly
+          submission allowance changes by tier.
+        </p>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section id="faq" class="bg-[color:var(--color-offwhite)] border-b border-[color:var(--color-mist)]">
+      <div class="mx-auto max-w-4xl px-6 py-20 md:py-24">
+        <p class="text-xs font-semibold tracking-[0.18em] uppercase text-[color:var(--color-cyan)]" data-reveal>
+          Questions
+        </p>
+        <h2 class="mt-3 font-[family-name:var(--font-display)] font-extrabold text-3xl md:text-4xl tracking-tight text-[color:var(--color-graphite)]" data-reveal>
+          Digital waste tracking, answered.
+        </h2>
+
+        <div class="mt-10 divide-y divide-[color:var(--color-mist)] border-y border-[color:var(--color-mist)]" data-reveal>
+          {dwtsFaqItems.map((item) => (
+            <details class="faq-item group">
+              <summary class="flex cursor-pointer list-none items-center justify-between gap-4 py-5 px-2 -mx-2 rounded-lg text-left transition-colors hover:bg-[color:var(--color-mist)]/40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--color-cyan)]">
+                <h3 class="font-[family-name:var(--font-display)] font-bold text-lg md:text-xl text-[color:var(--color-graphite)]">
+                  {item.question}
+                </h3>
+                <span
+                  aria-hidden="true"
+                  class="faq-icon mt-1 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[color:var(--color-mist)] bg-white text-[color:var(--color-cyan)] transition-transform group-hover:border-[color:var(--color-cyan)]/40"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5">
+                    <path d="M12 5v14M5 12h14" />
+                  </svg>
+                </span>
+              </summary>
+              <p class="-mt-1 pb-6 pr-12 text-[color:var(--color-slate)] leading-relaxed">
+                {item.answer}
+              </p>
+            </details>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <!-- Sources -->
+    <section id="sources" class="bg-white">
+      <div class="mx-auto max-w-4xl px-6 py-16 md:py-20">
+        <h2 class="font-[family-name:var(--font-display)] font-bold text-2xl text-[color:var(--color-graphite)]">
+          Sources and further reading
+        </h2>
+        <p class="mt-3 text-[color:var(--color-slate)] leading-relaxed">
+          Everything above is drawn from published government sources. Where
+          they conflict, we have said so and followed the most recent primary
+          source. Go and read them — particularly if you are about to spend
+          money on the strength of a date.
+        </p>
+        <ul class="mt-6 space-y-3">
+          {sources.map((source) => (
+            <li>
+              <a
+                href={source.href}
+                rel="noopener"
+                target="_blank"
+                class="group inline-flex items-start gap-2.5 text-[color:var(--color-slate)] hover:text-[color:var(--color-graphite)]"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="mt-1 shrink-0 text-[color:var(--color-cyan)]">
+                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                  <path d="M15 3h6v6M10 14 21 3" />
+                </svg>
+                <span class="underline decoration-[color:var(--color-mist)] underline-offset-4 group-hover:decoration-[color:var(--color-graphite)]">
+                  {source.label}
+                </span>
+              </a>
+            </li>
+          ))}
+        </ul>
+        <p class="mt-8 text-sm text-[color:var(--color-slate)]/70 leading-relaxed">
+          The regulations themselves are on legislation.gov.uk: the Digital
+          Waste Tracking (England) Regulations 2026, the Digital Waste Tracking
+          (Wales) Regulations 2026 (WSI 2026/105), and the Digital Waste
+          Tracking (Scotland) Regulations 2026 (SSI 2026/145). This page is a
+          summary written for operators and is not legal advice; if a deadline
+          or a penalty matters to your business, check the regulation that
+          applies to you or take advice.
+        </p>
+        <p class="mt-4 text-sm text-[color:var(--color-slate)]/70">
+          Last updated {lastUpdated}.
+        </p>
+      </div>
+    </section>
+  </main>
+  <SiteFooter />
+
+  <script type="application/ld+json" set:html={JSON.stringify(guideJsonLd)} />
+
+  <!-- Scroll-reveal elements start hidden at md+ and wait for JS. With JS off
+       that never happens — force them visible. Mirrors index.astro. -->
+  <noscript>
+    <style>
+      [data-reveal] {
+        opacity: 1 !important;
+        transform: none !important;
+        filter: none !important;
+        clip-path: none !important;
+      }
+    </style>
+  </noscript>
+</Base>
+
+<style>
+  /* Hide the default disclosure marker, and flip the plus to a minus when
+     open. Same treatment as Faq.astro, whose styles are component-scoped. */
+  .faq-item > summary { list-style: none; }
+  .faq-item > summary::-webkit-details-marker { display: none; }
+  .faq-item > summary::marker { content: ""; }
+  .faq-item[open] .faq-icon { transform: rotate(45deg); }
+</style>
