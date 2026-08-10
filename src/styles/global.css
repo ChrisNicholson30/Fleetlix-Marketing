@@ -332,6 +332,39 @@
   #pricing:has(#billing-annual:checked) [data-billing="monthly"] { display: none; }
 }
 
+/* ---- Install-guide platform tabs ----
+ * Same mechanism and the same reasoning as the billing toggle above: one radio
+ * per platform, every platform's instructions rendered into the DOM, :has()
+ * showing one. It costs no hydration bundle and no CSP hash, it works with
+ * JavaScript disabled, and — the point on this page — a crawler indexes the
+ * Windows steps and the Android steps, not just whichever tab opened first.
+ * src/scripts/install.ts only moves the STARTING selection to match the
+ * visitor's device; it is never what makes the tabs work.
+ * The @supports guard matters more here than on pricing: without :has(), five
+ * platforms would collapse into one long page rather than disappear — degraded,
+ * but every step still readable. */
+@supports selector(:has(*)) {
+  #install [data-platform] { display: none; }
+  #install:has(#platform-iphone:checked) [data-platform="iphone"],
+  #install:has(#platform-ipad:checked) [data-platform="ipad"],
+  #install:has(#platform-android:checked) [data-platform="android"],
+  #install:has(#platform-windows:checked) [data-platform="windows"],
+  #install:has(#platform-mac:checked) [data-platform="mac"] { display: block; }
+}
+
+/* ---- Walkthrough player ----
+ * The 16:9 box is reserved before anything loads, so swapping the facade for
+ * the Stream iframe shifts nothing: CLS stays at 0 whether the visitor presses
+ * play or never does. */
+.wt-player { position: relative; aspect-ratio: 16 / 9; }
+.wt-frame {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
 /* ---- Button sheen ---- a single slow pass of light on hover. */
 .btn-sheen { position: relative; overflow: hidden; isolation: isolate; }
 .btn-sheen::after {

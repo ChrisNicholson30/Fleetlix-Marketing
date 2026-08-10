@@ -47,5 +47,22 @@ const stagger = ["[--stagger:0ms]", "[--stagger:120ms]", "[--stagger:240ms]"];
         </div>
       ))}
     </div>
+
+    <!-- "No app-store dance" is the claim this section is built on, and the
+         honest cost of it is that installing looks different on every device
+         and is invisible if you don't know where to look. /install is where
+         that gets paid off — so the link belongs here, next to the promise. -->
+    <p class="mt-8 text-white/70 [--stagger:320ms]" data-reveal>
+      Installing takes about twenty seconds and there's nothing to download.
+      <a
+        href="/install"
+        class="group ml-1 inline-flex items-center gap-1.5 font-semibold text-[color:var(--color-amber)] hover:text-white transition-colors"
+      >
+        See how, on any device
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="transition-transform group-hover:translate-x-1 motion-reduce:transition-none" aria-hidden="true">
+          <path d="M5 12h14M13 6l6 6-6 6" />
+        </svg>
+      </a>
+    </p>
   </div>
 </section>

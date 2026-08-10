@@ -12,6 +12,13 @@ const year = new Date().getFullYear();
         <span>&copy; {year} FLEETLIX LTD</span>
       </div>
       <div class="flex flex-wrap items-center gap-x-6 gap-y-2">
+        <!-- Walkthrough and Install live here rather than in the header: the
+             desktop nav is already at its width budget (a sixth anchor wraps at
+             640px — see Header.astro), and both are pages someone seeks out
+             rather than browses to. They're also linked in context from the
+             hero, ProductShowcase and WhyPwa. -->
+        <a href="/walkthrough" class="hover:text-[color:var(--color-graphite)]">Walkthrough</a>
+        <a href="/install" class="hover:text-[color:var(--color-graphite)]">Install guide</a>
         <a href="/digital-waste-tracking" class="hover:text-[color:var(--color-graphite)]">Digital Waste Tracking</a>
         <a href="/privacy" class="hover:text-[color:var(--color-graphite)]">Privacy</a>
         <a href="/cookies" class="hover:text-[color:var(--color-graphite)]">Cookies</a>

@@ -8,6 +8,15 @@
 #   5) /digital-waste-tracking JSON-LD @graph — Article + FAQPage +
 #      BreadcrumbList (that page only). The DWTS timeline on it is driven by
 #      an external module, so the page adds this one hash and no more.
+#   6) /walkthrough JSON-LD @graph — BreadcrumbList only. Deliberately does NOT
+#      include a VideoObject: the video isn't published yet, and a VideoObject
+#      naming one that doesn't exist is a manual-action risk. Keeping the graph
+#      static also means dropping the video in (two env vars) never touches this
+#      hash. Adding VideoObject later DOES change it — regenerate then.
+#   7) /install JSON-LD @graph — BreadcrumbList only.
+# The player facade (src/scripts/walkthrough.ts) and the install-guide platform
+# detector (src/scripts/install.ts) both import src/scripts/lib/env.ts, so they
+# are emitted as external /_astro/*.js like the rest — neither adds a hash.
 # The mobile-menu handler and the cinematic bundle are NO LONGER inline: they
 # import a shared module (src/scripts/lib/env.ts), so Astro emits them as
 # external /_astro/*.js files covered by script-src 'self'. Deliberate —
@@ -21,6 +30,24 @@
 #   - src/pages/digital-waste-tracking.astro (its JSON-LD @graph) — note this
 #     one is built from src/config/dwts.ts, so editing the FAQ or the
 #     milestones in that config ALSO changes this hash.
+#   - src/pages/walkthrough.astro or src/pages/install.astro (their @graphs)
+#
+# frame-src is the ONE third-party allowance on this site, and it exists for a
+# single embed: the Cloudflare Stream player on /walkthrough. Three things keep
+# it honest and all three must stay true —
+#   1) It is CLICK-TO-LOAD. No iframe exists until the visitor presses play
+#      (src/scripts/walkthrough.ts). That affirmative action is what makes the
+#      embed lawful under PECR without a consent banner. Preloading, prefetching
+#      or hover-triggering it would break that and make /cookies wrong.
+#   2) frame-src ONLY. The player's own scripts run inside the iframe under
+#      Cloudflare's policy, not ours, so no script-src/connect-src entry is
+#      needed. The poster is a code-drawn SVG served from this origin, which is
+#      why img-src stays 'self' data: — don't switch to a Stream thumbnail
+#      without adding img-src and accepting the extra third-party request.
+#   3) The wildcard covers the per-account `customer-<code>` subdomain, so
+#      rotating the Stream account needs no header change. Any OTHER video host
+#      is blocked outright — that is the intended behaviour, not a bug to work
+#      around. Disclose in /cookies before you widen it.
 # One-liner that prints the unique hashes across EVERY built page (globs
 # dist so new pages like 404.html are always covered):
 #   pnpm build && node -e 'const fs=require("fs"),c=require("crypto"),
@@ -37,7 +64,7 @@
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()
   Cross-Origin-Opener-Policy: same-origin
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'sha256-ZLLrZkbz5LFJDdGZ8xszg9i8iXWbnxlTYMl589PFEpk=' 'sha256-Q2BPg90ZMplYY+FSdApNErhpWafg2hcRRbndmvxuL/Q=' 'sha256-SaCkFfPruIdTXT8/97JArQmGxiJAL2o4bBDvSgJ5y3Q=' 'sha256-5zhITeU3lB0FNNp4FLhL/bWZXIgy1UpsywwTDWrxUeg=' 'sha256-nnoaPpJkpAlvOma34DpNVZAKVWgOYA6+YfgrsCakEiI='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; form-action 'self'; base-uri 'self'; object-src 'none'
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'sha256-ZLLrZkbz5LFJDdGZ8xszg9i8iXWbnxlTYMl589PFEpk=' 'sha256-Q2BPg90ZMplYY+FSdApNErhpWafg2hcRRbndmvxuL/Q=' 'sha256-SaCkFfPruIdTXT8/97JArQmGxiJAL2o4bBDvSgJ5y3Q=' 'sha256-5zhITeU3lB0FNNp4FLhL/bWZXIgy1UpsywwTDWrxUeg=' 'sha256-nnoaPpJkpAlvOma34DpNVZAKVWgOYA6+YfgrsCakEiI=' 'sha256-7R/EKlIc6eaKbZUcxfhkfcxa6DUlApJcb51payFAlpI=' 'sha256-v4nQQJRfqX3e3M6p2FrZ6wQxs+OBE0Tn2TtJjwu+iRI='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-src 'self' https://*.cloudflarestream.com; frame-ancestors 'none'; form-action 'self'; base-uri 'self'; object-src 'none'
 
 /fleetlix.vcf
   Content-Type: text/vcard; charset=utf-8

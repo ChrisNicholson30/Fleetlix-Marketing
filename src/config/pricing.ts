@@ -14,6 +14,25 @@
 // Office in practice, and having it sit above three role counts made the card
 // arithmetic ambiguous. Admin is a permission flag, not a seat type. Caps are
 // enforced in the database, not just the UI.
+//
+// THE RULE FOR `features`: a bullet may only name capability the APP ACTUALLY
+// GATES AT THAT TIER — a real `hasModule`/`moduleAtLeast` branch in the app
+// repo's shared/plans matrix. The 2026-08-10 audit (Resources/Pricing v2 — code
+// audit.md) found this card had drifted badly: it sold four things that were
+// never built, three that are free at every tier, and hid three that are gated
+// and saleable. Two failure modes to keep out:
+//
+//   1. Selling the unbuilt. Anything without code goes in `coming`, never in
+//      `features`. `coming` renders muted and dated, so it can't read as included.
+//   2. Selling a gate that isn't there. `cart` and `routing` have ZERO call
+//      sites — every tier gets the booking widget, the drag-and-drop board, the
+//      optimiser and multi-depot views. Those moved to the operations core in
+//      PricingSection.astro, which is where ungated capability belongs. Don't
+//      move them back onto a tier without a gate landing first.
+//
+// When a `coming` item ships, move the string into `features` in the same commit
+// that lands its gate. Feature bullets are NOT serialised into the homepage
+// JSON-LD (only name + price are), so editing them never disturbs the CSP hash.
 
 import type { PlanSlug } from "./checkout";
 
@@ -34,12 +53,25 @@ export interface Tier {
   dwts: Cap;
   /** The tier whose features this one inherits, for the "Everything in X" line. */
   inherits: string | null;
-  /** Only what this tier ADDS on top of `inherits`. */
+  /** Only what this tier ADDS on top of `inherits`. Must be gated in the app. */
   features: string[];
+  /**
+   * Announced but NOT BUILT — no code path exists today. Rendered muted, under
+   * a dated "Coming" heading, so it can never be mistaken for included. Empty
+   * or absent on tiers that ship everything they advertise.
+   */
+  coming?: string[];
   icon: string;
   accent: "amber" | "cyan";
   featured?: boolean;
 }
+
+/**
+ * When everything in a tier's `coming` list is due. One constant so five cards
+ * can't quote five dates, and so there is a single line to edit if it slips —
+ * a date on a card is a commitment, and a stale one is worse than none.
+ */
+export const COMING_LABEL = "Coming December 2026";
 
 export const TIERS: Tier[] = [
   {
@@ -51,11 +83,16 @@ export const TIERS: Tier[] = [
     seats: { drivers: 2, yard: 1, mechanics: 1, office: 1 },
     dwts: 500,
     inherits: null,
+    // The dispatch board is named here deliberately. It is ungated core, but at
+    // £99 it is the reason a sole trader buys, and the core panel sits below the
+    // cards where a scanning buyer never reaches it. "Register-interest
+    // bookings" was removed: it described a cap on the `cart` module that has no
+    // gate, so it undersold Operator with a restriction that isn't real.
     features: [
       "Full operations core",
+      "Drag-and-drop dispatch board",
       "DWTS compliance submission",
       "Basic invoicing",
-      "Register-interest bookings",
     ],
     icon: `<circle cx="12" cy="8" r="4"/><path d="M4 21v-2a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v2"/>`,
     accent: "cyan",
@@ -69,10 +106,12 @@ export const TIERS: Tier[] = [
     seats: { drivers: 8, yard: 2, mechanics: 3, office: 3 },
     dwts: 2000,
     inherits: "Operator",
+    // Four bullets, four gates — this tier is exactly `billing: branded`,
+    // `portal: read_only`, `crm: contacts`, `bi: counts`. "Basic online cart"
+    // was removed: no basic-vs-paid distinction exists anywhere in the code.
     features: [
       "Branded invoice PDFs",
       "Read-only customer portal",
-      "Basic online cart",
       "CRM contacts",
       "Basic BI counts",
     ],
@@ -88,13 +127,24 @@ export const TIERS: Tier[] = [
     seats: { drivers: 20, yard: 5, mechanics: 6, office: 8 },
     dwts: 6000,
     inherits: "Workshop",
+    // Depot gained more than it lost. Weight pricing and credit accounts are the
+    // two most thoroughly gated modules in the app (`weight_pricing`,
+    // `commercial_accounts: credit` — nine enforcement sites) and were being
+    // given away silently. CRM opportunities moved DOWN from Haulier, where the
+    // card had it wrongly: `crm: opportunities` unlocks here.
+    //
+    // Removed: "Paid online cart" and "Drag-and-drop routing" (neither module is
+    // gated at all). Rewritten: "Xero sync (1-way)" — it is a CSV export, not a
+    // sync, and one boolean opens BOTH formats here, so QuickBooks was never
+    // Haulier-only. Calling it a sync is the kind of word a buyer holds you to.
     features: [
-      "Paid online cart",
+      "Weight & tonnage pricing",
+      "Credit accounts & credit limits",
       "Brokerage margin tracking",
-      "Drag-and-drop routing",
+      "CRM opportunities & pipeline",
       "Per-role dashboards",
       "Recycling & CO₂ portal",
-      "Xero sync (1-way)",
+      "Xero & QuickBooks CSV export",
     ],
     icon: `<path d="M3 21V9l9-5 9 5v12"/><path d="M9 21v-8h6v8"/>`,
     accent: "amber",
@@ -109,14 +159,24 @@ export const TIERS: Tier[] = [
     seats: { drivers: 50, yard: 12, mechanics: 12, office: 18 },
     dwts: 15000,
     inherits: "Depot",
+    // Portal booking leads because it is the single best-defended claim on the
+    // card: gated in the UI and backstopped in SQL, which raises for any plan
+    // outside haulier/network. Multi-site accounts replace the two unbuilt
+    // bullets — `commercial_accounts: multi_site` is a genuine Haulier unlock
+    // (parent → child sites, plus the rate matrix) and was unadvertised.
+    //
+    // "CRM pipeline & tasks" was half wrong in both directions — the pipeline is
+    // Depot's, only tasks are Haulier's — so it undersold Depot and oversold
+    // this tier. Map route optimisation left entirely: `optimiseRoute` is called
+    // unconditionally, so it is free at every tier and now sits in the core.
     features: [
-      "Map route optimisation",
-      "Subcontractor logins + auto-PO",
       "Booking from the portal",
+      "Multi-site customer accounts",
+      "Per-site, per-waste rate matrix",
       "Custom dashboards",
-      "CRM pipeline & tasks",
-      "2-way Xero + QuickBooks",
+      "CRM tasks & activities",
     ],
+    coming: ["Subcontractor logins & auto-PO", "Two-way Xero & QuickBooks sync"],
     icon: `<path d="M3 6.5h11v8.5H3z"/><path d="M14 9h3.5l3 3v3H14z"/><circle cx="7" cy="17.5" r="1.7"/><circle cx="17" cy="17.5" r="1.7"/>`,
     accent: "cyan",
   },
@@ -134,12 +194,21 @@ export const TIERS: Tier[] = [
     },
     dwts: "Unlimited",
     inherits: "Haulier",
+    // Capacity-led, and honestly so. The audit found ZERO network-only gates in
+    // the app beyond `bi: drill_down` — multi-depot routing self-hides below two
+    // sites rather than checking the plan, and SSO has no OAuth or SAML path at
+    // all. So what this tier actually sells is headroom, and the card now says
+    // that instead of listing three things Haulier already has.
+    //
+    // The two "Unlimited" bullets deliberately restate the capacity block above:
+    // when capacity IS the product, it earns the repetition. If a real
+    // network-only gate ever lands, lead with it and demote these.
     features: [
-      "Multi-depot routing",
-      "BI drill-down",
-      "Higher DWTS volume",
-      "SSO (Google, Microsoft)",
+      "Unlimited seats across every role",
+      "Unlimited DWTS submissions",
+      "BI drill-down to source records",
     ],
+    coming: ["SSO (Google & Microsoft)"],
     icon: `<circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>`,
     accent: "cyan",
   },
