@@ -99,7 +99,7 @@ fleetlix-marketing/
 | ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `/`          | Homepage: Hero → BuiltForRoad → ProductShowcase → StatBand → FrontReveal → MotionProduct → FeatureGrid → WhyPwa → WhoFor → DwtsTimeline → (PricingSection when SHOW_PRICING) → Faq → InterestForm → (CtaFooter when SHOW_CONTACT) → SiteFooter. `ProductShowcase` (`#product-tour`) is a hand-built CSS/SVG mock of the app (no screenshots); `StatBand` shows count-up market figures. `InterestForm` always renders — it's the conversion action while pre-launch, and every pricing CTA anchors to it. |
 | `/digital-waste-tracking` | The DWTS pillar page — a full operator's guide to the Digital Waste Tracking Service, and the site's main organic-search asset. Renders `DwtsTimeline` with `variant="guide"`, then scope, the record contents, the two-working-day rule, fees, penalties, sector specifics, Fleetlix's own status, a DWTS-specific FAQ and the GOV.UK sources. Every date and figure comes from `src/config/dwts.ts`. Update its `lastUpdated` const when the substance changes. |
-| `/walkthrough` | The product recording, behind a **click-to-load facade**. The page ships zero video weight: the poster is a code-drawn SVG and no request reaches Cloudflare Stream until the visitor presses play. Chapters come from `src/config/walkthrough.ts` and are both the visible copy and the seek targets. **The video does not exist yet** — everything keys off `hasVideo`, which is false until the two env vars below are set, and the page renders an honest "filming now" state instead of a dead play button. See _Walkthrough video_ below. |
+| `/walkthrough` | The 10:39 product recording, behind a **click-to-load facade**. The page ships zero video weight — the 54 MB MP4 in Supabase Storage is not requested until the visitor presses play, and a native `<video>` plays it, so no third-party script runs. The 16 chapters in `src/config/walkthrough.ts` are both the visible copy and the seek targets. See _Walkthrough video_ below before changing anything here. |
 | `/install`   | PWA install guide for iPhone, iPad, Android, Windows and Mac, from `src/config/install.ts`. Platform tabs are **CSS-only** (radios + `:has()`), so all five platforms are in the DOM and crawlable and the page works with JS off; `src/scripts/install.ts` only pre-selects the tab matching the visitor's device. Device-support lists sit in `<details>`. Content describes **fleetlix.app** (the app repo) — its Settings paths can go stale without anything here failing, so re-check before a rollout. |
 | `/rwm2026`   | The physical-channel landing page — what the printed card QR, an NFC chip or a Wallet pass resolves to. Presents the `letsrecycle` promo (14-day trial vs the 7-day base, links into `/?promo=…#pricing`) and hands over our contact details as a **QR that encodes a vCard inline**, so the scan resolves on the other person's phone with no download. `noindex`, and excluded from the sitemap in `astro.config.mjs`. Renamed from `/card` on 12 Aug 2026; `public/_redirects` 301s the old path permanently because cards encoding it are already printed. Print asset: `public/fleetlix-rwm2026-qr.svg`. |
 | `/privacy`   | UK GDPR policy. Update the `lastUpdated` const when material content changes.                                                                                                                                                                                                                                                                                                                                                                                                                                    |
@@ -155,51 +155,56 @@ The limit that still matters: **approval covers Phase 1 only.** Defra has not pu
 
 ## Walkthrough video
 
-The `/walkthrough` player is the **only third-party content on the site**, and it
-is the one exception to the "no third-party network requests" rule below. It is
-allowed because it is **click-to-load**: no iframe exists until the visitor
-presses play, so pressing play _is_ the consent. That is what keeps the embed
-lawful under PECR without a consent banner, and it is what `/cookies` §4 and §5
-now say in writing.
+The `/walkthrough` video is the **only cross-origin request the site ever
+makes**, and it is the one exception to the "no third-party requests" rule
+below. Two things make it acceptable, and both are load-bearing:
 
-**Three rules, all load-bearing:**
+- **It is click-to-load.** No `<video>` element exists until the visitor presses
+  play, so pressing play _is_ the consent. That is what keeps it lawful under
+  PECR without a consent banner, and what `/cookies` §4 and §5 say in writing.
+- **It is a plain file, not an embed.** The MP4 lives in Supabase Storage and is
+  played by a native `<video>`. **No third-party JavaScript runs on the page at
+  all** — the only thing that crosses an origin is the media itself.
+
+**Three rules:**
 
 1. **Never preload, prefetch, `<link rel=preconnect>` or hover-trigger the
-   iframe.** Any of those makes the third-party request happen without consent
-   and turns the cookie policy into a false statement.
-2. **`frame-src` only.** The player's own scripts run inside the iframe under
-   Cloudflare's policy, not ours. The poster is a code-drawn SVG from this
-   origin, which is why `img-src` stays `'self' data:` — switching to a Stream
-   thumbnail would need an `img-src` entry and an extra third-party request.
-3. **Any other video host is blocked outright.** That's intended. Disclose in
-   `/cookies` before widening the CSP.
+   video.** Any of those makes the request happen without consent and turns the
+   cookie policy into a false statement. Supabase's CDN sets a `__cf_bm` cookie
+   on `supabase.co` when the file is fetched; the click is what authorises it.
+2. **`media-src` only — never add a player SDK.** Swapping this for an embedded
+   player (Stream, YouTube, Vimeo) would put third-party script on the page and
+   invalidate the whole argument in `/cookies` §4. Rewrite that first.
+3. **The origin is pinned exactly**, and mirrors `VIDEO_URL` in
+   `src/config/walkthrough.ts`. Change one and you must change the other, or
+   playback silently dies. Any other media host is blocked outright — intended.
 
-### Dropping the video in
+### If the video is replaced
 
-Set both in Pages Production and redeploy — **no code change, no CSP change**:
+`VIDEO_URL` in `src/config/walkthrough.ts` is hardcoded, not an env var, because
+the CSP pins its origin — a value that could vary at deploy time would just be a
+way to break playback without touching the header that has to change with it.
 
-| Var | Format | Notes |
-| --- | ------ | ----- |
-| `PUBLIC_STREAM_UID` | Cloudflare Stream video UID | Both halves are required; one without the other builds an origin that 404s, and `hasVideo` stays false. |
-| `PUBLIC_STREAM_CUSTOMER_CODE` | the `customer-<code>` subdomain | The CSP allows `https://*.cloudflarestream.com`, so any customer code works without a header edit. |
+A new cut means updating, in one pass: `VIDEO_URL`, `DURATION_SECONDS`,
+`RUNTIME_LABEL`, `RUNTIME_ISO`, `UPLOADED_ISO`, the 16 `chapters`, and the poster
+at `src/assets/walkthrough-poster.jpg`. The current chapter times are **measured
+against the delivered cut** (30fps, checked against the file's own CHAPTERS, all
+inside the 639.06s ffprobe reports) — a chapter button that seeks to the wrong
+moment is worse than no chapter list.
 
-Nothing else needs changing: the 16 chapters and `RUNTIME_LABEL` (10:39) in
-`src/config/walkthrough.ts` are **measured against the delivered cut** (30fps,
-checked against the file's own CHAPTERS), not planned. If the video is ever
-re-edited, retime them in the same pass — a chapter button that seeks to the
-wrong moment is worse than no chapter list.
+Seeking depends on the host answering **HTTP range requests**. Supabase Storage
+does (verified: `accept-ranges: bytes`, 206 on a ranged GET). A host that
+doesn't would break every chapter button while normal playback still worked.
 
 The Digital Waste Tracking chapter interpolates its dates from
 `src/config/dwts.ts` rather than stating them, so the walkthrough can't drift
 from the timeline the rest of the site publishes. Northern Ireland's date is an
 active source conflict; correcting `dwts.ts` corrects this page too.
 
-The page's JSON-LD is deliberately **BreadcrumbList only** — no `VideoObject`.
-Claiming a video that isn't published is a manual-action risk, and keeping the
-graph static means setting the env vars never changes the page's script hash
-(verified: a build with both vars set produces the same seven hashes). Adding
-`VideoObject` later **will** change it — regenerate and update `_headers` in the
-same commit.
+**The page has no captions track.** The MP4 ships without one, so nothing on the
+page claims captions — the chapter descriptions are the text alternative. Adding
+a `.vtt` would be a real accessibility win and needs a `<track>` element plus,
+if it is hosted off-origin, a CSP entry.
 
 ## Interest form pipeline
 
@@ -304,12 +309,13 @@ Both JSON-LD scripts (the sitewide Organization and the homepage `@graph`) contr
 3. Astro's `astro-island` custom-element registration
 4. Homepage JSON-LD `@graph` — WebSite + SoftwareApplication + FAQPage (from `src/pages/index.astro`)
 5. `/digital-waste-tracking` JSON-LD `@graph` — Article + FAQPage + BreadcrumbList. It is built from `src/config/dwts.ts`, so **editing `dwtsFaqItems` changes this hash** even though no markup moved.
-6. `/walkthrough` JSON-LD `@graph` — BreadcrumbList only (see _Walkthrough video_ above for why there's no VideoObject)
+6. `/walkthrough` JSON-LD `@graph` — VideoObject + BreadcrumbList. Its `thumbnailUrl` is the build-hashed `/_astro` path of the poster, so **replacing `src/assets/walkthrough-poster.jpg` changes this hash** even though no markup moved.
 7. `/install` JSON-LD `@graph` — BreadcrumbList only
 
-**`frame-src 'self' https://*.cloudflarestream.com`** is the only third-party
-allowance in the policy, and it exists for the click-to-load walkthrough player.
-Read _Walkthrough video_ before touching it.
+**`media-src 'self' https://loguyonztvejrfjcaxxb.supabase.co`** is the only
+cross-origin allowance in the policy, and it exists for the click-to-load
+walkthrough video. There is no `frame-src` entry — nothing on this site is
+framed. Read _Walkthrough video_ before touching either.
 
 The mobile-menu handler (`src/scripts/header-menu.ts`), the homepage `cinematic.ts` bundle, `dwts-timeline.ts`, `walkthrough.ts` and `install.ts` are **no longer inline**: each imports a shared module (`src/scripts/lib/env.ts`, or `lib/motion.ts` which imports it), which Rollup code-splits into a shared chunk, so Astro emits them as **external `/_astro/*.js` files covered by `script-src 'self'`** — no hash. This is deliberate. **New client scripts must follow the same pattern** — import from `lib/env.ts` even if you only need one helper. On 13 Jul 2026 a Cloudflare build-image change altered how esbuild minified those two inline scripts, so their hashes drifted from `_headers` and both were CSP-blocked in prod (blank homepage). External `'self'` scripts can't drift. **Don't reinline them** (keep the shared `env.ts` import) and don't hardcode `/_astro` filenames anywhere.
 
@@ -325,10 +331,11 @@ The FAQ accordion (`Faq.astro`) is native `<details>` with no JS, so adding/edit
 
 Hard rule: **no analytics, no marketing tags, no advertising pixels, no behavioural tracking, no third-party widgets.** That's what `/cookies` promises in writing.
 
-**One documented exception:** the `/walkthrough` Cloudflare Stream player, which
-loads **only when the visitor presses play**. It was signed off on 10 Aug 2026 on
-that basis, disclosed in `/cookies` §4, and allowed in the CSP via `frame-src`.
-It is not a precedent for embeds that load on their own — the click *is* the
+**One documented exception:** the `/walkthrough` video, fetched from Supabase
+Storage **only when the visitor presses play**. Signed off on 10 Aug 2026 on that
+basis, disclosed in `/cookies` §4, and allowed in the CSP via `media-src`. It is
+a plain file played by a native `<video>` — no third-party script, no embed SDK.
+It is not a precedent for anything that loads on its own: the click *is* the
 consent, and that is the entire justification. See _Walkthrough video_ above.
 
 If you add **any** third-party script — GA, Plausible, a chat widget, a YouTube embed, anything that sets a cookie or makes a third-party network request — you must:

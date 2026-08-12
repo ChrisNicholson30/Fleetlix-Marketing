@@ -5,16 +5,17 @@
 // the seek targets the player script uses, so they must come from one array or
 // the two silently drift the first time a chapter is retimed.
 //
-// THE RECORDING EXISTS; THE STREAM BINDING DOESN'T YET. `hasVideo` stays false
-// until both env vars are set, and everything that would be a lie without a
-// playable video (the play button, the seek buttons, the VideoObject structured
-// data) is withheld rather than faked. Publishing is two env vars in Cloudflare
-// Pages and a redeploy — no code change, no CSP change.
+// The video is a plain MP4 in Supabase Storage, played by a native <video>
+// element behind a click-to-load facade. It is deliberately NOT Cloudflare
+// Stream (the earlier plan): a direct file needs no third-party player script,
+// no iframe and no embed SDK, so the only thing that ever crosses an origin is
+// the media itself — and only after the visitor presses play.
 //
 // The timestamps below are MEASURED against the delivered cut — 30fps, checked
-// against the file's own CHAPTERS — not planned, so every seek target is real.
-// If the video is ever re-edited, retime them in the same pass: a chapter button
-// that seeks to the wrong moment is worse than no chapter list at all.
+// against the file's own CHAPTERS — and every one falls inside the 639.06s
+// duration ffprobe reports. If the video is ever re-edited, retime them in the
+// same pass: a chapter button that seeks to the wrong moment is worse than no
+// chapter list at all.
 
 import { DWTS_MILESTONES } from "./dwts";
 
@@ -38,42 +39,38 @@ const phase1EW = milestone("phase-1-ew");
 const phase1ScotNI = milestone("phase-1-scot-ni");
 
 /**
- * Astro exposes build-time env on `import.meta.env`, but its generated
- * ImportMetaEnv only types the vars it knows about, so read through a cast
- * rather than adding a global declaration for two optional strings.
+ * The video file.
+ *
+ * Hardcoded rather than an env var, deliberately. The CSP in public/_headers
+ * pins this exact origin under `media-src`, so a URL that could vary at deploy
+ * time would just be a way to silently break playback without touching the
+ * header that has to change with it. One constant, one header entry, changed
+ * together — and the origin is public anyway, so there is nothing to hide.
+ *
+ * NB the bucket name contains a space, which must stay percent-encoded.
  */
-const env = import.meta.env as unknown as Record<string, string | undefined>;
+export const VIDEO_URL =
+  "https://loguyonztvejrfjcaxxb.supabase.co/storage/v1/object/public/SITE%20VIDEOS/fleetlix-walkthrough.mp4";
 
-/** Cloudflare Stream video UID. Empty until the recording is uploaded. */
-export const STREAM_UID = env.PUBLIC_STREAM_UID ?? "";
-
-/** Cloudflare Stream customer code — the `customer-<code>` subdomain. */
-export const STREAM_CUSTOMER_CODE = env.PUBLIC_STREAM_CUSTOMER_CODE ?? "";
+/** The `media-src` origin the CSP must allow. Derived so the two can't drift. */
+export const VIDEO_ORIGIN = new URL(VIDEO_URL).origin;
 
 /**
- * The iframe origin. Must stay in sync with the `frame-src` entry in
- * public/_headers — the CSP there allows `https://*.cloudflarestream.com`, so
- * any customer code works without a header edit, but a DIFFERENT video host
- * would be blocked outright.
+ * Runtime of the delivered cut. ffprobe reports 639.061s; both forms are kept
+ * because one is read by people and the other by search engines, and deriving
+ * either from the other at runtime would be more code than the two constants.
+ * Re-check both if the video is re-cut.
  */
-export const STREAM_ORIGIN = STREAM_CUSTOMER_CODE
-  ? `https://customer-${STREAM_CUSTOMER_CODE}.cloudflarestream.com`
-  : "";
-
-/**
- * Both halves are required — a UID without a customer code (or the reverse)
- * builds an origin that 404s. Everything video-shaped on the page keys off this.
- */
-export const hasVideo = Boolean(STREAM_UID && STREAM_ORIGIN);
-
-/**
- * Total runtime of the delivered cut. Printed whether or not the video is live:
- * it is now a measured fact about a finished recording, and while publication is
- * pending it is the detail that makes the page read as "this exists and is
- * coming" rather than "this is vapour". Not derivable from the Stream API at
- * build time, so re-check it if the video is ever re-cut.
- */
+export const DURATION_SECONDS = 639;
 export const RUNTIME_LABEL = "10:39";
+/** ISO 8601 duration for the VideoObject structured data — 10m 39s. */
+export const RUNTIME_ISO = "PT10M39S";
+
+/**
+ * When the recording was published, for VideoObject.uploadDate. Static: it is a
+ * fact about the file, not about this build, so it must not move on redeploy.
+ */
+export const UPLOADED_ISO = "2026-08-12";
 
 export interface Chapter {
   /** Seek target, whole seconds from the start. */
