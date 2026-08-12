@@ -1,0 +1,9 @@
+# Cloudflare Pages redirects. Read verbatim from the build output root, same as
+# _headers. Static assets win over rules here, so a rule only fires once the old
+# path no longer builds.
+#
+# /card was the physical-channel endpoint until 12 Aug 2026, when it was renamed
+# to /rwm2026. Business cards and NFC chips are already out there encoding the
+# old URL and can't be recalled, so this stays permanently.
+/card    /rwm2026    301
+/card/   /rwm2026    301

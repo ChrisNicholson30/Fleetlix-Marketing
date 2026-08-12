@@ -2,10 +2,13 @@
 import Base from "../layouts/Base.astro";
 import SiteFooter from "../components/SiteFooter.astro";
 
-// One canonical physical-channel endpoint. The printed business-card QR, an
-// NFC chip, and a Wallet pass all resolve here. The page does two jobs:
+// One canonical physical-channel endpoint, named for the show it's handed out
+// at. The printed card QR (/fleetlix-rwm2026-qr.svg), an NFC chip, and a Wallet
+// pass all resolve here. The page does two jobs:
 //   1. presents the trial promo and links to signup with the code pre-applied
-//   2. offers the "Add to contacts" vCard (/fleetlix.vcf)
+//   2. hands over our contact details as a QR the other person scans
+// Renamed from /card on 12 Aug 2026 — public/_redirects 301s the old path so
+// anything already printed still lands here.
 // noindex: this is a card/QR entry point, not an SEO page (excluded from the
 // sitemap in astro.config.mjs).
 
@@ -19,7 +22,22 @@ const BASE_TRIAL_DAYS = 14;
 // the hash so src/scripts/checkout.ts can read ?promo= from location.search.
 const CHECKOUT_URL = `/?promo=${PROMO_CODE}#pricing`;
 
-const vcard = "/fleetlix.vcf";
+// The contact QR encodes a vCard 3.0 record *inline* rather than linking to
+// one, so the scan resolves entirely on the other person's device: iOS Camera
+// and Android both recognise the payload and offer to add the contact, with no
+// network round trip and no .vcf download to find in Files afterwards. The SVG
+// is the encoding — regenerate it if this record changes:
+//
+//   BEGIN:VCARD / VERSION:3.0 / N:Fleetlix;;;; / FN:Fleetlix
+//   ORG:FLEETLIX LTD / TITLE:Fleet & waste management software
+//   EMAIL;TYPE=INTERNET,WORK:contact@fleetlix.com / URL:https://fleetlix.com
+//   END:VCARD
+//
+// Version 10, ECC M, 57x57 modules. Deliberately trimmed: adding the address
+// takes it to 65x65 and the note and photo to 77x77, and module size is what
+// decides whether a phone camera locks on across a stand. The full record
+// stays at /fleetlix.vcf for NFC and Wallet, which have no size pressure.
+const contactQr = "/fleetlix-contact-qr.svg";
 ---
 
 <Base
@@ -110,30 +128,33 @@ const vcard = "/fleetlix.vcf";
             </a>
           </div>
 
-          <!-- Save contact (secondary) -->
-          <a
-            href={vcard}
-            download="Fleetlix.vcf"
-            type="text/vcard"
-            class="mt-6 flex w-full items-center justify-center gap-2 rounded-xl border border-white/20 px-6 py-3 text-base font-semibold text-white transition hover:bg-white/5"
+          <!-- Save contact (secondary). This page is usually held up on one
+               phone and scanned by another, so the QR is the handover: white
+               tile for contrast against the graphite card, sized so the 57
+               modules stay legible at 375px. Anyone who can't use a camera has
+               the same details as text in the list below. -->
+          <div
+            class="mt-6 rounded-2xl border border-white/12 bg-white/[0.04] p-4 text-center"
           >
-            <svg
-              aria-hidden="true"
-              viewBox="0 0 24 24"
-              class="h-5 w-5"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
+            <p
+              class="text-[0.7rem] font-semibold uppercase tracking-[0.22em] text-[color:var(--color-cyan)]"
             >
-              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-              <circle cx="9" cy="7" r="4" />
-              <line x1="19" y1="8" x2="19" y2="14" />
-              <line x1="22" y1="11" x2="16" y2="11" />
-            </svg>
-            Add to contacts
-          </a>
+              Save our details
+            </p>
+            <div class="mx-auto mt-4 w-full max-w-[17rem] rounded-xl bg-white p-3">
+              <img
+                src={contactQr}
+                alt="QR code containing the Fleetlix contact card"
+                width="65"
+                height="65"
+                class="block h-auto w-full"
+              />
+            </div>
+            <p class="mt-4 text-[14px] leading-relaxed text-white/70">
+              Point your camera at the code — your phone will offer to add
+              Fleetlix to your contacts. Nothing to download.
+            </p>
+          </div>
 
           <ul class="mt-7 space-y-3 text-[15px]">
             <li class="flex items-center gap-3">
