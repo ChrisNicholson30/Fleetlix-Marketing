@@ -20,8 +20,8 @@
 //    that would make the embed load without consent and the cookie policy wrong.
 //
 // TODO when the video lands:
-//   - Retime `chapters` in src/config/walkthrough.ts against the final cut.
-//   - Set RUNTIME_LABEL to the real duration.
+//   - Set the two env vars. Chapters and RUNTIME_LABEL are already measured
+//     against the delivered cut, so nothing else needs retiming.
 //   - Optional: add a VideoObject to the @graph below for video rich results.
 //     It needs a real contentUrl/embedUrl, uploadDate, thumbnailUrl and
 //     duration — and it WILL change this page's inline-script hash, so
@@ -68,8 +68,10 @@ const jsonLd = {
   <main class="bg-[color:var(--color-offwhite)]">
     <article class="mx-auto max-w-4xl px-6 py-16 md:py-24">
       <header>
+        <!-- Runtime shows either way: the cut is finished and measured, so it's
+             a fact about the recording rather than a promise about a video. -->
         <p class="text-xs font-semibold tracking-[0.18em] uppercase text-[color:var(--color-cyan)]">
-          Walkthrough{hasVideo && ` · ${RUNTIME_LABEL}`}
+          Walkthrough · {RUNTIME_LABEL} · {chapters.length} chapters
         </p>
         <h1 class="mt-3 font-[family-name:var(--font-display)] font-extrabold text-3xl sm:text-4xl lg:text-5xl tracking-tight text-[color:var(--color-graphite)] text-balance">
           See a job go from phone call to invoice
@@ -130,8 +132,12 @@ const jsonLd = {
         </svg>
 
         <!-- Play button only when there's something to play. The alternative
-             branch is an honest "filming now" placeholder rather than a dead
-             button that does nothing when a visitor presses it. -->
+             branch is an honest "publishing shortly" placeholder rather than a
+             dead button that does nothing when a visitor presses it. Its type
+             steps down below sm: the box is a fixed 16:9, so at 375px it is only
+             ~184px tall and this copy filled it to the pixel.
+             NB: Astro can't parse an HTML comment as the first node of a ternary
+             branch — annotate the branches from out here, not inside them. -->
         {hasVideo ? (
           <button
             type="button"
@@ -149,19 +155,20 @@ const jsonLd = {
             </span>
           </button>
         ) : (
-          <div class="absolute inset-0 flex flex-col items-center justify-center gap-4 px-6 text-center">
-            <span class="inline-flex items-center gap-2 rounded-full bg-[color:var(--color-amber)] px-4 py-1.5 text-sm font-bold text-[color:var(--color-graphite)]">
-              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <div class="absolute inset-0 flex flex-col items-center justify-center gap-2 px-5 text-center sm:gap-4 sm:px-6">
+            <span class="inline-flex items-center gap-1.5 rounded-full bg-[color:var(--color-amber)] px-3 py-1 text-xs font-bold text-[color:var(--color-graphite)] sm:gap-2 sm:px-4 sm:py-1.5 sm:text-sm">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" />
               </svg>
-              Filming now
+              Publishing shortly
             </span>
-            <p class="max-w-md font-[family-name:var(--font-display)] text-lg font-bold text-white">
-              The walkthrough is being recorded
+            <p class="max-w-md font-[family-name:var(--font-display)] text-base font-bold text-white sm:text-lg">
+              The recording is finished
             </p>
-            <p class="max-w-md text-sm text-white/70">
-              Every section below is in the cut. Register your interest and
-              we'll send you the link the day it goes live.
+            <p class="max-w-md text-xs leading-relaxed text-white/70 sm:text-sm">
+              All {chapters.length} sections below are in the final cut — {RUNTIME_LABEL} in
+              total. Register your interest and we'll send you the link the day
+              it goes live.
             </p>
           </div>
         )}

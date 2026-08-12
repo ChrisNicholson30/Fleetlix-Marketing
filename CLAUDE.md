@@ -183,10 +183,16 @@ Set both in Pages Production and redeploy — **no code change, no CSP change**:
 | `PUBLIC_STREAM_UID` | Cloudflare Stream video UID | Both halves are required; one without the other builds an origin that 404s, and `hasVideo` stays false. |
 | `PUBLIC_STREAM_CUSTOMER_CODE` | the `customer-<code>` subdomain | The CSP allows `https://*.cloudflarestream.com`, so any customer code works without a header edit. |
 
-Then, in the same pass: **retime `chapters` in `src/config/walkthrough.ts`
-against the final cut** (the timestamps there are the plan for the recording, not
-measurements of it — a chapter button that seeks to the wrong moment is worse
-than no chapter list), and set `RUNTIME_LABEL` to the real duration.
+Nothing else needs changing: the 16 chapters and `RUNTIME_LABEL` (10:39) in
+`src/config/walkthrough.ts` are **measured against the delivered cut** (30fps,
+checked against the file's own CHAPTERS), not planned. If the video is ever
+re-edited, retime them in the same pass — a chapter button that seeks to the
+wrong moment is worse than no chapter list.
+
+The Digital Waste Tracking chapter interpolates its dates from
+`src/config/dwts.ts` rather than stating them, so the walkthrough can't drift
+from the timeline the rest of the site publishes. Northern Ireland's date is an
+active source conflict; correcting `dwts.ts` corrects this page too.
 
 The page's JSON-LD is deliberately **BreadcrumbList only** — no `VideoObject`.
 Claiming a video that isn't published is a manual-action risk, and keeping the
