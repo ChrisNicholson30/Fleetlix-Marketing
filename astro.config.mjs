@@ -20,7 +20,8 @@ export default defineConfig({
   integrations: [
     react(),
     sitemap({
-      filter: (page) => !page.includes("/thank-you") && !page.includes("/card"),
+      filter: (page) =>
+        !page.includes("/thank-you") && !page.includes("/rwm2026"),
     }),
   ],
   vite: {

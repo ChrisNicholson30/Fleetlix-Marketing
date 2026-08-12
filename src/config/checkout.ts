@@ -24,7 +24,7 @@ export const PLAN_SLUGS: PlanSlug[] = [
 // Promo codes extend the free trial (they discount *time*, not price). The
 // trial length is applied to the Stripe subscription server-side.
 export const PROMOS: Record<string, { trialDays: number }> = {
-  letsrecycle: { trialDays: 30 },
+  letsrecycle: { trialDays: 14 },
 };
 
 export const resolvePromo = (
