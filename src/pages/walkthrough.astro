@@ -1,52 +1,74 @@
 ---
 // /walkthrough — the full product recording, behind a click-to-load facade.
 //
-// Two things this page is built around:
+// The video is a plain MP4 in Supabase Storage played by a native <video>, NOT
+// an embedded player. That choice is the whole privacy story: no third-party
+// script runs on this page, so the only cross-origin thing that ever happens is
+// the media request itself — and src/scripts/walkthrough.ts doesn't make it
+// until the visitor presses play. Pressing play IS the consent, which is why
+// there is no cookie banner and what /cookies §4 says in writing.
 //
-// 1. THE VIDEO ISN'T HERE YET. Everything keys off `hasVideo` in
-//    src/config/walkthrough.ts, which is false until PUBLIC_STREAM_UID and
-//    PUBLIC_STREAM_CUSTOMER_CODE are both set in Cloudflare Pages. Until then
-//    the page renders as a complete, honest "in production" page — real
-//    chapters, real descriptions, no play button, no runtime, no VideoObject
-//    structured data claiming a video that doesn't exist. Adding the video is
-//    two env vars and a redeploy; no code change, and no CSP hash to regenerate
-//    (see the JSON-LD note below).
+// Two rules that keep that true:
+//   1. Never preload, prefetch or <link rel=preconnect> the video, and never
+//      start it on scroll or hover. The click is the consent; take it away and
+//      the cookie policy becomes false.
+//   2. The CSP allows exactly one media origin (see VIDEO_ORIGIN below, mirrored
+//      in public/_headers under media-src). Another host is blocked outright —
+//      intended, not a bug. Disclose in /cookies before widening it.
 //
-// 2. ZERO third-party weight until a deliberate click. The poster is drawn in
-//    SVG — no image bytes, nothing fetched — and the Stream iframe is only
-//    created by src/scripts/walkthrough.ts on press. The CSP allows
-//    frame-src https://*.cloudflarestream.com for exactly that moment, and
-//    /cookies discloses it. Don't preload, prefetch or hover-trigger the iframe:
-//    that would make the embed load without consent and the cookie policy wrong.
-//
-// TODO when the video lands:
-//   - Retime `chapters` in src/config/walkthrough.ts against the final cut.
-//   - Set RUNTIME_LABEL to the real duration.
-//   - Optional: add a VideoObject to the @graph below for video rich results.
-//     It needs a real contentUrl/embedUrl, uploadDate, thumbnailUrl and
-//     duration — and it WILL change this page's inline-script hash, so
-//     regenerate and update public/_headers in the same commit.
-//   - Optional: write /walkthrough/transcript and re-enable the link at the
-//     foot of this page. It is deliberately not linked while it 404s.
+// The poster is a still lifted from the video's own opening title card, so the
+// facade is the frame the film-maker designed as its cover rather than an
+// abstract stand-in. Astro emits avif/webp variants of it.
 
 import Base from "../layouts/Base.astro";
 import Header from "../components/Header.astro";
 import SiteFooter from "../components/SiteFooter.astro";
+import { Image, getImage } from "astro:assets";
+import posterSource from "../assets/walkthrough-poster.jpg";
 import {
   chapters,
   fmtTime,
-  hasVideo,
+  RUNTIME_ISO,
   RUNTIME_LABEL,
-  STREAM_ORIGIN,
-  STREAM_UID,
+  UPLOADED_ISO,
+  VIDEO_URL,
 } from "../config/walkthrough";
 
-// Breadcrumbs only. Static regardless of whether the video is configured, so
-// this page's script hash is stable across the "video dropped in" change —
-// which is the whole point of not emitting a VideoObject speculatively.
+// One fixed-width variant, used for the <video poster> the script sets on the
+// element it creates. The facade below uses responsive <Image> instead; this
+// only has to cover the second or two of buffering after the click, where the
+// alternative is a black box.
+const posterForVideo = await getImage({
+  src: posterSource,
+  width: 1280,
+  format: "webp",
+});
+
+// VideoObject is safe to publish now that the file is real, reachable and
+// measured — it was deliberately withheld while the recording was pending,
+// because claiming a video that isn't there is a manual-action risk.
+// `thumbnailUrl` must be an absolute URL Google can fetch, hence the Astro.site
+// join rather than the bare /_astro path.
+const thumbnailUrl = new URL(posterForVideo.src, Astro.site).toString();
+
 const jsonLd = {
   "@context": "https://schema.org",
   "@graph": [
+    {
+      "@type": "VideoObject",
+      "@id": "https://fleetlix.com/walkthrough#video",
+      name: "Fleetlix product walkthrough",
+      description:
+        "A full walk-through of Fleetlix for UK waste, skip-hire and haulage operators: taking a booking, planning the day, the driver's DVSA check, proof of delivery, the weighbridge, waste transfer notes, Digital Waste Tracking, invoicing and the customer portal.",
+      thumbnailUrl,
+      uploadDate: UPLOADED_ISO,
+      duration: RUNTIME_ISO,
+      contentUrl: VIDEO_URL,
+      embedUrl: "https://fleetlix.com/walkthrough",
+      publisher: { "@id": "https://fleetlix.com/#organization" },
+      inLanguage: "en-GB",
+      isFamilyFriendly: true,
+    },
     {
       "@type": "BreadcrumbList",
       "@id": "https://fleetlix.com/walkthrough#breadcrumbs",
@@ -69,7 +91,7 @@ const jsonLd = {
     <article class="mx-auto max-w-4xl px-6 py-16 md:py-24">
       <header>
         <p class="text-xs font-semibold tracking-[0.18em] uppercase text-[color:var(--color-cyan)]">
-          Walkthrough{hasVideo && ` · ${RUNTIME_LABEL}`}
+          Walkthrough · {RUNTIME_LABEL} · {chapters.length} chapters
         </p>
         <h1 class="mt-3 font-[family-name:var(--font-display)] font-extrabold text-3xl sm:text-4xl lg:text-5xl tracking-tight text-[color:var(--color-graphite)] text-balance">
           See a job go from phone call to invoice
@@ -81,97 +103,71 @@ const jsonLd = {
         </p>
       </header>
 
-      <!-- Facade. The box is sized by aspect-ratio in global.css before
-           anything loads, so pressing play shifts nothing on the page. -->
+      <!-- Facade. The 16:9 box is sized by aspect-ratio in global.css before
+           anything loads, so pressing play swaps the poster for the player
+           without shifting a pixel of the page. data-src is read by
+           src/scripts/walkthrough.ts and is the ONLY place the file is
+           requested from. -->
       <div
         class="wt-player mt-10 overflow-hidden rounded-2xl bg-[color:var(--color-graphite)] ring-1 ring-[color:var(--color-graphite)]/15"
         data-player
-        data-origin={STREAM_ORIGIN}
-        data-uid={STREAM_UID}
+        data-src={VIDEO_URL}
+        data-poster={posterForVideo.src}
       >
-        <!-- Code-drawn poster: zero media bytes, same discipline as the hero
-             backdrop. Swap for a real still once there's a video to still. -->
-        <svg
-          viewBox="0 0 1600 900"
-          class="absolute inset-0 h-full w-full"
-          preserveAspectRatio="xMidYMid slice"
-          aria-hidden="true"
+        <button
+          type="button"
+          data-play
+          class="group absolute inset-0 h-full w-full cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-[-4px] focus-visible:outline-[color:var(--color-cyan)]"
+          aria-label={`Play the Fleetlix walkthrough, ${RUNTIME_LABEL}`}
         >
-          <defs>
-            <linearGradient id="wt-sky" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stop-color="#1A1D21" />
-              <stop offset="55%" stop-color="#20252B" />
-              <stop offset="100%" stop-color="#171A1E" />
-            </linearGradient>
-            <radialGradient id="wt-glow" cx="50%" cy="45%" r="55%">
-              <stop offset="0%" stop-color="#0098C7" stop-opacity="0.28" />
-              <stop offset="100%" stop-color="#0098C7" stop-opacity="0" />
-            </radialGradient>
-            <pattern id="wt-grid" width="80" height="80" patternUnits="userSpaceOnUse">
-              <path d="M80 0H0v80" fill="none" stroke="#FFFFFF" stroke-opacity="0.05" stroke-width="1" />
-            </pattern>
-          </defs>
-          <rect width="1600" height="900" fill="url(#wt-sky)" />
-          <rect width="1600" height="900" fill="url(#wt-grid)" />
-          <rect width="1600" height="900" fill="url(#wt-glow)" />
-          <!-- One route arc with its stops: the shape of the whole video. -->
-          <path
-            d="M120 690C380 690 470 470 700 470s330 200 560 200"
-            fill="none"
-            stroke="#FF8A00"
-            stroke-opacity="0.5"
-            stroke-width="3"
-            stroke-linecap="round"
-            stroke-dasharray="14 12"
+          <Image
+            src={posterSource}
+            alt=""
+            widths={[640, 960, 1280, 1920]}
+            sizes="(max-width: 900px) 100vw, 900px"
+            formats={["avif", "webp"]}
+            loading="eager"
+            class="absolute inset-0 h-full w-full object-cover"
           />
-          <circle cx="120" cy="690" r="9" fill="#FF8A00" fill-opacity="0.85" />
-          <circle cx="700" cy="470" r="9" fill="#0098C7" fill-opacity="0.9" />
-          <circle cx="1260" cy="670" r="9" fill="#0098C7" fill-opacity="0.9" />
-        </svg>
-
-        <!-- Play button only when there's something to play. The alternative
-             branch is an honest "filming now" placeholder rather than a dead
-             button that does nothing when a visitor presses it. -->
-        {hasVideo ? (
-          <button
-            type="button"
-            data-play
-            class="group absolute inset-0 flex h-full w-full cursor-pointer flex-col items-center justify-center gap-4 focus-visible:outline-2 focus-visible:outline-offset-[-4px] focus-visible:outline-[color:var(--color-cyan)]"
-            aria-label={`Play the Fleetlix walkthrough, ${RUNTIME_LABEL}`}
-          >
-            <span class="inline-flex h-20 w-20 items-center justify-center rounded-full bg-[color:var(--color-amber)] text-[color:var(--color-graphite)] shadow-xl shadow-black/30 transition-transform duration-200 group-hover:scale-105 motion-reduce:transition-none motion-reduce:group-hover:scale-100">
-              <svg viewBox="0 0 24 24" width="30" height="30" fill="currentColor" aria-hidden="true">
-                <path d="M8 5.14v13.72L19 12z" />
-              </svg>
-            </span>
-            <span class="rounded-full bg-black/55 px-3.5 py-1.5 text-sm font-semibold text-white backdrop-blur-sm">
-              Play · {RUNTIME_LABEL}
-            </span>
-          </button>
-        ) : (
-          <div class="absolute inset-0 flex flex-col items-center justify-center gap-4 px-6 text-center">
-            <span class="inline-flex items-center gap-2 rounded-full bg-[color:var(--color-amber)] px-4 py-1.5 text-sm font-bold text-[color:var(--color-graphite)]">
-              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" />
-              </svg>
-              Filming now
-            </span>
-            <p class="max-w-md font-[family-name:var(--font-display)] text-lg font-bold text-white">
-              The walkthrough is being recorded
-            </p>
-            <p class="max-w-md text-sm text-white/70">
-              Every section below is in the cut. Register your interest and
-              we'll send you the link the day it goes live.
-            </p>
-          </div>
-        )}
+          <!-- Scrim: the title card is dark but not uniformly, and the play
+               button has to read against every part of it. -->
+          <span class="absolute inset-0 bg-[color:var(--color-graphite)]/25" aria-hidden="true"></span>
+          <span class="absolute left-1/2 top-[68%] -translate-x-1/2 -translate-y-1/2 inline-flex h-16 w-16 items-center justify-center rounded-full bg-[color:var(--color-amber)] text-[color:var(--color-graphite)] shadow-xl shadow-black/40 transition-transform duration-200 group-hover:scale-105 motion-reduce:transition-none motion-reduce:group-hover:scale-100 sm:h-20 sm:w-20">
+            <svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor" aria-hidden="true" class="ml-1">
+              <path d="M8 5.14v13.72L19 12z" />
+            </svg>
+          </span>
+          <span class="absolute bottom-3 left-3 rounded-full bg-black/60 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur-sm sm:bottom-4 sm:left-4 sm:text-sm">
+            Play · {RUNTIME_LABEL}
+          </span>
+        </button>
       </div>
 
-      <!-- Chapters. These are the page's indexable content as much as they are
-           seek targets, which is why each carries a description rather than a
-           bare label — before the video exists they are the only thing here
-           worth reading, and after it exists they are what a search engine can
-           actually see. -->
+      <!-- Sits directly under the player, not further down, because it has to be
+           read BEFORE watching to do its job — a viewer who spots an unfinished
+           screen at 4:00 having seen no caveat concludes the product is rough,
+           not that the recording is early. Deliberately understated: a heavy
+           warning box would undercut the video it sits beneath, and the last
+           sentence is the load-bearing one — the finish is provisional, the
+           functionality isn't. "Not a mockup" earns its place because the
+           homepage tour IS a hand-drawn mock, so the distinction is real.
+           No launch date here: the CTA lower down already carries it, and one
+           date per page is one place to update. -->
+      <p class="mt-3 flex items-start gap-2.5 text-sm leading-relaxed text-[color:var(--color-slate)]">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="mt-0.5 shrink-0 text-[color:var(--color-cyan)]">
+          <circle cx="12" cy="12" r="9" /><path d="M12 16v-5" /><path d="M12 8h.01" />
+        </svg>
+        <span>
+          <strong class="font-semibold text-[color:var(--color-graphite)]">This is an early cut.</strong>{" "}
+          It was recorded against a build still in development, so expect both
+          the recording and the interface to be more polished by launch.
+          Everything shown is real and working — not a mockup.
+        </span>
+      </p>
+
+      <!-- Chapters are seek targets AND the page's indexable content — which is
+           why each carries a description rather than a bare label. A search
+           engine can't watch the video; this is what it reads instead. -->
       <nav class="mt-10" aria-label="Chapters">
         <h2 class="font-[family-name:var(--font-display)] text-xl font-bold text-[color:var(--color-graphite)]">
           What's covered
@@ -179,44 +175,30 @@ const jsonLd = {
         <ol class="mt-4 divide-y divide-[color:var(--color-mist)] overflow-hidden rounded-2xl border border-[color:var(--color-mist)] bg-white">
           {chapters.map((c) => (
             <li>
-              {hasVideo ? (
-                <button
-                  type="button"
-                  data-at={c.at}
-                  class="flex w-full cursor-pointer items-start gap-4 px-4 py-4 text-left transition-colors hover:bg-[color:var(--color-offwhite)] focus-visible:bg-[color:var(--color-offwhite)] focus-visible:outline-2 focus-visible:outline-[color:var(--color-cyan)] sm:px-5"
-                >
-                  <span class="mt-0.5 inline-flex shrink-0 items-center gap-1.5 rounded-md bg-[color:var(--color-graphite)]/6 px-2 py-1 font-[family-name:var(--font-display)] text-xs font-bold tabular-nums text-[color:var(--color-graphite)]">
-                    <svg viewBox="0 0 24 24" width="11" height="11" fill="currentColor" aria-hidden="true">
-                      <path d="M8 5.14v13.72L19 12z" />
-                    </svg>
-                    {fmtTime(c.at)}
-                  </span>
-                  <span>
-                    <span class="block font-semibold text-[color:var(--color-graphite)]">{c.label}</span>
-                    <span class="mt-1 block text-sm leading-relaxed text-[color:var(--color-slate)]">{c.blurb}</span>
-                  </span>
-                </button>
-              ) : (
-                <div class="flex items-start gap-4 px-4 py-4 sm:px-5">
-                  <span class="mt-0.5 inline-flex shrink-0 items-center rounded-md bg-[color:var(--color-graphite)]/6 px-2 py-1 font-[family-name:var(--font-display)] text-xs font-bold tabular-nums text-[color:var(--color-slate)]">
-                    {fmtTime(c.at)}
-                  </span>
-                  <span>
-                    <span class="block font-semibold text-[color:var(--color-graphite)]">{c.label}</span>
-                    <span class="mt-1 block text-sm leading-relaxed text-[color:var(--color-slate)]">{c.blurb}</span>
-                  </span>
-                </div>
-              )}
+              <button
+                type="button"
+                data-at={c.at}
+                class="flex w-full cursor-pointer items-start gap-4 px-4 py-4 text-left transition-colors hover:bg-[color:var(--color-offwhite)] focus-visible:bg-[color:var(--color-offwhite)] focus-visible:outline-2 focus-visible:outline-[color:var(--color-cyan)] sm:px-5"
+              >
+                <span class="mt-0.5 inline-flex shrink-0 items-center gap-1.5 rounded-md bg-[color:var(--color-graphite)]/6 px-2 py-1 font-[family-name:var(--font-display)] text-xs font-bold tabular-nums text-[color:var(--color-graphite)]">
+                  <svg viewBox="0 0 24 24" width="11" height="11" fill="currentColor" aria-hidden="true">
+                    <path d="M8 5.14v13.72L19 12z" />
+                  </svg>
+                  {fmtTime(c.at)}
+                </span>
+                <span>
+                  <span class="block font-semibold text-[color:var(--color-graphite)]">{c.label}</span>
+                  <span class="mt-1 block text-sm leading-relaxed text-[color:var(--color-slate)]">{c.blurb}</span>
+                </span>
+              </button>
             </li>
           ))}
         </ol>
       </nav>
 
       <p class="mt-6 text-sm text-[color:var(--color-slate)]/85">
-        {hasVideo
-          ? "Captions are on by default. The player loads from Cloudflare Stream only when you press play — nothing is requested from a third party before that."
-          : "When the recording is published it will play here. Nothing is loaded from a third party until you press play."}
-        {" "}
+        The video loads only when you press play — nothing is requested from
+        anywhere else before that.{" "}
         <a href="/cookies" class="underline underline-offset-2 hover:text-[color:var(--color-graphite)]">
           How that works
         </a>.
@@ -231,7 +213,7 @@ const jsonLd = {
         </h2>
         <p class="mt-2 text-[color:var(--color-slate)]">
           Fleetlix launches on 1 October 2026. Register your interest and you'll
-          get the walkthrough link, the launch date, and nothing else.
+          get the launch date and nothing else.
         </p>
         <div class="mt-6 flex flex-wrap gap-3">
           <a

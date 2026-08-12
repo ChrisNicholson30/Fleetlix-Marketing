@@ -45,7 +45,7 @@ const lastUpdated = "10 August 2026";
             <strong>Fleetlix sets no first-party cookies on this marketing site.</strong> We do not use analytics, marketing, advertising, or behavioural-tracking cookies of any kind. There is no Google Analytics, no Meta Pixel, no LinkedIn Insight Tag, no advertising network, and no third-party widget, chat box, or social embed that loads on its own.
           </p>
           <p class="mt-3">
-            The single exception is the walkthrough video, which loads from Cloudflare Stream <em>only if you press play</em>. It is covered in section 4 below.
+            The single exception is the walkthrough video, which is fetched from Supabase Storage <em>only if you press play</em>. It is covered in section 4 below.
           </p>
           <p class="mt-3">
             Our hosting provider, Cloudflare, may set a small number of <em>strictly necessary</em> cookies for site security and bot management when their protection services are active:
@@ -84,16 +84,16 @@ const lastUpdated = "10 August 2026";
         <section>
           <h2 class="font-[family-name:var(--font-display)] font-bold text-2xl text-[color:var(--color-graphite)]">4. The walkthrough video</h2>
           <p class="mt-3">
-            There is one piece of third-party content on this website: the product walkthrough video on our <a href="/walkthrough" class="underline hover:text-[color:var(--color-graphite)]">walkthrough page</a>, which is hosted by <strong>Cloudflare Stream</strong>.
+            One file on this website is served from another address: the product walkthrough video on our <a href="/walkthrough" class="underline hover:text-[color:var(--color-graphite)]">walkthrough page</a>. It is a plain video file stored in <strong>Supabase Storage</strong>, which is the same infrastructure provider that runs the Fleetlix application. It is played by your browser's own built-in video player — there is <strong>no third-party video service, no embedded player, and no third-party JavaScript running on the page</strong>.
           </p>
           <p class="mt-3">
-            <strong>It does not load until you press play.</strong> Until you do, the page shows a still image drawn by our own code, and your browser makes no request to Cloudflare Stream at all — nothing is sent, nothing is stored, and no cookie or similar identifier is set. This is a deliberate design choice, not a side effect.
+            <strong>Nothing is requested until you press play.</strong> Until you do, the page shows a still image served from this website, and your browser does not contact Supabase at all — nothing is sent, nothing is stored, and no cookie is set. This is a deliberate design choice, not a side effect: pressing play is how you consent to loading it.
           </p>
           <p class="mt-3">
-            If you press play, your browser then connects to Cloudflare Stream to fetch and play the video. At that point Cloudflare receives your IP address and browser information as an unavoidable part of delivering the video, and the player may store data on your device (for example, to remember your volume or caption preference and to measure playback quality). Cloudflare Stream does not use this to build an advertising profile of you, and we do not receive any information that identifies you personally. Cloudflare's privacy practices are set out at <a href="https://www.cloudflare.com/privacypolicy/" class="underline hover:text-[color:var(--color-graphite)]" rel="noopener" target="_blank">cloudflare.com/privacypolicy</a>.
+            If you press play, your browser requests the video file. At that point Supabase receives your IP address and browser information, as an unavoidable part of sending you a file, and its content delivery network (Cloudflare) sets one strictly-necessary bot-management cookie, <code>__cf_bm</code>, on the <code>supabase.co</code> domain. That cookie protects the file from automated abuse, lasts 30 minutes, and is not used for advertising or to track you across websites. No profile is built, and we receive nothing that identifies you personally. Supabase's privacy practices are set out at <a href="https://supabase.com/privacy" class="underline hover:text-[color:var(--color-graphite)]" rel="noopener" target="_blank">supabase.com/privacy</a>.
           </p>
           <p class="mt-3">
-            If you would rather not load it at all, simply don't press play — the chapter list on that page describes what the video covers, and everything else on the site works without it.
+            If you would rather not load it at all, simply don't press play — the chapter list on that page describes what the video covers section by section, and everything else on the site works without it.
           </p>
         </section>
 
@@ -103,7 +103,7 @@ const lastUpdated = "10 August 2026";
             UK law (PECR) only requires consent for cookies and similar storage that are <em>not</em> strictly necessary. This site uses no analytics, no marketing or advertising cookies, and no other non-essential storage, so in normal use there is nothing to ask consent for.
           </p>
           <p class="mt-3">
-            The walkthrough video described above is the one case where a third party could store something on your device — and it is built so that <em>pressing play is the consent</em>. Nothing loads until you make that choice, which is exactly what a banner would otherwise be asking you. We think an explicit play button is clearer than a pop-up, and it means visitors who never watch the video are never asked about it.
+            The walkthrough video described above is the one case where another party could set anything on your device — and it is built so that <em>pressing play is the consent</em>. Nothing loads until you make that choice, which is exactly what a banner would otherwise be asking you. We think an explicit play button is clearer than a pop-up, and it means visitors who never watch the video are never asked about it. The cookie that is then set is strictly necessary for delivering the file, which is the category UK law does not require consent for in any case.
           </p>
           <p class="mt-3">
             If that changes — for example, if we add product analytics, or any embed that loads without being clicked — we will introduce a proper consent mechanism and update this page before anything is set.
