@@ -46,7 +46,7 @@ type PlanSlug = (typeof PLAN_SLUGS)[number];
 
 // Keep in sync with src/config/checkout.ts.
 const PROMOS: Record<string, { trialDays: number }> = {
-  letsrecycle: { trialDays: 30 },
+  letsrecycle: { trialDays: 14 },
 };
 
 // Billing intervals the pricing toggle can ask for. Annual is 10x monthly

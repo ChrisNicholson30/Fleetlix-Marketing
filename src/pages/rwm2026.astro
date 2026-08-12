@@ -14,9 +14,15 @@ import SiteFooter from "../components/SiteFooter.astro";
 
 // Promo — change these in one place. The matching promo_codes row + validation
 // live in the Fleetlix-App repo (see Resources/Fleetlix-Card-Promo-Implementation.md).
+// PROMO_TRIAL_DAYS is the figure this page *advertises*; the one Stripe actually
+// applies is `letsrecycle.trialDays` in functions/api/checkout.ts (authoritative)
+// and src/config/checkout.ts (client). All three have to say the same number —
+// a card promising more days than the checkout grants is a complaint waiting to
+// happen. BASE_TRIAL_DAYS is what the site offers without a code, shown struck
+// through so the promo reads as the upgrade it is.
 const PROMO_CODE = "letsrecycle";
-const PROMO_TRIAL_DAYS = 30;
-const BASE_TRIAL_DAYS = 14;
+const PROMO_TRIAL_DAYS = 14;
+const BASE_TRIAL_DAYS = 7;
 // Checkout-first: land on the pricing section with the promo pre-applied, pick
 // a plan, pay on Stripe, then create the login on fleetlix.app. Query before
 // the hash so src/scripts/checkout.ts can read ?promo= from location.search.
@@ -41,7 +47,7 @@ const contactQr = "/fleetlix-contact-qr.svg";
 ---
 
 <Base
-  title="Fleetlix — Your 30-day free trial"
+  title={`Fleetlix — Your ${PROMO_TRIAL_DAYS}-day free trial`}
   description={`An extended ${PROMO_TRIAL_DAYS}-day Fleetlix free trial with code ${PROMO_CODE} — plus our contact card. Fleet & waste management software for UK skip hire and waste carriers.`}
   noindex={true}
 >
