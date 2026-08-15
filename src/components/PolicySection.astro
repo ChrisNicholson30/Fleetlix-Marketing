@@ -1,0 +1,45 @@
+---
+// One numbered section of the /security document.
+//
+// The number is NOT passed in — it is derived from the section's position in
+// `contents` (src/config/security.ts), which is the same array the sticky
+// contents rail renders from. That way the rail, the on-page numbering and the
+// cross-references ("see section 6") cannot drift apart when a section is
+// inserted: reorder the config and everything renumbers together.
+//
+// An id with no entry in `contents` renders unnumbered rather than as "00",
+// so a typo is visible on the page instead of silently mislabelling a section.
+import { contents } from "../config/security";
+
+interface Props {
+  /** Must match an id in `contents`. Also the anchor target. */
+  id: string;
+  /** Full section heading. `contents` carries the shortened rail label. */
+  title: string;
+}
+
+const { id, title } = Astro.props;
+
+const index = contents.findIndex((entry) => entry.id === id);
+const number = index === -1 ? null : String(index + 1).padStart(2, "0");
+---
+
+<section id={id} class="policy-section">
+  <div class="flex items-center gap-3">
+    {number && (
+      <span
+        class="inline-flex h-7 items-center justify-center rounded-md bg-[color:var(--color-graphite)] px-2 font-[family-name:var(--font-display)] text-[11px] font-bold tabular-nums tracking-wider text-white"
+        aria-hidden="true"
+      >
+        {number}
+      </span>
+    )}
+    <h2 class="font-[family-name:var(--font-display)] text-xl font-bold tracking-tight text-[color:var(--color-graphite)] sm:text-2xl text-balance">
+      {title}
+    </h2>
+  </div>
+
+  <div class="mt-5 space-y-4 leading-relaxed text-[color:var(--color-slate)]">
+    <slot />
+  </div>
+</section>

@@ -625,6 +625,248 @@
   }
 }
 
+/* ================================================================== *
+ * Security document (/security)
+ *
+ * Hand-written for the same reason the DWTS block below is: /security is
+ * one long document whose list markers, tables and contents rail have to
+ * agree with each other, and — unlike anything else on the site — it has
+ * to survive being printed. One findable home beats the same utility
+ * string repeated across fifty list items.
+ * ================================================================== */
+
+/* ---- Control lists ----
+ * Every bullet in the document is a lead claim followed by its detail, so
+ * the marker is deliberately quiet and the lead does the work. */
+.policy-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.policy-list > li {
+  position: relative;
+  margin-top: 0.9rem;
+  padding-left: 1.4rem;
+}
+.policy-list > li::before {
+  content: "";
+  position: absolute;
+  left: 0.15rem;
+  top: 0.62rem;
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: 9999px;
+  background: var(--color-cyan);
+}
+.policy-list > li > strong {
+  font-weight: 600;
+  color: var(--color-graphite);
+}
+
+.policy-subhead {
+  margin-top: 1.75rem;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-graphite);
+}
+.policy-section > div > .policy-subhead:first-child {
+  margin-top: 0;
+}
+
+.policy-link {
+  color: var(--color-slate);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.policy-link:hover {
+  color: var(--color-graphite);
+}
+
+/* Header names, CSP directives and the like, quoted inline. */
+.policy-section code {
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  padding: 0.1em 0.35em;
+  border-radius: 0.25rem;
+  background: color-mix(in srgb, var(--color-mist) 65%, transparent);
+  color: var(--color-graphite);
+  overflow-wrap: anywhere;
+}
+
+/* ---- Tables ----
+ * The wrapper scrolls, never the page: at 375px the roles and
+ * sub-processor tables are wider than the viewport by design, and the
+ * mobile protocol says that has to stay inside its own box. */
+.policy-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--color-mist);
+  border-radius: 1rem;
+  background: #fff;
+}
+.policy-table {
+  width: 100%;
+  min-width: 36rem;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.875rem;
+}
+.policy-table thead th {
+  padding: 0.75rem 1rem;
+  background: color-mix(in srgb, var(--color-mist) 45%, transparent);
+  color: var(--color-graphite);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.policy-table tbody tr + tr {
+  border-top: 1px solid var(--color-mist);
+}
+.policy-table th[scope="row"] {
+  padding: 0.875rem 1rem;
+  vertical-align: top;
+  font-weight: 600;
+  color: var(--color-graphite);
+}
+.policy-table td {
+  padding: 0.875rem 1rem;
+  vertical-align: top;
+  color: var(--color-slate);
+  line-height: 1.5;
+}
+
+/* Below sm the roles and sub-processor tables stop being tables and become
+   stacked cards, each cell labelled from its own [data-label]. A four-column
+   table at 375px is readable only by dragging it sideways, and the
+   sub-processor list is exactly what a reader on a phone has been sent the
+   link to check. One DOM, no duplicated markup — the header row is simply
+   hidden and each cell carries its own label. */
+@media (max-width: 639px) {
+  .policy-table,
+  .policy-table tbody,
+  .policy-table tr,
+  .policy-table th,
+  .policy-table td {
+    display: block;
+    width: auto;
+  }
+  .policy-table {
+    min-width: 0;
+  }
+  .policy-table thead {
+    display: none;
+  }
+  .policy-table tbody tr {
+    padding: 0.25rem 0 1rem;
+  }
+  .policy-table th[scope="row"] {
+    padding: 0.875rem 1rem 0.25rem;
+    font-family: var(--font-display);
+    font-size: 0.9375rem;
+  }
+  .policy-table td {
+    padding: 0.5rem 1rem 0;
+  }
+  .policy-table td::before {
+    content: attr(data-label);
+    display: block;
+    margin-bottom: 0.1rem;
+    font-size: 0.625rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: color-mix(in srgb, var(--color-slate) 60%, transparent);
+  }
+  .policy-table-wrap {
+    overflow-x: visible;
+  }
+}
+
+/* ---- Contents rail ----
+ * .is-active is written by initActiveNav (lib/motion.ts), the same
+ * handler the homepage nav uses. */
+.policy-toc-link {
+  border-left: 2px solid transparent;
+  transition:
+    color 0.25s ease,
+    border-color 0.25s ease;
+}
+.policy-toc-link:hover {
+  color: var(--color-graphite);
+  border-left-color: var(--color-mist);
+}
+.policy-toc-link.is-active {
+  color: var(--color-graphite);
+  font-weight: 600;
+  border-left-color: var(--color-amber);
+}
+
+.policy-toc > summary {
+  list-style: none;
+}
+.policy-toc > summary::-webkit-details-marker {
+  display: none;
+}
+.policy-toc > summary::marker {
+  content: "";
+}
+
+/* ---- Print / save-as-PDF ----
+ * The page replaced a circulated PDF, so printing it has to produce
+ * something a procurement reviewer can file: no sticky chrome, no
+ * contents rail, and no graphite panel emptying a toner cartridge.
+ * Scoped with :has() to the security page alone so printing any other
+ * page is untouched; a browser without :has() simply prints the screen
+ * styles, which is a worse PDF rather than a broken one. */
+@media print {
+  body:has(#security-doc) header,
+  body:has(#security-doc) > footer,
+  body:has(#security-doc) [data-no-print],
+  body:has(#security-doc) .aurora {
+    display: none !important;
+  }
+
+  body:has(#security-doc) {
+    background: #fff;
+  }
+
+  /* Dark panels invert. The masthead and section 19 both rely on white
+     text, so the colour has to be forced back on their children too. */
+  body:has(#security-doc) .policy-dark,
+  body:has(#security-doc) .policy-dark * {
+    background: transparent !important;
+    color: #000 !important;
+  }
+  body:has(#security-doc) .policy-dark {
+    border: 1px solid #bbb;
+  }
+  body:has(#security-doc) .policy-dark [class*="border"] {
+    border-color: #ccc !important;
+  }
+
+  /* Keep the units a reviewer quotes from splitting across a page. */
+  body:has(#security-doc) .policy-callout,
+  body:has(#security-doc) .policy-table-wrap,
+  body:has(#security-doc) .policy-list > li,
+  body:has(#security-doc) dl > div {
+    break-inside: avoid;
+  }
+  body:has(#security-doc) h2,
+  body:has(#security-doc) .policy-subhead {
+    break-after: avoid;
+  }
+
+  /* Tables scroll on screen; on paper they must simply fit. */
+  body:has(#security-doc) .policy-table {
+    min-width: 0;
+  }
+  body:has(#security-doc) .policy-table-wrap {
+    overflow-x: visible;
+  }
+}
+
 /* ---- Fill on reveal ----
  * .dwts-animate is added by JS, so a visitor without it keeps the static
  * rail the server already rendered correctly rather than an empty one. */

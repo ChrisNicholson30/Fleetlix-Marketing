@@ -1,0 +1,52 @@
+---
+// The aside blocks in the /security document.
+//
+// These carry the sentences that make the rest of the page believable — the
+// limit of the media encryption, the fact that isolation is tested rather than
+// asserted, the employer's own duty over driver location. They are deliberately
+// the most visually distinct thing in the body copy: on a security document the
+// caveat is the part a technical reviewer is looking for, so it should be the
+// part that is easiest to find.
+//
+// Tone picks the accent, and the accents mean something — keep them consistent:
+//   amber    a limit, a caveat, something we do NOT do
+//   cyan     an assurance we can evidence
+//   graphite something the READER has to do; not a claim about us
+
+interface Props {
+  label: string;
+  tone?: "amber" | "cyan" | "graphite";
+}
+
+const { label, tone = "amber" } = Astro.props;
+
+const tones = {
+  amber: {
+    wrap: "border-[color:var(--color-amber)]/35 bg-[color:var(--color-amber)]/[0.07]",
+    rule: "bg-[color:var(--color-amber)]",
+    label: "text-[color:var(--color-amber)]",
+  },
+  cyan: {
+    wrap: "border-[color:var(--color-cyan)]/30 bg-[color:var(--color-cyan)]/[0.06]",
+    rule: "bg-[color:var(--color-cyan)]",
+    label: "text-[color:var(--color-cyan)]",
+  },
+  graphite: {
+    wrap: "border-[color:var(--color-graphite)]/20 bg-[color:var(--color-graphite)]/[0.04]",
+    rule: "bg-[color:var(--color-graphite)]",
+    label: "text-[color:var(--color-graphite)]",
+  },
+} as const;
+
+const t = tones[tone];
+---
+
+<aside class={`policy-callout relative overflow-hidden rounded-2xl border ${t.wrap} p-5 sm:p-6`}>
+  <span class={`absolute inset-y-0 left-0 w-[3px] ${t.rule}`} aria-hidden="true"></span>
+  <p class={`text-[11px] font-bold uppercase tracking-[0.16em] ${t.label}`}>
+    {label}
+  </p>
+  <div class="mt-2.5 space-y-3 leading-relaxed text-[color:var(--color-slate)]">
+    <slot />
+  </div>
+</aside>
