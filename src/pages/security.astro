@@ -1,0 +1,1172 @@
+---
+// /security — the Trust & Security document, published as a page.
+//
+// This replaces the "App & Data Security" PDF. The point of the move is that a
+// link cannot go stale in someone's downloads folder: there is one URL, it is
+// always the current version, and a buyer can send it to their IT person
+// without attaching anything. Print styles in global.css keep the save-as-PDF
+// route open for the procurement reviewer who still wants a file.
+//
+// Rules for changing this page:
+//   1. Substance changes mean bumping DOC.version and DOC.issued in
+//      src/config/security.ts. The footer cites both, and a version line that
+//      never moves is worse than none.
+//   2. Section 19 is the reason the other nineteen are believable. Items leave
+//      that list only when they stop being true.
+//   3. Section numbers are derived from `contents`, not typed. Cross-references
+//      in prose ("see section 6") are the one place a number is written by
+//      hand — check them if you reorder.
+//   4. No data-reveal on this page. Scroll-reveal leaves elements at opacity 0
+//      until observed, and anything never observed prints blank — which would
+//      quietly gut the PDF a reviewer saves.
+import Base from "../layouts/Base.astro";
+import Header from "../components/Header.astro";
+import SiteFooter from "../components/SiteFooter.astro";
+import PolicySection from "../components/PolicySection.astro";
+import PolicyCallout from "../components/PolicyCallout.astro";
+import {
+  DOC,
+  glance,
+  roles,
+  subProcessors,
+  dataCategories,
+  disclosure,
+  notClaimed,
+  contents,
+} from "../config/security";
+
+const mailto = `mailto:${DOC.contact}`;
+
+const architecture = [
+  {
+    label: "The app",
+    body: "One installable web application (a PWA) serving every role — driver, yard, office, maintenance, admin. It runs in the browser and installs to a phone home screen. There is no separate driver app to fall out of date and no native binary to sideload.",
+  },
+  {
+    label: "The API",
+    body: "Server-side functions running at the network edge on Cloudflare. These hold every credential that must never reach a browser: our database service key, payment keys, the statutory-reporting credentials, messaging provider tokens.",
+  },
+  {
+    label: "The data",
+    body: "A managed PostgreSQL database (Supabase) in the EU for records, and Cloudflare R2 object storage in Western Europe for photographs and signatures. Nothing else stores your operational data.",
+  },
+];
+
+const contactRoutes = [
+  {
+    label: "Security and vulnerability reports",
+    value: DOC.contact,
+    href: mailto,
+  },
+  {
+    label: "Data protection and processing agreements",
+    value: DOC.contact,
+    href: `${mailto}?subject=Data%20processing%20agreement`,
+  },
+  {
+    label: "Sub-processor change notifications",
+    value: "Ask to be added to the list",
+    href: `${mailto}?subject=Sub-processor%20change%20notifications`,
+  },
+];
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "BreadcrumbList",
+      "@id": "https://fleetlix.com/security#breadcrumbs",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Home", item: "https://fleetlix.com" },
+        { "@type": "ListItem", position: 2, name: "Security", item: "https://fleetlix.com/security" },
+      ],
+    },
+  ],
+};
+---
+
+<Base
+  title="App & Data Security | Fleetlix"
+  description="How Fleetlix protects operator, driver and customer data — database-enforced tenant isolation, per-tenant media encryption, UK and EU data residency."
+>
+  <Header />
+
+  <main id="security-doc" class="bg-[color:var(--color-offwhite)]">
+    <!-- ============================================================ *
+         Masthead. Dark, because this is the document's cover — and
+         because the four tiles below it are the whole answer for a
+         reader who is not going to read twenty sections.
+         ============================================================ -->
+    <section class="policy-dark relative overflow-clip bg-[color:var(--color-graphite)] text-white">
+      <div class="aurora" aria-hidden="true">
+        <div class="aurora-blob aurora-blob--cyan absolute -left-28 -top-10 h-80 w-80 opacity-25"></div>
+        <div class="aurora-blob aurora-blob--amber absolute -right-24 bottom-0 h-80 w-80 opacity-20"></div>
+      </div>
+
+      <div class="relative mx-auto max-w-7xl px-6 py-16 md:py-24">
+        <div class="max-w-3xl">
+          <p class="hero-fade text-xs font-semibold uppercase tracking-[0.18em] text-[color:var(--color-cyan)]">
+            Fleetlix · Trust &amp; Security
+          </p>
+          <h1 class="hero-rise mt-3 font-[family-name:var(--font-display)] text-3xl font-extrabold leading-[1.08] tracking-tight text-white sm:text-4xl lg:text-5xl text-balance">
+            App &amp; Data Security
+          </h1>
+          <p class="hero-rise mt-5 max-w-2xl text-lg leading-relaxed text-white/70">
+            How Fleetlix protects operator, driver and customer data — the
+            controls we run today, and the ones we do not yet claim.
+          </p>
+
+          <!-- Document metadata. A security document without a version and a
+               date is a marketing page wearing its clothes. -->
+          <dl class="hero-fade mt-7 flex flex-wrap items-center gap-x-8 gap-y-3 text-sm">
+            <div>
+              <dt class="text-[10px] font-bold uppercase tracking-[0.16em] text-white/45">Version</dt>
+              <dd class="mt-0.5 font-semibold text-white tabular-nums">{DOC.version}</dd>
+            </div>
+            <div>
+              <dt class="text-[10px] font-bold uppercase tracking-[0.16em] text-white/45">Issued</dt>
+              <dd class="mt-0.5 font-semibold text-white">
+                <time datetime={DOC.issuedIso}>{DOC.issued}</time>
+              </dd>
+            </div>
+            <div>
+              <dt class="text-[10px] font-bold uppercase tracking-[0.16em] text-white/45">Classification</dt>
+              <dd class="mt-0.5 font-semibold text-white">{DOC.classification}</dd>
+            </div>
+          </dl>
+
+          <div class="hero-fade mt-8 flex flex-wrap items-center gap-3" data-no-print>
+            <a
+              href={mailto}
+              class="btn-sheen inline-flex items-center justify-center rounded-xl bg-[color:var(--color-amber)] px-5 py-3 text-sm font-semibold text-[color:var(--color-graphite)] transition hover:brightness-105"
+            >
+              Contact the security team
+            </a>
+            <!-- Wired by src/scripts/security.ts. Rendered as a real <button>
+                 rather than a link so it is inert, not broken, with JS off. -->
+            <button
+              type="button"
+              data-print
+              class="inline-flex items-center gap-2 rounded-xl border border-white/25 px-5 py-3 text-sm font-semibold text-white transition hover:border-white/50 hover:bg-white/5"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M6 9V3h12v6" /><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" /><rect x="6" y="14" width="12" height="7" rx="1" />
+              </svg>
+              Save as PDF
+            </button>
+          </div>
+        </div>
+
+        <!-- At a glance -->
+        <ul class="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {glance.map((tile) => (
+            <li>
+              <a
+                href={tile.href}
+                class={`card-glow ${tile.accent === "amber" ? "glow-amber" : "glow-cyan"} group flex h-full flex-col rounded-2xl border border-white/12 bg-white/[0.04] p-5 transition hover:border-white/25`}
+              >
+                <span
+                  class={`inline-flex h-9 w-9 items-center justify-center rounded-lg ${
+                    tile.accent === "amber"
+                      ? "bg-[color:var(--color-amber)]/15 text-[color:var(--color-amber)]"
+                      : "bg-[color:var(--color-cyan)]/15 text-[color:var(--color-cyan)]"
+                  }`}
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" set:html={tile.icon} />
+                </span>
+                <p class="mt-4 text-[10px] font-bold uppercase tracking-[0.16em] text-white/45">
+                  {tile.label}
+                </p>
+                <p class="mt-1 font-[family-name:var(--font-display)] text-lg font-bold text-white">
+                  {tile.headline}
+                </p>
+                <p class="mt-2 text-sm leading-relaxed text-white/65">{tile.body}</p>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+
+    <!-- ============================================================ *
+         Body. Sticky contents rail from lg; a collapsed <details> on
+         phones so twenty links don't sit between the reader and the
+         first sentence.
+         ============================================================ -->
+    <div class="mx-auto max-w-7xl px-6 py-12 md:py-16">
+      <div class="lg:grid lg:grid-cols-12 lg:gap-12">
+        <!-- Contents -->
+        <nav class="lg:col-span-4 xl:col-span-3" aria-label="Contents" data-no-print>
+          <details class="policy-toc group rounded-2xl border border-[color:var(--color-mist)] bg-white lg:hidden">
+            <summary class="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 font-semibold text-[color:var(--color-graphite)]">
+              Contents
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="shrink-0 text-[color:var(--color-slate)] transition-transform group-open:rotate-180 motion-reduce:transition-none">
+                <path d="m6 9 6 6 6-6" />
+              </svg>
+            </summary>
+            <ol class="border-t border-[color:var(--color-mist)] px-3 py-3">
+              {contents.map((entry, i) => (
+                <li>
+                  <a
+                    href={`#${entry.id}`}
+                    class="flex gap-3 rounded-lg px-3 py-2 text-sm text-[color:var(--color-slate)] hover:bg-[color:var(--color-mist)]/50 hover:text-[color:var(--color-graphite)]"
+                  >
+                    <span class="tabular-nums text-[color:var(--color-slate)]/50">
+                      {String(i + 1).padStart(2, "0")}
+                    </span>
+                    {entry.label}
+                  </a>
+                </li>
+              ))}
+            </ol>
+          </details>
+
+          <div class="hidden lg:sticky lg:top-24 lg:block">
+            <p class="text-[10px] font-bold uppercase tracking-[0.16em] text-[color:var(--color-slate)]/60">
+              Contents
+            </p>
+            <ol class="mt-4 space-y-0.5">
+              {contents.map((entry, i) => (
+                <li>
+                  <a
+                    href={`#${entry.id}`}
+                    data-nav-link
+                    class="policy-toc-link flex gap-2.5 py-1.5 pl-3 text-sm leading-snug text-[color:var(--color-slate)]"
+                  >
+                    <span class="tabular-nums text-[color:var(--color-slate)]/45">
+                      {String(i + 1).padStart(2, "0")}
+                    </span>
+                    <span>{entry.label}</span>
+                  </a>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </nav>
+
+        <!-- Document -->
+        <article class="mt-10 space-y-12 lg:col-span-8 lg:mt-0 xl:col-span-9">
+          <PolicySection id="scope" title="Scope and purpose">
+            <p>
+              This document describes the security controls that protect data
+              held in Fleetlix. It is written to be read by two audiences at
+              once: the operator deciding whether to trust us with their yard,
+              and the person filling in a supplier security questionnaire on
+              their behalf.
+            </p>
+            <p>
+              It covers the Fleetlix operations platform — the installable web
+              app at fleetlix.app, the server-side API that supports it, and the
+              database and object storage behind both. It covers the data your
+              business puts into that platform: jobs, customers, vehicles,
+              drivers, walk-around checks, weighbridge tickets, waste transfer
+              notes, invoices and the photographs and signatures attached to
+              them.
+            </p>
+            <p>
+              It does not cover your own internal IT, the devices your staff
+              sign in from, or third-party systems you choose to connect. Where
+              a control depends on something only you can do — keeping a phone
+              locked, removing a leaver's account — that is said plainly rather
+              than glossed over.
+            </p>
+            <PolicyCallout label="On the tone of this document">
+              <p>
+                Security pages tend to be written to reassure. This one is
+                written to be checked. Where a control has a limit, the limit is
+                stated next to the control rather than left for a questionnaire
+                to uncover — sections 6 and 19 are the two places where that
+                matters most. We would rather lose a deal on an honest answer
+                than win one on a claim that does not survive a technical
+                review.
+              </p>
+            </PolicyCallout>
+          </PolicySection>
+
+          <PolicySection id="architecture" title="How Fleetlix is built">
+            <p>
+              A small architecture is a defensible one. Fleetlix is deliberately
+              three moving parts, not thirty.
+            </p>
+            <ul class="not-prose grid gap-3 sm:grid-cols-3">
+              {architecture.map((part) => (
+                <li class="rounded-2xl border border-[color:var(--color-mist)] bg-white p-5">
+                  <p class="font-[family-name:var(--font-display)] font-bold text-[color:var(--color-graphite)]">
+                    {part.label}
+                  </p>
+                  <p class="mt-2 text-sm leading-relaxed">{part.body}</p>
+                </li>
+              ))}
+            </ul>
+            <p>
+              The security consequence of that shape is that <strong class="font-semibold text-[color:var(--color-graphite)]">the
+              database is the enforcement point, not the app</strong>. Access rules are
+              written as PostgreSQL row-level security policies and evaluated by
+              Postgres on every single query. A bug in the user interface, a
+              modified client, or a request crafted by hand with a valid login
+              cannot read data the policy does not allow — because the
+              application is not the thing deciding.
+            </p>
+          </PolicySection>
+
+          <PolicySection id="isolation" title="Tenant isolation">
+            <p>
+              Fleetlix is multi-tenant: many operators share one system. Keeping
+              them apart is the single most important control we run, so it is
+              enforced in the one place a client cannot argue with.
+            </p>
+            <ul class="policy-list">
+              <li>
+                <strong>Row-level security is enabled on every table that holds
+                business data, and every table denies by default.</strong> A table
+                with no matching policy returns nothing. Adding a table without a
+                policy fails safe rather than failing open.
+              </li>
+              <li>
+                <strong>The tenant is resolved server-side, never accepted from
+                the client.</strong> Policies call a helper function that reads the
+                signed-in user's own tenant from their profile. It lives in a
+                database schema that is not exposed over the API at all, so it
+                cannot be called or spoofed from outside.
+              </li>
+              <li>
+                <strong>The rule is applied to reads and writes alike.</strong>{" "}
+                Policies constrain both what a query may return and what an insert
+                or update may write, so a client cannot smuggle a row into
+                another operator's account by setting a different tenant id on
+                the way in.
+              </li>
+              <li>
+                <strong>Isolation policies are restrictive, not merely
+                additive.</strong> Where a table has several access rules that grant
+                access (staff, driver, customer portal), a separate restrictive
+                tenant rule is combined with all of them. Adding a new way in
+                later cannot accidentally widen the tenant boundary.
+              </li>
+              <li>
+                <strong>Every policy names the signed-in role explicitly.</strong>{" "}
+                Twenty-six policies had historically been written without that
+                clause, which in PostgreSQL silently defaults to a role set that
+                includes anonymous visitors. They were corrected, and the
+                migration that corrected them ends with a self-check that fails
+                the deployment if any policy is ever added that way again.
+              </li>
+            </ul>
+            <PolicyCallout label="Verified, not assumed" tone="cyan">
+              <p>
+                Isolation is tested by signing in as a real second-tenant
+                administrator and confirming they see zero rows belonging to the
+                first — not by reading the policy and agreeing with it. The same
+                style of test, executed against the live database inside a
+                transaction that is then rolled back, is run for each migration
+                that touches access rules.
+              </p>
+            </PolicyCallout>
+          </PolicySection>
+
+          <PolicySection id="accounts" title="Accounts, authentication and roles">
+            <h3 class="policy-subhead">Signing in</h3>
+            <ul class="policy-list">
+              <li>
+                <strong>Authentication is handled by Supabase Auth.</strong>{" "}
+                Passwords are hashed with bcrypt and never stored, logged or
+                transmitted in plain text, and the Fleetlix application never
+                sees a password — it is exchanged directly with the
+                authentication service.
+              </li>
+              <li>
+                <strong>A successful sign-in issues a short-lived access token
+                (one hour) plus a refresh token.</strong> A stolen access token
+                stops working within the hour without anyone taking action.
+              </li>
+              <li>
+                <strong>New staff are added by invitation.</strong> The invite is
+                a one-time link through which the person sets their own password;
+                nobody at Fleetlix or in your office ever knows it.
+              </li>
+              <li>
+                <strong>Sign-out is reachable from every screen, on every device
+                size, for every role</strong> — a codified release check, not an
+                assumption. Signing out clears the local session and purges the
+                on-device data caches (see section 11).
+              </li>
+            </ul>
+
+            <h3 class="policy-subhead">What each person can do</h3>
+            <p>
+              Every account holds one primary role, which determines both what
+              they see and what the database will let them touch. Roles are
+              least-privilege by design — a driver has no ability to read your
+              customer list or your pricing, because no policy grants it, not
+              because the screen is hidden.
+            </p>
+            <div class="policy-table-wrap">
+              <table class="policy-table">
+                <thead>
+                  <tr>
+                    <th scope="col">Role</th>
+                    <th scope="col">Intended for</th>
+                    <th scope="col">Broadly</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {roles.map((role) => (
+                    <tr>
+                      <th scope="row">{role.role}</th>
+                      <td data-label="Intended for">{role.who}</td>
+                      <td data-label="Broadly">{role.can}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <ul class="policy-list">
+              <li>
+                <strong>An account can never be left with no owner.</strong>{" "}
+                Demoting, deactivating or deleting the last owner is refused by
+                the database itself, so no route — including a cascading delete —
+                can strand an account nobody can administer.
+              </li>
+              <li>
+                <strong>An administrator cannot escalate themselves.</strong> Only
+                an owner may create or promote another owner.
+              </li>
+              <li>
+                <strong>Customer portal logins are firewalled at the column
+                level, not just the row level.</strong> A portal user reads through
+                a dedicated server-side path that omits commercial fields
+                entirely; they cannot see your margin on their own job even by
+                querying for it directly. Site-scoped logins additionally see
+                only their own site, and no invoices at all.
+              </li>
+              <li>
+                <strong>Administrator "view as" impersonation is recorded.</strong>{" "}
+                Where an administrator views the app as another user to support
+                them, the action is written to the audit trail attributed to the
+                real administrator.
+              </li>
+            </ul>
+          </PolicySection>
+
+          <PolicySection id="in-transit" title="Data in transit">
+            <ul class="policy-list">
+              <li>
+                <strong>All traffic is HTTPS.</strong> Plain HTTP is redirected and
+                then refused: the site sends a one-year{" "}
+                <code>Strict-Transport-Security</code> header including
+                subdomains, so a browser that has visited once will not attempt
+                an unencrypted connection again.
+              </li>
+              <li>
+                <strong>A strict Content Security Policy is enforced, not merely
+                reported.</strong> Scripts may load only from our own origin;
+                inline script is refused outright. This is the control that turns
+                most cross-site-scripting attempts into a blocked request rather
+                than an incident.
+              </li>
+              <li>
+                <strong>The browser's outbound allow-list is short and
+                deliberate:</strong> our own origin, our database, our map tile
+                provider and the UK postcode lookup. Anything else — an injected
+                tracker, an exfiltration attempt to an attacker's server — is
+                blocked by the policy.
+              </li>
+              <li>
+                <strong>Framing is refused</strong>{" "}
+                (<code>frame-ancestors 'none'</code> plus{" "}
+                <code>X-Frame-Options: DENY</code>), so the app cannot be embedded
+                in another site to trick a user into clicking something they
+                cannot see.
+              </li>
+              <li>
+                <strong>Device permissions are locked down at the page
+                level.</strong> The camera and location are available only to our
+                own code and only where the feature needs them; microphone,
+                payment API and USB access are switched off entirely.
+              </li>
+              <li>
+                <strong>Supporting headers:</strong>{" "}
+                <code>X-Content-Type-Options: nosniff</code>,{" "}
+                <code>Referrer-Policy: strict-origin-when-cross-origin</code>,{" "}
+                <code>Cross-Origin-Opener-Policy: same-origin</code>, and a{" "}
+                <code>base-uri</code> / <code>form-action</code> lock that
+                prevents a page from being repointed at another destination.
+              </li>
+            </ul>
+          </PolicySection>
+
+          <PolicySection id="at-rest" title="Data at rest, and the honest limit of it">
+            <p>
+              The database is encrypted at rest by the hosting platform, on
+              managed infrastructure with disk-level encryption and no public
+              network route — the only way in is an authenticated connection
+              subject to the policies in section 3.
+            </p>
+            <p>
+              Photographs and signatures get an additional layer. Each object is
+              encrypted with a key belonging to one tenant alone, derived
+              cryptographically (HKDF-SHA256) from a master secret and that
+              tenant's identifier. Because the key is derived rather than
+              assigned, there is no key table to leak, no provisioning step that
+              can fail, and an operator who signed up ten seconds ago already has
+              one. One tenant's key tells you nothing about another's.
+            </p>
+            <p>
+              The practical effect is that the storage provider holds the bytes
+              but not the key. It has been verified in production that the
+              hosting provider's own dashboard cannot preview or download an
+              encrypted object — it returns an error. A platform engineer, ours
+              or theirs, cannot idly browse your customers' proof-of-delivery
+              photographs.
+            </p>
+            <PolicyCallout label="What this is not">
+              <p>
+                This is <strong class="font-semibold text-[color:var(--color-graphite)]">not
+                end-to-end encryption</strong>, and we will not describe it as such.
+                The master secret is held in our server-side secret store, so
+                anyone able to read that store could derive any tenant's key. It
+                raises the bar considerably; it does not make us blind to your
+                data.
+              </p>
+              <p>
+                True operator-blindness would require the key never to reach a
+                server, which would break the server-side generation of waste
+                transfer notes and proof-of-delivery documents — and would mean a
+                lost key destroyed records you are legally required to keep. That
+                trade was considered and declined deliberately.
+              </p>
+            </PolicyCallout>
+          </PolicySection>
+
+          <PolicySection id="media" title="Photographs, signatures and the media gateway">
+            <p>
+              Object storage has no concept of a tenant. That gap is closed by
+              refusing to expose the storage at all.
+            </p>
+            <ul class="policy-list">
+              <li>
+                <strong>The storage bucket is private and has no public URL and
+                no custom domain.</strong> There is no address on the internet that
+                serves an object directly. This is the primary control; the
+                encryption in section 6 sits on top of it.
+              </li>
+              <li>
+                <strong>Every read and write passes through one gateway that
+                re-checks the caller's tenant and role before touching
+                storage.</strong> The rules live in a single shared module that is
+                unit-tested, so a photograph's visibility is a tested rule rather
+                than a per-screen decision.
+              </li>
+              <li>
+                <strong>The gateway authorises with the caller's own session
+                token, never with our master database key.</strong> This is
+                deliberate: a master key on a route that runs for every image
+                request would turn a single browser-side compromise into a
+                whole-platform storage read. The master key is used only where
+                there is no caller to authorise as — an anonymous payment page,
+                or a signed webhook.
+              </li>
+              <li>
+                <strong>Object paths are parsed strictly</strong>, so
+                directory-traversal patterns in a filename are rejected rather
+                than interpreted.
+              </li>
+              <li>
+                <strong>Visibility differs by document type, on purpose.</strong>{" "}
+                Proof-of-delivery photographs and walk-around photographs are
+                excluded from customer portal reads. Load-issue photographs are
+                not — they are the evidence behind a contamination charge the
+                customer is being billed for, and a customer is entitled to see
+                what they are being charged for.
+              </li>
+              <li>
+                <strong>A customer can see their own signature and nothing
+                more.</strong> Where a portal user needs the signature on their own
+                transfer note, the database adjudicates that one object by path —
+                it does not widen the rule for the whole bucket, and a request
+                for another tenant's object is never appealable.
+              </li>
+            </ul>
+          </PolicySection>
+
+          <PolicySection id="secrets" title="Credentials and secrets">
+            <ul class="policy-list">
+              <li>
+                <strong>No privileged credential is ever shipped to a
+                browser.</strong> The database service key exists only as a
+                server-side environment secret. This is a standing architectural
+                rule, and the server-side code is type-checked as a separate
+                project specifically so that a credential path cannot compile
+                incorrectly and ship green.
+              </li>
+              <li>
+                <strong>Secrets are per-environment and write-only.</strong>{" "}
+                Production and preview hold separate values, and a secret cannot
+                be read back after it is set.
+              </li>
+              <li>
+                <strong>Inbound API keys are stored as SHA-256 hashes only.</strong>{" "}
+                The raw key is displayed once at creation and never again. Keys
+                are per-tenant, labelled, scoped and individually revocable, so
+                rotating one does not disturb the others.
+              </li>
+              <li>
+                <strong>Payment webhooks are verified by signature before any
+                state is changed.</strong> A redirect back from a payment page is
+                treated as a hint, never as evidence — only a signed webhook
+                settles a payment record.
+              </li>
+              <li>
+                <strong>Payments settle directly to the operator.</strong> Card
+                processing runs through Stripe Connect against the operator's own
+                Stripe account. Fleetlix never holds customer money and never
+                stores an operator's Stripe secret key — only an account pointer
+                that is useless without our own platform credential. Card details
+                never touch Fleetlix systems.
+              </li>
+              <li>
+                <strong>The account-linking flow is signed.</strong> The state
+                parameter carried through the payment-provider handshake is
+                HMAC-signed with a ten-minute lifetime and compared in constant
+                time, so it cannot be used to attach someone else's payment
+                account to your operation.
+              </li>
+              <li>
+                <strong>The media master secret is backed up outside the hosting
+                provider.</strong> If it were lost, every encrypted object would be
+                unrecoverable and no provider could help — so it is not stored
+                solely with the provider that would need it.
+              </li>
+            </ul>
+          </PolicySection>
+
+          <PolicySection id="audit" title="Audit trail and record integrity">
+            <ul class="policy-list">
+              <li>
+                <strong>The audit trail is written by the database, not the
+                client.</strong> Entries are attributed to the genuinely
+                authenticated user, so an entry cannot be forged by a modified
+                client claiming to be somebody else.
+              </li>
+              <li>
+                <strong>Status changes on jobs and invoices are recorded
+                automatically by database triggers</strong>, so a record of a change
+                cannot be skipped by using a different screen or a different
+                route into the system.
+              </li>
+              <li>
+                <strong>Administrator actions — user creation and deletion, plan
+                changes, impersonation, data exports — are logged and readable in
+                the admin console.</strong> The trail is readable by administrators
+                of that account only.
+              </li>
+              <li>
+                <strong>Historical records cannot be rewritten by later
+                edits.</strong> Where a document refers to a person, a customer or a
+                site, the name is stored on the document at the moment of action
+                as well as being linked. Renaming a customer or removing a driver
+                next year does not alter what a waste transfer note issued last
+                year says.
+              </li>
+              <li>
+                <strong>Submitted statutory documents are frozen.</strong> A filed
+                waste data return is snapshotted and cannot be edited; a
+                correction supersedes it rather than overwriting it, so the
+                original filing remains inspectable.
+              </li>
+            </ul>
+          </PolicySection>
+
+          <PolicySection id="availability" title="Availability, backup and recovery">
+            <ul class="policy-list">
+              <li>
+                <strong>The application is served from Cloudflare's global edge
+                network</strong>, which absorbs volumetric denial-of-service traffic
+                before it reaches our origin.
+              </li>
+              <li>
+                <strong>The database runs on managed infrastructure with
+                automated backups</strong> taken and retained by the database
+                platform.
+              </li>
+              <li>
+                <strong>Fleetlix is designed to keep working when the network
+                does not.</strong> Drivers can complete a walk-around check, sign
+                off a job and capture photographs with no signal; the work is
+                stored durably on the device and submitted when signal returns
+                (see section 11).
+              </li>
+              <li>
+                <strong>The build is the deployment.</strong> The host builds from
+                source on every release; compiled output is never committed.
+                Releases are atomic — a failed build does not partially replace a
+                working one — and a missing asset returns a genuine error rather
+                than a misleading page, which prevents a stale or poisoned
+                response being cached at the edge.
+              </li>
+              <li>
+                <strong>Server-side code fails closed.</strong> Where an external
+                dependency is unavailable — a messaging provider, the statutory
+                reporting API, an AI service — the affected action is queued or
+                refused with an explicit status. It is never silently marked as
+                done.
+              </li>
+            </ul>
+          </PolicySection>
+
+          <PolicySection id="device" title="Data on the device">
+            <p>
+              A vehicle phone is often shared between drivers and is the most
+              likely thing to be lost. Offline capability is a feature; leaving
+              one driver's data on the screen for the next one is not.
+            </p>
+            <ul class="policy-list">
+              <li>
+                <strong>Cached data is purged on every identity change.</strong>{" "}
+                Signing out, or a different person signing in, clears the cached
+                record and media caches. Without this, the next person to pick up
+                the phone — offline, so no server is consulted — would be served
+                the previous user's rows.
+              </li>
+              <li>
+                <strong>The offline queue is scoped to the user who created
+                it.</strong> A check filed by one driver on a shared cab phone can
+                never be submitted under another driver's name.
+              </li>
+              <li>
+                <strong>Queued work is never silently discarded.</strong> An item
+                that cannot be submitted is parked and surfaced to the driver with
+                a reason, with retry and discard under their control. A
+                submission that the server legitimately refuses on reconnection —
+                a sign-off that fails a business rule — says so rather than being
+                swallowed.
+              </li>
+              <li>
+                <strong>Cached data lives in the browser's own storage</strong>,
+                protected by the device's operating system and the browser's
+                same-origin rules. Device-level security remains the operator's
+                responsibility: a screen lock and device encryption are the
+                controls that matter here, and we cannot supply them.
+              </li>
+            </ul>
+          </PolicySection>
+
+          <PolicySection id="location" title="Driver location and workforce privacy">
+            <p>
+              Fleetlix tracks vehicles during a shift so the office and the
+              customer know where a delivery is. It is built so a driver always
+              knows when that is happening.
+            </p>
+            <ul class="policy-list">
+              <li>
+                <strong>Location sharing cannot start without permission the
+                driver has already granted.</strong> Where the browser reports that
+                location access has not been asked for, the app does not ask and
+                does not call the location API at all.
+              </li>
+              <li>
+                <strong>A deliberate stop is respected.</strong> If a driver
+                switches location sharing off, it stays off — it does not quietly
+                resume when the app is reopened. A stop lasts until the next
+                calendar day, on the reasoning that the realistic meaning of
+                "stop" is "not for the rest of today", not "for the next
+                twenty-four hours".
+              </li>
+              <li>
+                <strong>The state is always visible.</strong> A pin in the app
+                header shows whether location is being shared, with a live
+                indicator and the state spelled out in words. Nothing about it is
+                covert.
+              </li>
+              <li>
+                <strong>Location is used for the operational purposes the driver
+                would expect</strong> — the dispatch board, the live map and the
+                customer's arrival estimate. It is not used to score or rank
+                individuals.
+              </li>
+              <li>
+                <strong>Customer-facing tracking is minimised.</strong> The public
+                tracking page a member of the public receives shows a driver's
+                first name only, and only once the job is actually dispatched. A
+                first name makes the knock at the door expected; a surname adds
+                nothing to that.
+              </li>
+            </ul>
+            <PolicyCallout label="For the employer" tone="graphite">
+              <p>
+                Location data about identifiable staff is personal data, and the
+                lawful basis for processing it belongs to you as their employer.
+                You should tell your drivers it is collected, why, and how long it
+                is kept. We can supply the technical detail you need for that
+                assessment.
+              </p>
+            </PolicyCallout>
+          </PolicySection>
+
+          <PolicySection id="ai" title="Use of artificial intelligence">
+            <p>
+              AI has exactly one job in Fleetlix, and it is a narrow one. This
+              section exists because "do you use AI, and what do you send it?" is
+              now the second question on most security questionnaires.
+            </p>
+            <ul class="policy-list">
+              <li>
+                <strong>One feature, one question.</strong> Where a load carries a
+                European Waste Catalogue code that could be hazardous or not
+                depending on content (a "mirror entry"), the system asks Claude
+                Haiku, from Anthropic, whether the operator's own notes indicate a
+                competent person should review it.
+              </li>
+              <li>
+                <strong>The model never picks the waste code.</strong>{" "}
+                Classification comes from a fixed reference table of official
+                codes; a model cannot emit a code that does not exist. The model
+                only ever answers a review question about a code a human already
+                chose.
+              </li>
+              <li>
+                <strong>The model can only ever relax an alarm, never raise
+                one.</strong> Every load with a mirror-entry code is flagged for
+                review by rule before the model is consulted. The database refuses
+                to record an AI-sourced alarm at all. Every failure mode — no
+                credential, network error, timeout, refusal, malformed output, low
+                confidence — leaves the flag raised. There is no failure that
+                produces a false negative.
+              </li>
+              <li>
+                <strong>Absolute-entry codes and notes-free loads never reach the
+                API.</strong> They are answered locally, so most jobs are never sent
+                anywhere.
+              </li>
+              <li>
+                <strong>What is sent is the waste code, the reference description
+                and the operator's own notes for that load.</strong> No customer
+                contact details, no pricing, no photographs, no signatures, no
+                personal data about drivers.
+              </li>
+              <li>
+                <strong>Every call is audited</strong> — source, outcome, tokens and
+                latency — and a call that never happened is recorded as such, so
+                the record shows what was and was not sent.
+              </li>
+              <li>
+                <strong>There is a per-tenant off switch.</strong> An operator can
+                disable the feature entirely without a code change; the review
+                flag then simply stays raised for a human.
+              </li>
+              <li>
+                <strong>Data sent to the Anthropic API is not used to train
+                models</strong>, per Anthropic's commercial terms.
+              </li>
+            </ul>
+          </PolicySection>
+
+          <PolicySection id="sub-processors" title="Sub-processors">
+            <p>
+              These are the third parties that may process data on our behalf.
+              Several are engaged only if you switch on the feature that uses
+              them.
+            </p>
+            <div class="policy-table-wrap">
+              <table class="policy-table">
+                <thead>
+                  <tr>
+                    <th scope="col">Provider</th>
+                    <th scope="col">Purpose</th>
+                    <th scope="col">Data involved</th>
+                    <th scope="col">Region</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {subProcessors.map((p) => (
+                    <tr>
+                      <th scope="row">
+                        {p.provider}
+                        {p.optional && (
+                          <span class="mt-1 block text-[10px] font-semibold uppercase tracking-[0.12em] text-[color:var(--color-amber)]">
+                            Optional
+                          </span>
+                        )}
+                      </th>
+                      <td data-label="Purpose">{p.purpose}</td>
+                      <td data-label="Data involved">{p.data}</td>
+                      <td data-label="Region">{p.region}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <p>
+              <strong class="font-semibold text-[color:var(--color-graphite)]">Notable by
+              absence:</strong> there is no analytics, advertising, session-recording
+              or tag-management provider in this list, because there is none in
+              the product. The application loads no third-party script and makes
+              no request a user did not cause.
+            </p>
+            <p>
+              We will give reasonable notice of a material change to this list.
+              Write to{" "}
+              <a href={mailto} class="policy-link">{DOC.contact}</a>{" "}
+              to be told when it changes.
+            </p>
+          </PolicySection>
+
+          <PolicySection id="gdpr" title="Personal data and UK GDPR">
+            <h3 class="policy-subhead">Our role</h3>
+            <p>
+              For the operational data you put into Fleetlix — your customers,
+              your drivers, your jobs — <strong class="font-semibold text-[color:var(--color-graphite)]">you
+              are the data controller and Fleetlix is your processor</strong>. We act
+              on your instructions. For your own account and billing data, we are
+              the controller.
+            </p>
+
+            <h3 class="policy-subhead">Categories of personal data held</h3>
+            <dl class="not-prose divide-y divide-[color:var(--color-mist)] overflow-hidden rounded-2xl border border-[color:var(--color-mist)] bg-white">
+              {dataCategories.map((cat) => (
+                <div class="px-5 py-4 sm:flex sm:gap-6">
+                  <dt class="shrink-0 font-semibold text-[color:var(--color-graphite)] sm:w-56">
+                    {cat.who}
+                  </dt>
+                  <dd class="mt-1 text-sm leading-relaxed sm:mt-0">{cat.what}</dd>
+                </div>
+              ))}
+            </dl>
+
+            <h3 class="policy-subhead">Retention</h3>
+            <p>
+              Operational records are retained for as long as your account is
+              active, because waste operations carry statutory duties that outlive
+              any individual job — waste transfer notes must be kept for two
+              years, and hazardous waste consignment notes for three years.
+              Deleting these on request would put you in breach, so the platform
+              is built to retain them for the life of the account.
+            </p>
+            <p>
+              On termination, we will export your data in a machine-readable form
+              on request and then delete it, subject to any period you instruct us
+              to hold it to meet your own statutory obligations. Backups age out
+              on the platform's own rotation.
+            </p>
+
+            <h3 class="policy-subhead">Data subject requests</h3>
+            <p>
+              A request from one of your customers or staff should be made to you
+              as controller. We will assist you in responding within the statutory
+              period. Where you need to act directly, the platform provides export
+              to CSV and PDF and record-level deletion, subject to the statutory
+              retention above.
+            </p>
+
+            <h3 class="policy-subhead">International transfers</h3>
+            <p>
+              Operational records are held in the UK and EU. A small number of
+              sub-processors listed in section 14 operate from the United States;
+              those transfers rely on the UK Addendum to the EU Standard
+              Contractual Clauses and, where applicable, the provider's Data
+              Privacy Framework certification.
+            </p>
+            <p class="text-sm">
+              How we handle personal data on this marketing website is a separate
+              matter, covered by our{" "}
+              <a href="/privacy" class="policy-link">Privacy Policy</a> and{" "}
+              <a href="/cookies" class="policy-link">Cookies Policy</a>.
+            </p>
+          </PolicySection>
+
+          <PolicySection id="engineering" title="How the software is built and changed">
+            <ul class="policy-list">
+              <li>
+                <strong>The whole codebase is statically type-checked, including
+                the server-side API.</strong> Type-checking the API was added
+                specifically because its code — the statutory submitter, the media
+                gateway, the payment endpoints — had been outside the build's
+                checks and could have shipped a genuine fault that only appeared
+                on the one request that reached it. It found five real problems on
+                its first run.
+              </li>
+              <li>
+                <strong>Over a thousand automated tests run against every
+                change</strong>, alongside browser-driven end-to-end tests of the
+                critical paths.
+              </li>
+              <li>
+                <strong>Database changes are numbered, reviewed and applied
+                deliberately — never generated automatically at deploy
+                time.</strong> Access-control changes are verified against the live
+                database inside a transaction that is then rolled back, so the
+                check is real and the change is not.
+              </li>
+              <li>
+                <strong>The database platform's security advisors are run after
+                every schema change</strong>, and findings are fixed rather than
+                accepted. Where a finding is deliberately not actioned, the reason
+                is written down in the repository.
+              </li>
+              <li>
+                <strong>Security fixes are documented in the codebase itself,
+                including the failure that prompted them.</strong> A control whose
+                reason is recorded is a control the next engineer does not quietly
+                remove.
+              </li>
+              <li>
+                <strong>Dependencies are kept current and deliberately few.</strong>{" "}
+                The application ships no third-party analytics, advertising or
+                tag-management code.
+              </li>
+            </ul>
+          </PolicySection>
+
+          <PolicySection id="vulnerability" title="Reporting a vulnerability">
+            <p>
+              If you believe you have found a security issue in Fleetlix, please
+              tell us. Email{" "}
+              <a href={mailto} class="policy-link">{DOC.contact}</a>{" "}
+              with enough detail to reproduce it — the affected URL or endpoint,
+              the steps, and what you were able to access.
+            </p>
+            <dl class="not-prose divide-y divide-[color:var(--color-mist)] overflow-hidden rounded-2xl border border-[color:var(--color-mist)] bg-white">
+              {disclosure.map((step) => (
+                <div class="px-5 py-4 sm:flex sm:gap-6">
+                  <dt class="shrink-0 font-semibold text-[color:var(--color-graphite)] sm:w-48">
+                    {step.stage}
+                  </dt>
+                  <dd class="mt-1 text-sm leading-relaxed sm:mt-0">{step.commitment}</dd>
+                </div>
+              ))}
+            </dl>
+            <PolicyCallout label="Safe harbour" tone="cyan">
+              <p>
+                We will not pursue legal action against anyone who reports an
+                issue to us in good faith, gives us reasonable time to fix it
+                before disclosing, and does not access, modify or destroy data
+                belonging to anyone else.
+              </p>
+              <p>
+                Please do not run automated scanning that degrades service for
+                operators using the system in the field — a driver in a layby
+                relies on this working.
+              </p>
+            </PolicyCallout>
+          </PolicySection>
+
+          <PolicySection id="incident" title="Incident response">
+            <p>
+              If we identify a security incident affecting your data, we will
+              contain it first, then establish what happened and what was
+              affected, then tell you — in that order, and without waiting until
+              the picture is complete to make contact.
+            </p>
+            <ul class="policy-list">
+              <li>
+                <strong>Notification without undue delay to affected
+                operators</strong>, with what we know, what we do not yet know, and
+                what — if anything — you need to do.
+              </li>
+              <li>
+                <strong>Where a personal data breach is likely to result in a risk
+                to individuals, we will support you in notifying the ICO within 72
+                hours</strong> of you becoming aware, as your processor.
+              </li>
+              <li>
+                <strong>Credentials and keys are rotated as part of
+                containment.</strong> The system is built so that key rotation is
+                survivable rather than destructive — old media keys can be
+                accepted for reading while objects re-encrypt, a design that came
+                directly from an incident in which a key change made objects
+                unreadable.
+              </li>
+              <li>
+                <strong>A written post-incident summary follows</strong>, including
+                what changed to prevent recurrence.
+              </li>
+            </ul>
+          </PolicySection>
+
+          <!-- The document's centrepiece. Given the strongest visual
+               treatment on the page on purpose: on a security document the
+               concessions are what make the claims worth reading. -->
+          <PolicySection id="not-claimed" title="What we do not claim">
+            <p>
+              Fleetlix is a young product built by a small team. Overstating our
+              position would be found out in the first serious technical review,
+              so here is the list.
+            </p>
+            <div class="policy-dark not-prose overflow-hidden rounded-2xl bg-[color:var(--color-graphite)] p-6 sm:p-8">
+              <ul class="space-y-5">
+                {notClaimed.map((item) => (
+                  <li class="flex gap-4">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" class="mt-1 shrink-0 text-[color:var(--color-amber)]">
+                      <circle cx="12" cy="12" r="9" /><path d="M8 12h8" />
+                    </svg>
+                    <p class="leading-relaxed text-white/65">
+                      <strong class="font-semibold text-white">{item.lead}</strong>{" "}
+                      {item.detail}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <PolicyCallout label="Why this section exists">
+              <p>
+                Every item here appears on a standard supplier questionnaire.
+                Answering them before being asked costs us nothing we would not
+                have had to concede anyway, and it means the rest of this document
+                can be taken at face value.
+              </p>
+            </PolicyCallout>
+          </PolicySection>
+
+          <PolicySection id="contact" title="Contact">
+            <dl class="not-prose divide-y divide-[color:var(--color-mist)] overflow-hidden rounded-2xl border border-[color:var(--color-mist)] bg-white">
+              {contactRoutes.map((route) => (
+                <div class="px-5 py-4 sm:flex sm:items-baseline sm:gap-6">
+                  <dt class="shrink-0 text-sm font-semibold text-[color:var(--color-graphite)] sm:w-72">
+                    {route.label}
+                  </dt>
+                  <dd class="mt-1 sm:mt-0">
+                    <a href={route.href} class="policy-link">{route.value}</a>
+                  </dd>
+                </div>
+              ))}
+            </dl>
+            <p>
+              Fleetlix is operated by <strong class="font-semibold text-[color:var(--color-graphite)]">FLEETLIX
+              LTD</strong>, registered in England and Wales, company number 17331348,
+              registered office 66 Paul Street, London EC2A 4NA.
+            </p>
+          </PolicySection>
+
+          <!-- Document footer — the colophon that was on the PDF's last page. -->
+          <footer class="rounded-2xl border border-[color:var(--color-mist)] bg-white p-6 text-sm leading-relaxed text-[color:var(--color-slate)]">
+            <p class="font-[family-name:var(--font-display)] font-bold text-[color:var(--color-graphite)]">
+              App &amp; Data Security
+            </p>
+            <p class="mt-1">
+              Version {DOC.version} · Issued{" "}
+              <time datetime={DOC.issuedIso}>{DOC.issued}</time> ·
+              Classification: {DOC.classification}
+            </p>
+            <p class="mt-3">
+              This page describes the controls in place at the version and date
+              shown above, and is reviewed annually and on any material change to
+              the architecture. It supersedes the PDF of the same name. It forms
+              part of no contract unless incorporated by one.
+            </p>
+          </footer>
+        </article>
+      </div>
+    </div>
+  </main>
+
+  <SiteFooter />
+
+  <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+</Base>
+
+<script>
+  // Imports a shared module, so Astro emits this as an external /_astro/*.js
+  // file under script-src 'self' — no CSP hash. See src/scripts/security.ts.
+  import "../scripts/security.ts";
+</script>
