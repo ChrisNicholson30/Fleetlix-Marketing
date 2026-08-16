@@ -129,7 +129,7 @@ export const roles: Role[] = [
 
 /* ------------------------------------------------------------------ *
  * §14 — Sub-processors. Several are engaged only if the feature that
- * uses them is switched on; `optional` drives the badge on the page.
+ * uses them is switched on, which the section's intro says in prose.
  * Keep this list honest and current — §14 promises reasonable notice
  * of a material change, and that promise is only keepable if the list
  * is edited when the architecture is, not afterwards.
@@ -140,7 +140,6 @@ export interface SubProcessor {
   purpose: string;
   data: string;
   region: string;
-  optional?: boolean;
 }
 
 export const subProcessors: SubProcessor[] = [
@@ -167,21 +166,18 @@ export const subProcessors: SubProcessor[] = [
     purpose: "Hazardous-waste review assistance (§13)",
     data: "Waste code and operator notes only",
     region: "US",
-    optional: true,
   },
   {
     provider: "Twilio",
     purpose: "Customer SMS and WhatsApp notifications",
     data: "Recipient number and message body",
     region: "EU / US",
-    optional: true,
   },
   {
     provider: "Resend",
     purpose: "Transactional and customer email",
     data: "Recipient address and message body",
     region: "EU / US",
-    optional: true,
   },
   {
     provider: "DEFRA Digital Waste Tracking",

@@ -881,14 +881,7 @@ const jsonLd = {
                 <tbody>
                   {subProcessors.map((p) => (
                     <tr>
-                      <th scope="row">
-                        {p.provider}
-                        {p.optional && (
-                          <span class="mt-1 block text-[10px] font-semibold uppercase tracking-[0.12em] text-[color:var(--color-amber)]">
-                            Optional
-                          </span>
-                        )}
-                      </th>
+                      <th scope="row">{p.provider}</th>
                       <td data-label="Purpose">{p.purpose}</td>
                       <td data-label="Data involved">{p.data}</td>
                       <td data-label="Region">{p.region}</td>
