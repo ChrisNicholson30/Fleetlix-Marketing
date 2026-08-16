@@ -142,18 +142,23 @@ const jsonLd = {
             >
               Contact the security team
             </a>
-            <!-- Wired by src/scripts/security.ts. Rendered as a real <button>
-                 rather than a link so it is inert, not broken, with JS off. -->
-            <button
-              type="button"
-              data-print
+            <!-- The typeset PDF, not the browser's print dialogue. A reviewer
+                 who needs a file needs the typeset one — a printed web page
+                 arrives without the cover, the contents or the page numbers a
+                 questionnaire response is expected to cite. Plain <a download>,
+                 so it works with JS off. -->
+            <a
+              href={DOC.pdf}
+              download
+              type="application/pdf"
               class="inline-flex items-center gap-2 rounded-xl border border-white/25 px-5 py-3 text-sm font-semibold text-white transition hover:border-white/50 hover:bg-white/5"
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M6 9V3h12v6" /><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" /><rect x="6" y="14" width="12" height="7" rx="1" />
+                <path d="M12 3v12" /><path d="m7 11 5 5 5-5" /><path d="M4 20h16" />
               </svg>
-              Save as PDF
-            </button>
+              Download PDF
+              <span class="font-normal text-white/50">({DOC.pdfPages} pages)</span>
+            </a>
           </div>
         </div>
 

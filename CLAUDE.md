@@ -90,6 +90,7 @@ fleetlix-marketing/
     ├── _headers                # CSP + cache rules (Cloudflare reads this verbatim)
     ├── _redirects              # 301s for retired paths (/card → /rwm2026)
     ├── fonts/                  # self-hosted Inter + Space Grotesk (woff2)
+    ├── fleetlix-app-and-data-security.pdf   # /security download — BUILT IN THE APP REPO
     └── *.{svg,png,ico}         # logos, favicons
 ```
 
@@ -102,7 +103,7 @@ fleetlix-marketing/
 | `/walkthrough` | The 10:39 product recording, behind a **click-to-load facade**. The page ships zero video weight — the 54 MB MP4 in Supabase Storage is not requested until the visitor presses play, and a native `<video>` plays it, so no third-party script runs. The 16 chapters in `src/config/walkthrough.ts` are both the visible copy and the seek targets. See _Walkthrough video_ below before changing anything here. |
 | `/install`   | PWA install guide for iPhone, iPad, Android, Windows and Mac, from `src/config/install.ts`. Platform tabs are **CSS-only** (radios + `:has()`), so all five platforms are in the DOM and crawlable and the page works with JS off; `src/scripts/install.ts` only pre-selects the tab matching the visitor's device. Device-support lists sit in `<details>`. Content describes **fleetlix.app** (the app repo) — its Settings paths can go stale without anything here failing, so re-check before a rollout. |
 | `/rwm2026`   | The physical-channel landing page — what the printed card QR, an NFC chip or a Wallet pass resolves to. Presents the `letsrecycle` promo (14-day trial vs the 7-day base, links into `/?promo=…#pricing`) and hands over our contact details as a **QR that encodes a vCard inline**, so the scan resolves on the other person's phone with no download. `noindex`, and excluded from the sitemap in `astro.config.mjs`. Renamed from `/card` on 12 Aug 2026; `public/_redirects` 301s the old path permanently because cards encoding it are already printed. Print asset: `public/fleetlix-rwm2026-qr.svg`. |
-| `/security`  | **App & Data Security** — the trust document a buyer's IT person is sent, replacing the PDF of the same name. Twenty sections from `src/config/security.ts` (tabular content) plus prose in the page, rendered through `PolicySection` / `PolicyCallout`. Section numbers derive from the `contents` array, so the sticky rail and the on-page numbering renumber together. Bump `DOC.version` and `DOC.issued` when the substance changes. **Section 19, "What we do not claim", is load-bearing** — it is what makes the other nineteen survive a technical review, so items leave it only when they stop being true. Print styles in `global.css` keep the save-as-PDF route open; no `data-reveal` on this page, because anything never scrolled into view would print blank. |
+| `/security`  | **App & Data Security** — the trust document a buyer's IT person is sent, replacing the PDF of the same name. Twenty sections from `src/config/security.ts` (tabular content) plus prose in the page, rendered through `PolicySection` / `PolicyCallout`. Section numbers derive from the `contents` array, so the sticky rail and the on-page numbering renumber together. Bump `DOC.version` and `DOC.issued` when the substance changes. **Section 19, "What we do not claim", is load-bearing** — it is what makes the other nineteen survive a technical review, so items leave it only when they stop being true. The masthead offers the typeset PDF at `DOC.pdf` (see _Security PDF_ below). Print styles in `global.css` still make Cmd-P produce something filable; no `data-reveal` on this page, because anything never scrolled into view would print blank. |
 | `/privacy`   | UK GDPR policy. Update the `lastUpdated` const when material content changes.                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | `/cookies`   | PECR cookie policy. Asserts "no first-party cookies, no analytics".                                                                                                                                                                                                                                                                                                                                                                                                                                              |
 | `/thank-you` | Post-payment landing. Links to `https://app.fleetlix.com` (not yet live).                                                                                                                                                                                                                                                                                                                                                                                                                                        |
@@ -206,6 +207,48 @@ active source conflict; correcting `dwts.ts` corrects this page too.
 page claims captions — the chapter descriptions are the text alternative. Adding
 a `.vtt` would be a real accessibility win and needs a `<track>` element plus,
 if it is hosted off-origin, a CSP entry.
+
+## Security PDF
+
+`public/fleetlix-app-and-data-security.pdf` is the download on `/security`. **It
+is not built by this repo** — nothing in `pnpm build` produces or checks it, so
+nothing here will notice when it drifts from the page it sits beside.
+
+It is generated from `Resources/security/` in the **Fleetlix operations repo**,
+where `content.mjs` is the source of truth and `build.mjs` renders it:
+
+```bash
+cd <app-repo>/Resources/security && npm install
+CHROME_PATH="…/Google Chrome for Testing" node build.mjs --strict
+cp fleetlix-app-and-data-security.pdf <marketing-repo>/public/
+```
+
+The builder lives there on purpose: every claim in the document is checked
+against that codebase, and a security document written from the marketing repo
+drifts from the product within a month. It needs `playwright-core` plus a
+Chromium binary, and **poppler** (`brew install poppler`) — without `pdftotext`
+the pagination audit reports that it did not run rather than reporting a pass.
+
+Three things to know before touching it:
+
+- **Changing this page's substance means rebuilding the PDF in the same
+  commit**, or the download starts contradicting the page. `DOC.pdf` and
+  `DOC.pdfPages` in `src/config/security.ts` are the page's only handle on it;
+  update `pdfPages` if the page count moves.
+- **The page and the PDF are allowed to differ in furniture, never in a claim.**
+  The page spells cross-references as "section 6" where the PDF uses "§6", the
+  page carries a line pointing at `/privacy` and `/cookies` that has no business
+  in a standalone document, and the closing blocks are written from opposite
+  ends — the page supersedes the PDF, the PDF says where the live page is. That
+  is the whole of the permitted divergence.
+- **Page count is browser-dependent.** The same source built on Playwright's
+  Chromium and on Chrome 148 came out as 14 and 15 pages; `paginationCss` in
+  `build.mjs` reserves 46mm below each section opener, chosen as the midpoint of
+  a measured plateau for exactly that reason. Re-measure before changing it.
+
+The PDF is **not** content-hashed, so `_headers` caches it for an hour rather
+than marking it immutable — a corrected security document must not still be
+handed out tomorrow.
 
 ## Interest form pipeline
 
