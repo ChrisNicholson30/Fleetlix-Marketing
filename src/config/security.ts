@@ -26,6 +26,19 @@ export const DOC = {
   classification: "Public",
   /** Everything on this page routes here — reports, DPAs, sub-processor notices. */
   contact: "security@fleetlix.com",
+  /**
+   * The typeset PDF of this same document, for the reviewer who has to attach
+   * a file to a questionnaire rather than send a link.
+   *
+   * It is a SNAPSHOT, not a render of this page: it is generated from
+   * `Resources/security/` in the Fleetlix operations repo (`node build.mjs`)
+   * and the result is copied into `public/`. Nothing in this repo's build
+   * produces it, so nothing here will notice when it goes stale — if the
+   * substance of this page changes, rebuild the PDF and re-copy it in the same
+   * commit, or the download starts contradicting the page it sits on.
+   */
+  pdf: "/fleetlix-app-and-data-security.pdf",
+  pdfPages: 15,
 } as const;
 
 /* ------------------------------------------------------------------ *

@@ -14,8 +14,9 @@
 #      even though no markup moved. Same class of trap as dwtsFaqItems below.
 #   7) /install JSON-LD @graph — BreadcrumbList only.
 #   8) /security JSON-LD @graph — BreadcrumbList only. The contents rail's
-#      scroll-spy and the Save-as-PDF button are an external module
-#      (src/scripts/security.ts), so the page adds this one hash and no more.
+#      scroll-spy is an external module (src/scripts/security.ts) and the PDF
+#      download is a plain <a download>, so the page adds this one hash and no
+#      more.
 # The player facade (src/scripts/walkthrough.ts) and the install-guide platform
 # detector (src/scripts/install.ts) both import src/scripts/lib/env.ts, so they
 # are emitted as external /_astro/*.js like the rest — neither adds a hash.
@@ -76,6 +77,14 @@
 
 /fleetlix.vcf
   Content-Type: text/vcard; charset=utf-8
+  Cache-Control: public, max-age=3600
+
+# The /security download. Deliberately NOT immutable: the filename carries no
+# content hash, so a new issue of the document reuses this exact URL. An hour is
+# the same bet as the vCard above — long enough to be a cache, short enough that
+# a corrected security document is not still being handed out tomorrow.
+/fleetlix-app-and-data-security.pdf
+  Content-Type: application/pdf
   Cache-Control: public, max-age=3600
 
 /fonts/*
