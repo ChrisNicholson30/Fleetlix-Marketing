@@ -814,55 +814,60 @@
 }
 
 /* ---- Print / save-as-PDF ----
- * The page replaced a circulated PDF, so printing it has to produce
+ * /security replaced a circulated PDF, so printing it has to produce
  * something a procurement reviewer can file: no sticky chrome, no
  * contents rail, and no graphite panel emptying a toner cartridge.
- * Scoped with :has() to the security page alone so printing any other
- * page is untouched; a browser without :has() simply prints the screen
- * styles, which is a worse PDF rather than a broken one. */
+ * /support carries a refund and cancellation policy people save, and
+ * needs the same treatment for a blunter reason: browsers do not print
+ * background colours by default, so without the .policy-dark rule below
+ * its masthead prints white text on white paper.
+ * Scoped with :has() to the .policy-doc class that both pages' <main>
+ * carries, so printing any other page is untouched; a browser without
+ * :has() simply prints the screen styles, which is a worse PDF rather
+ * than a broken one. Add the class to a new document page to opt in. */
 @media print {
-  body:has(#security-doc) header,
-  body:has(#security-doc) > footer,
-  body:has(#security-doc) [data-no-print],
-  body:has(#security-doc) .aurora {
+  body:has(.policy-doc) header,
+  body:has(.policy-doc) > footer,
+  body:has(.policy-doc) [data-no-print],
+  body:has(.policy-doc) .aurora {
     display: none !important;
   }
 
-  body:has(#security-doc) {
+  body:has(.policy-doc) {
     background: #fff;
   }
 
   /* Dark panels invert. The masthead and section 19 both rely on white
      text, so the colour has to be forced back on their children too. */
-  body:has(#security-doc) .policy-dark,
-  body:has(#security-doc) .policy-dark * {
+  body:has(.policy-doc) .policy-dark,
+  body:has(.policy-doc) .policy-dark * {
     background: transparent !important;
     color: #000 !important;
   }
-  body:has(#security-doc) .policy-dark {
+  body:has(.policy-doc) .policy-dark {
     border: 1px solid #bbb;
   }
-  body:has(#security-doc) .policy-dark [class*="border"] {
+  body:has(.policy-doc) .policy-dark [class*="border"] {
     border-color: #ccc !important;
   }
 
   /* Keep the units a reviewer quotes from splitting across a page. */
-  body:has(#security-doc) .policy-callout,
-  body:has(#security-doc) .policy-table-wrap,
-  body:has(#security-doc) .policy-list > li,
-  body:has(#security-doc) dl > div {
+  body:has(.policy-doc) .policy-callout,
+  body:has(.policy-doc) .policy-table-wrap,
+  body:has(.policy-doc) .policy-list > li,
+  body:has(.policy-doc) dl > div {
     break-inside: avoid;
   }
-  body:has(#security-doc) h2,
-  body:has(#security-doc) .policy-subhead {
+  body:has(.policy-doc) h2,
+  body:has(.policy-doc) .policy-subhead {
     break-after: avoid;
   }
 
   /* Tables scroll on screen; on paper they must simply fit. */
-  body:has(#security-doc) .policy-table {
+  body:has(.policy-doc) .policy-table {
     min-width: 0;
   }
-  body:has(#security-doc) .policy-table-wrap {
+  body:has(.policy-doc) .policy-table-wrap {
     overflow-x: visible;
   }
 }

@@ -13,6 +13,19 @@
 // link, the header + hero "Book a demo" buttons, and the contact email in
 // the site footer are hidden. Legal pages (privacy, cookies) keep their
 // data-protection contact details — those are statutory.
+//
+// /support is NOT gated by this flag and must not become gated. The flag hides
+// a sales CTA; /support is the address a paying customer and Stripe both rely
+// on — it is the URL registered as the account's support site, printed on every
+// Stripe receipt. Hiding it would break receipts already in customers' inboxes.
+
+// While SHOW_BROKERS is true: the Broker Network section on the homepage (below
+// the operator pricing cards) and the footer link to /brokers are rendered. The
+// /brokers PAGE itself always builds and is always reachable — the flag governs
+// discovery, not existence, so a link already shared cannot 404. Broker accounts
+// open mid-September 2026 (BROKER_LAUNCH in src/config/brokers.ts); until then
+// both surfaces collect registrations rather than provisioning anything.
+export const SHOW_BROKERS = true
 
 export const SHOW_PRICING = true
 export const SHOW_CONTACT = false

@@ -13,10 +13,11 @@ import WhoFor from "../components/WhoFor.astro";
 import DwtsTimeline from "../components/DwtsTimeline.astro";
 import Faq from "../components/Faq.astro";
 import PricingSection from "../components/PricingSection.astro";
+import BrokerNetwork from "../components/BrokerNetwork.astro";
 import InterestForm from "../components/InterestForm";
 import CtaFooter from "../components/CtaFooter.astro";
 import SiteFooter from "../components/SiteFooter.astro";
-import { SHOW_CONTACT, SHOW_PRICING } from "../config/featureFlags";
+import { SHOW_BROKERS, SHOW_CONTACT, SHOW_PRICING } from "../config/featureFlags";
 import { faqItems } from "../config/faq";
 import { TIERS, ENTRY_MONTHLY, TOP_MONTHLY } from "../config/pricing";
 
@@ -125,6 +126,7 @@ const homepageJsonLd = {
     <WhoFor />
     <DwtsTimeline />
     {SHOW_PRICING && <PricingSection />}
+    {SHOW_BROKERS && <BrokerNetwork />}
     <Faq />
     <InterestForm client:visible />
     {SHOW_CONTACT && <CtaFooter />}

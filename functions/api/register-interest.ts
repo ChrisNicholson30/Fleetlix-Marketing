@@ -24,12 +24,29 @@ const ROLES = [
   "Other",
 ] as const;
 
+// Broker Network enquiries (/brokers). Kept as separate optional fields rather
+// than reusing fleet_size: Broker Free eligibility is explicitly "no owned
+// fleet", so asking a broker their fleet size contradicts the offer on the page
+// they just came from. `enquiry_type` is what tells the two apart in the inbox.
+const ENQUIRY_TYPES = ["operator", "broker"] as const;
+const CARRIER_COUNTS = ["1-5", "6-15", "16-40", "40+", "Not sure"] as const;
+const JOB_VOLUMES = [
+  "Under 50",
+  "50-150",
+  "150-500",
+  "500+",
+  "Not sure",
+] as const;
+
 const Payload = z.object({
   name: z.string().trim().min(2, "Name is required").max(100),
   email: z.string().trim().toLowerCase().email("Enter a valid email").max(200),
   company: z.string().trim().max(200).optional().or(z.literal("")),
   fleet_size: z.enum(FLEET_SIZES).optional(),
   role: z.enum(ROLES).optional(),
+  enquiry_type: z.enum(ENQUIRY_TYPES).optional(),
+  carriers: z.enum(CARRIER_COUNTS).optional(),
+  jobs_per_month: z.enum(JOB_VOLUMES).optional(),
   message: z.string().trim().max(1000).optional().or(z.literal("")),
   consent: z.literal(true, {
     errorMap: () => ({ message: "Consent is required" }),
@@ -79,13 +96,17 @@ function renderEmail(
   const firstName = payload.name.trim().split(/\s+/)[0] || payload.name;
 
   const textLines = [
-    "FLEETLIX · New registration of interest",
+    payload.enquiry_type === "broker"
+      ? "FLEETLIX · New BROKER NETWORK registration"
+      : "FLEETLIX · New registration of interest",
     "",
     `Name:        ${payload.name}`,
     `Email:       ${payload.email}`,
     payload.company ? `Company:     ${payload.company}` : null,
     payload.fleet_size ? `Fleet size:  ${payload.fleet_size}` : null,
     payload.role ? `Role:        ${payload.role}` : null,
+    payload.carriers ? `Carriers:    ${payload.carriers}` : null,
+    payload.jobs_per_month ? `Jobs/month:  ${payload.jobs_per_month}` : null,
     payload.message ? `\nMessage:\n${payload.message}` : null,
     "",
     `Submitted:   ${submittedAt} (Europe/London)`,
@@ -111,6 +132,14 @@ function renderEmail(
     fields.push(["Fleet size", escapeHtml(formatted)]);
   }
   if (payload.role) fields.push(["Role", escapeHtml(payload.role)]);
+  if (payload.carriers) {
+    const formatted =
+      payload.carriers === "Not sure" ? payload.carriers : `${payload.carriers} carriers`;
+    fields.push(["Carriers on panel", escapeHtml(formatted)]);
+  }
+  if (payload.jobs_per_month) {
+    fields.push(["Jobs passed / month", escapeHtml(payload.jobs_per_month)]);
+  }
 
   const fieldRows = fields
     .map(([label, value], i) => {
@@ -208,7 +237,8 @@ async function sendEmail(env: Env, payload: ParsedPayload, meta: {
   timestamp: string;
 }) {
   const { text, html } = renderEmail(payload, meta);
-  const subject = `Fleetlix interest · ${payload.name}${payload.company ? ` · ${payload.company}` : ""}`;
+  const lead = payload.enquiry_type === "broker" ? "Fleetlix BROKER" : "Fleetlix interest";
+  const subject = `${lead} · ${payload.name}${payload.company ? ` · ${payload.company}` : ""}`;
 
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
@@ -244,6 +274,14 @@ function renderConfirmation(payload: ParsedPayload) {
     summaryRows.push(["Fleet size", escapeHtml(formatted)]);
   }
   if (payload.role) summaryRows.push(["Role", escapeHtml(payload.role)]);
+  if (payload.carriers) {
+    const formatted =
+      payload.carriers === "Not sure" ? payload.carriers : `${payload.carriers} carriers`;
+    summaryRows.push(["Carriers on panel", escapeHtml(formatted)]);
+  }
+  if (payload.jobs_per_month) {
+    summaryRows.push(["Jobs passed / month", escapeHtml(payload.jobs_per_month)]);
+  }
 
   const summaryHtml = summaryRows.length
     ? `<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-top:18px;border-top:1px solid #EDEAE3;">
