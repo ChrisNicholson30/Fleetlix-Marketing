@@ -88,7 +88,7 @@ fleetlix-marketing/
 │   └── register-interest.ts    # Cloudflare Pages Function — POST → Resend
 └── public/
     ├── _headers                # CSP + cache rules (Cloudflare reads this verbatim)
-    ├── _redirects              # 301s for retired paths (/card → /rwm2026)
+    ├── _redirects              # 301s: /card → /rwm2026, /terms → /terms-of-service
     ├── fonts/                  # self-hosted Inter + Space Grotesk (woff2)
     ├── fleetlix-app-and-data-security.pdf   # /security download — BUILT IN THE APP REPO
     └── *.{svg,png,ico}         # logos, favicons
@@ -98,12 +98,15 @@ fleetlix-marketing/
 
 | Route        | Purpose                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 | ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/`          | Homepage: Hero → BuiltForRoad → ProductShowcase → StatBand → FrontReveal → MotionProduct → FeatureGrid → WhyPwa → WhoFor → DwtsTimeline → (PricingSection when SHOW_PRICING) → Faq → InterestForm → (CtaFooter when SHOW_CONTACT) → SiteFooter. `ProductShowcase` (`#product-tour`) is a hand-built CSS/SVG mock of the app (no screenshots); `StatBand` shows count-up market figures. `InterestForm` always renders — it's the conversion action while pre-launch, and every pricing CTA anchors to it. |
+| `/`          | Homepage: Hero → BuiltForRoad → ProductShowcase → StatBand → FrontReveal → MotionProduct → FeatureGrid → WhyPwa → WhoFor → DwtsTimeline → (PricingSection when SHOW_PRICING) → (BrokerNetwork when SHOW_BROKERS) → Faq → InterestForm → (CtaFooter when SHOW_CONTACT) → SiteFooter. `ProductShowcase` (`#product-tour`) is a hand-built CSS/SVG mock of the app (no screenshots); `StatBand` shows count-up market figures. `InterestForm` always renders — it's the conversion action while pre-launch, and every pricing CTA anchors to it. |
 | `/digital-waste-tracking` | The DWTS pillar page — a full operator's guide to the Digital Waste Tracking Service, and the site's main organic-search asset. Renders `DwtsTimeline` with `variant="guide"`, then scope, the record contents, the two-working-day rule, fees, penalties, sector specifics, Fleetlix's own status, a DWTS-specific FAQ and the GOV.UK sources. Every date and figure comes from `src/config/dwts.ts`. Update its `lastUpdated` const when the substance changes. |
 | `/walkthrough` | The 10:39 product recording, behind a **click-to-load facade**. The page ships zero video weight — the 54 MB MP4 in Supabase Storage is not requested until the visitor presses play, and a native `<video>` plays it, so no third-party script runs. The 16 chapters in `src/config/walkthrough.ts` are both the visible copy and the seek targets. See _Walkthrough video_ below before changing anything here. |
 | `/install`   | PWA install guide for iPhone, iPad, Android, Windows and Mac, from `src/config/install.ts`. Platform tabs are **CSS-only** (radios + `:has()`), so all five platforms are in the DOM and crawlable and the page works with JS off; `src/scripts/install.ts` only pre-selects the tab matching the visitor's device. Device-support lists sit in `<details>`. Content describes **fleetlix.app** (the app repo) — its Settings paths can go stale without anything here failing, so re-check before a rollout. |
 | `/rwm2026`   | The physical-channel landing page — what the printed card QR, an NFC chip or a Wallet pass resolves to. Presents the `letsrecycle` promo (14-day trial vs the 7-day base, links into `/?promo=…#pricing`) and hands over our contact details as a **QR that encodes a vCard inline**, so the scan resolves on the other person's phone with no download. `noindex`, and excluded from the sitemap in `astro.config.mjs`. Renamed from `/card` on 12 Aug 2026; `public/_redirects` 301s the old path permanently because cards encoding it are already printed. Print asset: `public/fleetlix-rwm2026-qr.svg`. |
+| `/brokers`   | **Broker Network** — the second price ladder, for intermediaries. Two rungs from `src/config/brokers.ts`: **Broker Free** (£0, no card, 5 carriers / 2 users / 150 jobs a month) and **Broker Pro** (Unlimited, £249/mo + VAT — but normally *earned* by introducing carriers, not bought). Carries the referral mechanics, the margin-visibility table and the eligibility rule; `BrokerNetwork.astro` on the homepage is the teaser that links here. Ends with `<InterestForm variant="broker" />`. **Broker Pro has no Stripe slug on purpose** — `STRIPE_PRICE_MAP` is still on the stale v1 prices, so adding slugs now compounds a known blocker; every CTA goes to the registration form. Source: `Resources/Fleetlix-Broker-Offer.pdf`, whose "review draft / not yet published" markings are deliberately **not** carried across. |
 | `/security`  | **App & Data Security** — the trust document a buyer's IT person is sent, replacing the PDF of the same name. Twenty sections from `src/config/security.ts` (tabular content) plus prose in the page, rendered through `PolicySection` / `PolicyCallout`. Section numbers derive from the `contents` array, so the sticky rail and the on-page numbering renumber together. Bump `DOC.version` and `DOC.issued` when the substance changes. **Section 19, "What we do not claim", is load-bearing** — it is what makes the other nineteen survive a technical review, so items leave it only when they stop being true. The masthead offers the typeset PDF at `DOC.pdf` (see _Security PDF_ below). Print styles in `global.css` still make Cmd-P produce something filable; no `data-reveal` on this page, because anything never scrolled into view would print blank. |
+| `/support`   | **Customer support** — the help hub, and the page Stripe reads. Fifteen sections from `src/config/support.ts` plus prose in the page, rendered through `PolicySection` / `PolicyCallout`, numbered off the `contents` array exactly as `/security` is. It exists to do two jobs at once: help a paying operator through checkout, the setup period and daily use, **and** satisfy [Stripe's website checklist](https://docs.stripe.com/get-started/checklist/website) (customer service contact, refund policy, cancellation policy, promotion terms, purchase currency, business address, payment security). `https://fleetlix.com/support` is registered as the account's **Support site URL**, so it is printed on every Stripe receipt — it must never be gated behind `SHOW_CONTACT`, renamed, or 404. **No figure is typed on this page**: prices come from `src/config/pricing.ts` and the trial length from `src/config/checkout.ts` via `resolvePromo`. Sections 8–10 (billing, plan changes, cancellation and refunds) are the commercial terms in force — they are not marketing copy, and trimming one removes evidence Stripe holds. Bump `SUPPORT.lastUpdated` when the substance changes. No `data-reveal`, same print reasoning as `/security`. |
+| `/terms-of-service` | **Terms of Service** — the contract for the subscription, and the first contractual language this site has ever carried. Twenty-four sections numbered off `contents` in `src/config/terms.ts`, same machinery as `/security` and `/support`. Four commercial decisions are baked in and recorded in that config: **liability capped at 12 months' fees**, **England and Wales**, **business customers only** (which is what lets the cap and exclusions stand under UCTA 1977 — admitting consumers makes sections 17–18 unsafe as written), and **acceptance by required tick box at Stripe Checkout**. **Section 7, "Regulatory compliance stays yours", is the load-bearing one** — Fleetlix records and submits DWTS, DVSA walk-arounds and waste transfer notes, and an operator who thinks the software makes them compliant will be fined and then look for someone to blame. Don't trim it. Cross-references in the prose ("see section 18") are hand-written and do **not** renumber with the array — grep `section ` after any reorder. `/terms` and `/terms/` 301 here via `_redirects`. Bump `TERMS.version` **and** `effective` together; section 21 promises changes take effect at next renewal, which only means something if the version moves. |
 | `/privacy`   | UK GDPR policy. Update the `lastUpdated` const when material content changes.                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | `/cookies`   | PECR cookie policy. Asserts "no first-party cookies, no analytics".                                                                                                                                                                                                                                                                                                                                                                                                                                              |
 | `/thank-you` | Post-payment landing. Links to `https://app.fleetlix.com` (not yet live).                                                                                                                                                                                                                                                                                                                                                                                                                                        |
@@ -139,6 +142,7 @@ Always test at **375px (iPhone SE)** before merge — that's the narrowest targe
 ## Feature flags — `src/config/featureFlags.ts`
 
 - **`SHOW_PRICING`** (currently `true`) — when on: the Pricing nav link, `PricingSection` (five fixed plans mirroring `Resources/Pricing.md`: Operator £79 / Workshop £189 / Depot £350 / Haulier £550 / Network £899), and the hero "Prices from £79/month" CTA (→ `#pricing`) are rendered. `InterestForm` renders regardless of this flag. By default the per-plan CTAs anchor to `#register-interest`; `src/scripts/checkout.ts` progressively enhances them into Stripe checkout **only when a valid `?promo=` is in the URL** (see _Promo checkout_ below). If `Resources/Pricing.md` and the app repo's `shared/plans/index.ts` disagree, the code wins.
+- **`SHOW_BROKERS`** (currently `true`) — when on: the `BrokerNetwork` section on the homepage (directly below `PricingSection`) and the footer link to `/brokers`. **The `/brokers` page itself always builds and is always reachable** — the flag governs discovery, not existence, so a link already handed to a broker cannot 404.
 - **`SHOW_CONTACT`** (currently `false`) — when off: "Book a demo" CTAs in Header + Hero, the Contact nav link, the `CtaFooter` section, and the footer email are all hidden. Legal pages keep their statutory data-protection contact regardless.
 
 Credentials and email addresses stay in source even when flags are off — only the rendered surface is cut.
@@ -250,7 +254,120 @@ The PDF is **not** content-hashed, so `_headers` caches it for an hour rather
 than marking it immutable — a corrected security document must not still be
 handed out tomorrow.
 
+## Support page and the support mailbox
+
+`/support` and `/terms-of-service` publish **`contact@fleetlix.com`**
+(`SUPPORT.email` in `src/config/support.ts` — one const, ~19 rendered
+occurrences). That address is not decorative:
+
+- It is set in **Stripe → Public details** as the customer support email,
+  alongside `https://fleetlix.com/support` as the support URL. Stripe prints
+  both on **every receipt it sends on our behalf**, so they are what a customer
+  uses to reach us about a charge before they reach for a chargeback.
+- **The site and Stripe must name the same mailbox.** The terms name it for
+  contractual notices and cancellation; the receipt names it for billing
+  questions. Two addresses means two inboxes and a customer in the wrong one.
+- `contact@` is used rather than `support@` because it is the address Cloudflare
+  Email Routing actually forwards (→ `chris@cn-design.co.uk`). A `support@`
+  alias was drafted on 28 Aug 2026 and dropped for exactly this reason: an
+  address published but not routed black-holes people at the moment they are
+  trying to reach a human about money. **To change it: add the Email Routing
+  rule first, then update Stripe's Public details in the same sitting.**
+- **`security@fleetlix.com` on `/security` has not been verified as routed** and
+  predates this note. Check it against the Email Routing rules; if there is no
+  catch-all, it is a live black hole on the security document.
+
+`/support` is the plain reading of the commercial terms; **`/terms-of-service` is
+the contract**, and section 10 of the support page says so. The cancellation and
+refund positions are stated in both and **must move together** — support section
+10 and terms sections 13–14 are the same policy written twice, for two readers.
+
+Two commitments on the page are ours to keep rather than the code's:
+**a reply within one working day**, and the cancellation/refund position in
+section 10 (cancel any time, access runs to the end of the paid period, no
+pro-rata refund on monthly, discretionary refund of unused whole months on
+annual). If either changes, the page is the record — update it there.
+
+**Known gap, deliberate:** no phone number. Stripe's checklist asks for contact
+methods beyond a form, and its Public business information has a support phone
+field. Section 1 says plainly that there is no phone line rather than implying
+one. `SUPPORT.phone` is `null`; set it and section 1 renders it.
+
+**Stripe Public details, as set 28 Aug 2026** — these five fields are the
+account's public face and each maps to something in this repo, so a rename here
+breaks a link Stripe is already printing:
+
+| Stripe field | Value |
+| --- | --- |
+| Customer support email | `contact@fleetlix.com` (`SUPPORT.email`) |
+| Customer support URL | `https://fleetlix.com/support` |
+| Business website | `https://fleetlix.com` |
+| Privacy policy URL | `https://fleetlix.com/privacy` |
+| Terms of service URL | `https://fleetlix.com/terms-of-service` |
+
+The **terms of service URL is load-bearing for checkout**, not just for display:
+`consent_collection[terms_of_service]=required` in `functions/api/checkout.ts`
+links the tick box to whatever is set here, and Stripe rejects session creation
+outright if it is blank.
+
+## Broker Network
+
+A **second, separate price ladder** for intermediaries, living in
+`src/config/brokers.ts` rather than `pricing.ts`. They are not merged on
+purpose: the five operator tiers are seat-and-module priced and all cost money;
+the two broker rungs are capacity-priced, one is free forever, and the paid rung
+is normally *earned* rather than bought. Merging would force `Tier` to carry a
+nullable price and an "earned" state meaningless to the other five.
+
+Rendered twice: `BrokerNetwork.astro` is the homepage teaser (two rungs, the
+free tier's limits, the eligibility line, CTA to the page); `/brokers` is the
+whole offer. Both read the one config.
+
+**Three things that must not drift:**
+
+- **The eligibility line is load-bearing, not small print.** *"Broker Free is for
+  intermediaries only — no owned containers, no owned fleet, no jobs run in your
+  own name."* Without it, every Operator at £99 reclassifies as a free broker and
+  the operator ladder has an obvious door out of it. It renders on screen on
+  **both** surfaces; keep it there.
+- **No DWTS date is typed.** October 2027 comes from `DWTS_MILESTONES` in
+  `src/config/dwts.ts` (`phase-2-mandatory`), and `/brokers` repeats that
+  milestone's `caveat` — the SI had not been laid as of Aug 2026 — rather than
+  stating the date flatly. Same one-source rule as everywhere else.
+- **£249 carries "+ VAT".** FLEETLIX LTD is VAT registered; an unqualified figure
+  is a misquote to a business buyer.
+
+**Broker Pro is not purchasable.** It has no plan slug in either copy of the
+checkout config, deliberately: `STRIPE_PRICE_MAP` still points at the stale v1
+prices (`Resources/stripe-pricing-id.md`), so adding two more slugs on top
+compounds a known blocker. Making it buyable later needs a price created with
+`tax_behavior: 'exclusive'` and slugs added to **both** `functions/api/checkout.ts`
+and `src/config/checkout.ts`.
+
+**Launch is one const.** `BROKER_LAUNCH` in `src/config/brokers.ts` holds the
+window (mid-September 2026) and its ISO date. It is a public commitment, the
+same way `COMING_LABEL` is in `pricing.ts` — one line to edit if it slips.
+
+The **referral mechanic is the pricing model**, not a growth hack: introduce a
+carrier who completes ten jobs in thirty days (at least three their own direct
+work) and two months of Pro land in your account, up to twelve at a time. **No
+cash changes hands in either direction** — a cash bounty would put a broker in
+the position of leaning on a carrier to sign up, which poisons the relationship
+the product depends on. Nothing is ever clawed back, and Pro expiry drops you to
+Free rather than to nothing.
+
 ## Interest form pipeline
+
+`InterestForm` takes a **`variant` prop** (`"operator"` — the default, on the
+homepage — or `"broker"`, on `/brokers`). The variant swaps the two selects and
+the surrounding copy, and stamps `enquiry_type` on the payload so the two lead
+types are distinguishable in the inbox (broker leads get a `Fleetlix BROKER`
+subject line). The broker variant asks **carriers on panel** and **jobs per
+month** rather than fleet size — Broker Free eligibility is explicitly "no owned
+fleet", so asking a broker their fleet size contradicts the page they arrived
+from. `CARRIER_COUNTS` and `JOB_VOLUMES` are duplicated in
+`src/components/InterestForm.tsx` and `functions/api/register-interest.ts`;
+**change both together**, as with the checkout promo config.
 
 ```
 visitor submits InterestForm (React island)
@@ -307,6 +424,7 @@ card QR / link → fleetlix.com/?promo=letsrecycle#pricing
 | `STRIPE_PRICE_MAP`                            | JSON `{"operator":"price_…","workshop":"price_…",…}`               | Plan slug → **live monthly** Stripe price id. A slug with no entry (e.g. a plan not yet created in Stripe) returns a graceful 400.                                                                                                           |
 | `TEST_STRIPE_SECRET_KEY` _(secret, optional)_ | `sk_test_…`                                                        | **Test override.** When set, the function runs entirely in test mode (this key + `TEST_STRIPE_PRICE_MAP`), leaving the live vars untouched. **Remove it to go live** — otherwise real customers get a test checkout they can't actually pay. |
 | `TEST_STRIPE_PRICE_MAP`                       | JSON, **test-mode** price ids                                      | Required alongside `TEST_STRIPE_SECRET_KEY` — Stripe test prices are separate objects from live, so this must hold `price_…` ids created in test mode.                                                                                       |
+| `STRIPE_TOS_CONSENT` _(optional)_             | `off`                                                              | **Escape hatch, not a setting.** Terms-of-service consent is ON by default: the session is created with `consent_collection[terms_of_service]=required`, so Stripe renders a required tick box and records acceptance — that is what makes `/terms-of-service` binding. **Prerequisite: the terms URL must be set in the Stripe Dashboard** (the API has no field for it); until it is, Stripe rejects session creation outright, exactly as `automatic_tax` does without Stripe Tax enabled. Set to `off` only to unblock a test — leaving it off means taking money with nobody having accepted the terms, and makes section 2 of that page untrue. |
 | `CHECKOUT_SUCCESS_URL` _(optional)_           | `https://fleetlix.app/onboarding?session_id={CHECKOUT_SESSION_ID}` | Defaults to this. Keep the literal `{CHECKOUT_SESSION_ID}` placeholder. For testing, point it at `https://fleetlix.com/thank-you?session_id={CHECKOUT_SESSION_ID}` until the app onboarding exists.                                          |
 | `CHECKOUT_CANCEL_URL` _(optional)_            | `https://fleetlix.com/#pricing`                                    | Defaults to this.                                                                                                                                                                                                                            |
 

@@ -1,0 +1,897 @@
+---
+// /support — the customer support document.
+//
+// Two readers, one page, and the page has to work for both:
+//
+//   1. An operator who has just paid, or is mid-setup, or has hit something
+//      that does not work. They arrive from /thank-you, /install, the footer,
+//      or a Stripe receipt.
+//   2. Stripe. Its website checklist requires customer service contact
+//      information, a refund policy, a cancellation policy, the terms of any
+//      promotion, the purchase currency and a business address; its Public
+//      business information carries a "Support site URL" that is printed on
+//      every receipt we send. That URL is this page.
+//
+// Because of (2), sections 3, 4, 5, 10, 13, 14 and 15 are compliance surface as
+// well as help content. Trimming one for brevity removes evidence Stripe holds
+// against the account — if a section reads long, tighten the prose rather than
+// dropping the section.
+//
+// FOUR RULES:
+//   1. NO FIGURE IS TYPED HERE. Prices come from src/config/pricing.ts and the
+//      trial length from src/config/checkout.ts. The /rwm2026 header comment
+//      already warns that a trial length stated in a fourth place is "a
+//      complaint waiting to happen" — this page must not become that place.
+//   2. Section numbers derive from `contents` in src/config/support.ts. Written
+//      cross-references ("see section 9") do NOT renumber themselves, so check
+//      them if you reorder.
+//   3. NO data-reveal. Same reason as /security: anything never scrolled into
+//      view is left at opacity 0 and prints blank.
+//   4. Nothing here may contradict section 19 of /security ("What we do not
+//      claim"). Section 13 below restates those limits rather than going quiet
+//      on them.
+//
+// Bump SUPPORT.lastUpdated in src/config/support.ts when the substance changes.
+import Base from "../layouts/Base.astro";
+import Header from "../components/Header.astro";
+import SiteFooter from "../components/SiteFooter.astro";
+import PolicySection from "../components/PolicySection.astro";
+import PolicyCallout from "../components/PolicyCallout.astro";
+import {
+  SUPPORT,
+  contents,
+  helpRoutes,
+  setupSteps,
+  checkoutIssues,
+  appIssues,
+} from "../config/support";
+import { TIERS, gbp, formatCap } from "../config/pricing";
+import { resolvePromo } from "../config/checkout";
+
+const mailto = `mailto:${SUPPORT.email}`;
+
+// The promo trial, resolved through the same helper the checkout script uses
+// rather than restated. If the code is ever renamed this returns null and the
+// trial paragraph disappears, which is the correct failure: better to say
+// nothing than to advertise a trial the checkout will refuse to grant.
+const PROMO_CODE = "letsrecycle";
+const promo = resolvePromo(PROMO_CODE);
+---
+
+<Base
+  title="Support | Fleetlix"
+  description="Help with Fleetlix — contacting us, plans and VAT, free trials, signing up, billing, cancelling and refunds, and what to do when checkout or the app goes wrong."
+>
+  <Header />
+
+  <main id="support-doc" class="policy-doc bg-[color:var(--color-offwhite)]">
+    <!-- ============================================================ *
+         Masthead. Carries the one thing most visitors came for — the
+         address and the reply target — above everything else.
+         ============================================================ -->
+    <section class="policy-dark relative overflow-clip bg-[color:var(--color-graphite)] text-white">
+      <div class="aurora" aria-hidden="true">
+        <div class="aurora-blob aurora-blob--cyan absolute -left-28 -top-10 h-80 w-80 opacity-25"></div>
+        <div class="aurora-blob aurora-blob--amber absolute -right-24 bottom-0 h-80 w-80 opacity-20"></div>
+      </div>
+
+      <div class="relative mx-auto max-w-7xl px-6 py-16 md:py-24">
+        <div class="max-w-3xl">
+          <p class="hero-fade text-xs font-semibold uppercase tracking-[0.18em] text-[color:var(--color-cyan)]">
+            Fleetlix · Support
+          </p>
+          <h1 class="hero-rise mt-3 font-[family-name:var(--font-display)] text-3xl font-extrabold leading-[1.08] tracking-tight text-white sm:text-4xl lg:text-5xl text-balance">
+            Help with Fleetlix
+          </h1>
+          <p class="hero-rise mt-5 max-w-2xl text-lg leading-relaxed text-white/70">
+            How to reach us, what you pay and when, how to cancel, and what to
+            do when something does not work. Written to be read by whoever
+            needs it — the operator, the office, or the person checking
+            us over before you buy.
+          </p>
+
+          <dl class="hero-fade mt-7 flex flex-wrap items-center gap-x-8 gap-y-3 text-sm">
+            <div>
+              <dt class="text-[10px] font-bold uppercase tracking-[0.16em] text-white/45">Email</dt>
+              <dd class="mt-0.5 font-semibold text-white">
+                <a href={mailto} class="underline underline-offset-2 decoration-white/30 hover:decoration-white">
+                  {SUPPORT.email}
+                </a>
+              </dd>
+            </div>
+            <div>
+              <dt class="text-[10px] font-bold uppercase tracking-[0.16em] text-white/45">We reply within</dt>
+              <dd class="mt-0.5 font-semibold text-white">{SUPPORT.responseTarget}</dd>
+            </div>
+            <div>
+              <dt class="text-[10px] font-bold uppercase tracking-[0.16em] text-white/45">Hours</dt>
+              <dd class="mt-0.5 font-semibold text-white">{SUPPORT.hours}</dd>
+            </div>
+          </dl>
+
+          <div class="hero-fade mt-8 flex flex-wrap items-center gap-3" data-no-print>
+            <a
+              href={mailto}
+              class="btn-sheen inline-flex items-center justify-center rounded-xl bg-[color:var(--color-amber)] px-5 py-3 text-sm font-semibold text-[color:var(--color-graphite)] transition hover:brightness-105"
+            >
+              Email support
+            </a>
+            <a
+              href="/install"
+              class="inline-flex items-center gap-2 rounded-xl border border-white/25 px-5 py-3 text-sm font-semibold text-white transition hover:border-white/50 hover:bg-white/5"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="6" y="2" width="12" height="20" rx="2" /><path d="M11 18h2" />
+              </svg>
+              Install guide
+            </a>
+          </div>
+        </div>
+
+        <!-- At a glance -->
+        <ul class="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {helpRoutes.map((tile) => (
+            <li>
+              <a
+                href={tile.href}
+                class={`card-glow ${tile.accent === "amber" ? "glow-amber" : "glow-cyan"} group flex h-full flex-col rounded-2xl border border-white/12 bg-white/[0.04] p-5 transition hover:border-white/25`}
+              >
+                <span
+                  class={`inline-flex h-9 w-9 items-center justify-center rounded-lg ${
+                    tile.accent === "amber"
+                      ? "bg-[color:var(--color-amber)]/15 text-[color:var(--color-amber)]"
+                      : "bg-[color:var(--color-cyan)]/15 text-[color:var(--color-cyan)]"
+                  }`}
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" set:html={tile.icon} />
+                </span>
+                <p class="mt-4 text-[10px] font-bold uppercase tracking-[0.16em] text-white/45">
+                  {tile.label}
+                </p>
+                <p class="mt-1 font-[family-name:var(--font-display)] text-lg font-bold text-white">
+                  {tile.headline}
+                </p>
+                <p class="mt-2 text-sm leading-relaxed text-white/65">{tile.body}</p>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+
+    <!-- ============================================================ *
+         Body. Sticky contents rail from lg; collapsed <details> on
+         phones so fifteen links don't sit between the reader and the
+         first answer.
+         ============================================================ -->
+    <div class="mx-auto max-w-7xl px-6 py-12 md:py-16">
+      <div class="lg:grid lg:grid-cols-12 lg:gap-12">
+        <!-- Contents -->
+        <nav class="lg:col-span-4 xl:col-span-3" aria-label="Contents" data-no-print>
+          <details class="policy-toc group rounded-2xl border border-[color:var(--color-mist)] bg-white lg:hidden">
+            <summary class="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 font-semibold text-[color:var(--color-graphite)]">
+              Contents
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="shrink-0 text-[color:var(--color-slate)] transition-transform group-open:rotate-180 motion-reduce:transition-none">
+                <path d="m6 9 6 6 6-6" />
+              </svg>
+            </summary>
+            <ol class="border-t border-[color:var(--color-mist)] px-3 py-3">
+              {contents.map((entry, i) => (
+                <li>
+                  <a
+                    href={`#${entry.id}`}
+                    class="flex gap-3 rounded-lg px-3 py-2 text-sm text-[color:var(--color-slate)] hover:bg-[color:var(--color-mist)]/50 hover:text-[color:var(--color-graphite)]"
+                  >
+                    <span class="tabular-nums text-[color:var(--color-slate)]/50">
+                      {String(i + 1).padStart(2, "0")}
+                    </span>
+                    {entry.label}
+                  </a>
+                </li>
+              ))}
+            </ol>
+          </details>
+
+          <div class="hidden lg:sticky lg:top-24 lg:block">
+            <p class="text-[10px] font-bold uppercase tracking-[0.16em] text-[color:var(--color-slate)]/60">
+              Contents
+            </p>
+            <ol class="mt-4 space-y-0.5">
+              {contents.map((entry, i) => (
+                <li>
+                  <a
+                    href={`#${entry.id}`}
+                    data-nav-link
+                    class="policy-toc-link flex gap-2.5 py-1.5 pl-3 text-sm leading-snug text-[color:var(--color-slate)]"
+                  >
+                    <span class="tabular-nums text-[color:var(--color-slate)]/45">
+                      {String(i + 1).padStart(2, "0")}
+                    </span>
+                    <span>{entry.label}</span>
+                  </a>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </nav>
+
+        <!-- Document -->
+        <article class="mt-10 space-y-12 lg:col-span-8 lg:mt-0 xl:col-span-9">
+          <PolicySection id="contact" title="How to reach us" contents={contents}>
+            <p>
+              Email <a href={mailto} class="policy-link">{SUPPORT.email}</a>.
+              That address reaches a person who can change something, not a
+              queue. We aim to reply within <strong>{SUPPORT.responseTarget}</strong>,
+              {" "}{SUPPORT.hours}.
+            </p>
+            <p>
+              You do not need an account or a reference number to write to us,
+              and you do not need to be a customer. Questions from someone
+              still deciding are answered on the same terms as questions from
+              someone already paying.
+            </p>
+
+            <p class="policy-subhead">What to include</p>
+            <p>
+              None of this is required, but each of them removes a round trip:
+            </p>
+            <ul class="policy-list">
+              <li>
+                <strong>The email address on the account</strong> — or the
+                one you paid with, if the account does not exist yet.
+              </li>
+              <li>
+                <strong>What you were trying to do</strong>, and what happened
+                instead. If a message appeared on screen, the exact wording of
+                it matters more than a description.
+              </li>
+              <li>
+                <strong>The device and browser</strong>, if it is something in
+                the app rather than something about billing.
+              </li>
+              <li>
+                <strong>A screenshot</strong>, if there was anything to see. Do
+                not send card numbers — we cannot use them and do not want
+                them.
+              </li>
+            </ul>
+
+            <PolicyCallout label="We do not have a phone line" tone="amber">
+              <p>
+                Everything runs through email today. That is a real limitation
+                and we would rather say so than route you to a number nobody
+                answers. If something is urgent, put
+                <strong> Urgent</strong> in the subject line and say what is
+                stopped — a yard that cannot dispatch is treated
+                differently from a question about an invoice.
+              </p>
+            </PolicyCallout>
+
+            <p class="policy-subhead">Other addresses</p>
+            <p>
+              Security reports, data processing agreements and sub-processor
+              notices go to the security team rather than here — see the
+              contact section of <a href="/security" class="policy-link">App &amp; Data Security</a>.
+              Data protection requests are handled through the route set out in
+              our <a href="/privacy" class="policy-link">privacy policy</a>,
+              which carries its own statutory deadline. The contract governing
+              your subscription is our
+              {" "}<a href="/terms-of-service" class="policy-link">terms of service</a>.
+            </p>
+          </PolicySection>
+
+          <PolicySection id="what-fleetlix-is" title="What Fleetlix is" contents={contents}>
+            <p>
+              Fleetlix is operations software for UK waste, skip-hire and
+              haulage firms. It runs the working day end to end: booking and
+              dispatch, the drag-and-drop board and live map, driver walk-around
+              checks, weighbridge tickets and waste capture, waste transfer
+              notes with carrier sign-off, maintenance and compliance dates,
+              invoicing, and submission to the Digital Waste Tracking Service.
+            </p>
+            <p>
+              It is sold as a monthly or annual subscription, priced by the size
+              of your team and which commercial modules you need. There is one
+              product; the tiers differ by capacity and depth, not by whether
+              the core works. A fuller description of what is included sits on
+              the <a href="/#product-tour" class="policy-link">home page</a>,
+              and there is a recorded
+              {" "}<a href="/walkthrough" class="policy-link">walkthrough</a> of
+              the actual product if you would rather watch than read.
+            </p>
+
+            <PolicyCallout label="Nothing is shipped" tone="cyan">
+              <p>
+                Fleetlix is delivered entirely over the web. It installs from
+                the browser onto phones, tablets and desktops with no app store
+                account and no download from us — see the
+                {" "}<a href="/install" class="policy-link">install guide</a>.
+                There is no hardware, no physical delivery and therefore no
+                shipping or returns policy. What applies instead is the
+                cancellation and refund position in section 10.
+              </p>
+            </PolicyCallout>
+          </PolicySection>
+
+          <PolicySection id="plans" title="Plans, prices and currency" contents={contents}>
+            <p>
+              All prices are in <strong>pounds sterling (GBP)</strong> and
+              <strong> exclude VAT</strong>. Annual plans cost ten months rather
+              than twelve, so two months are free, and are billed once, up
+              front.
+            </p>
+
+            <div class="policy-table-wrap">
+              <table class="policy-table">
+                <thead>
+                  <tr>
+                    <th scope="col">Plan</th>
+                    <th scope="col">Monthly</th>
+                    <th scope="col">Annual</th>
+                    <th scope="col">DWTS submissions a month</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {TIERS.map((tier) => (
+                    <tr>
+                      <th scope="row">{tier.name}</th>
+                      <td data-label="Monthly" class="tabular-nums">£{gbp(tier.monthly)}</td>
+                      <td data-label="Annual" class="tabular-nums">£{gbp(tier.annual)}</td>
+                      <td data-label="DWTS submissions a month" class="tabular-nums">{formatCap(tier.dwts)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <p>
+              Seat allowances differ by plan and are counted per role —
+              Drivers, Yard, Mechanics and Office. The full breakdown, and what
+              each tier unlocks, is on the
+              {" "}<a href="/#pricing" class="policy-link">pricing section</a>,
+              which is the authoritative published version of this table.
+            </p>
+            <p>
+              Seat limits are enforced in the database, not only in the
+              interface. Admin is a permission an Office or Yard user holds; it
+              never costs a seat.
+            </p>
+          </PolicySection>
+
+          <PolicySection id="vat" title="VAT" contents={contents}>
+            <p>
+              Every price we publish excludes VAT. FLEETLIX LTD is VAT
+              registered, so a UK business pays the listed price plus VAT at
+              20%, which most can then reclaim on their own return.
+            </p>
+            <p>
+              VAT is worked out and added at checkout, not before — which
+              is why the total on the payment page is higher than the figure on
+              the plan card. A business outside the UK can enter its VAT number
+              at checkout and is handled under the reverse charge. A billing
+              address is required in all cases, because it is what determines
+              the tax treatment.
+            </p>
+            <p>
+              Your VAT invoice comes from our payment provider and shows our VAT
+              registration. See section 8 for where to find it.
+            </p>
+          </PolicySection>
+
+          <PolicySection id="trials" title="Free trials and promo codes" contents={contents}>
+            {promo ? (
+              <>
+                <p>
+                  A promotion code extends a free trial rather than discounting
+                  the price. The code <code>{promo.code}</code> currently opens a
+                  {" "}<strong>{promo.trialDays}-day free trial</strong> on any
+                  plan. The code is not case-sensitive and stray spaces are
+                  ignored.
+                </p>
+                <p>
+                  The code has to be in the link you follow, as
+                  <code>?promo={promo.code}</code>, not typed into the payment
+                  page. If you were handed a card or sent an email, use that
+                  link as it stands.
+                </p>
+              </>
+            ) : (
+              <p>
+                There is no promotion running at the moment. If you were given a
+                code, send it to us and we will tell you whether it is still
+                live.
+              </p>
+            )}
+
+            <p class="policy-subhead">How the trial works</p>
+            <ul class="policy-list">
+              <li>
+                <strong>Card details are taken up front.</strong> Nothing is
+                charged on the day you start. The card is what lets the
+                subscription continue without a second signup at the end.
+              </li>
+              <li>
+                <strong>You get the whole plan.</strong> A trial is not a
+                reduced version — every feature of the tier you picked is
+                on, so what you evaluate is what you would be buying.
+              </li>
+              <li>
+                <strong>The first payment is taken when the trial ends</strong>,
+                at the plan and billing period you chose, plus VAT.
+              </li>
+              <li>
+                <strong>Cancel any time before then and you are not charged.</strong>
+                {" "}No notice period, no fee, no conversation required. Section
+                10 sets out how.
+              </li>
+            </ul>
+
+            <PolicyCallout label="Paid signup is invitation-only right now" tone="amber">
+              <p>
+                Fleetlix is pre-launch, and checkout is currently open only to
+                people holding a promotion code. Without one, the buttons on the
+                pricing section stay as enquiry links rather than becoming buy
+                buttons — that is intended, not a fault. If you want in
+                and do not have a code, email us and ask.
+              </p>
+            </PolicyCallout>
+          </PolicySection>
+
+          <PolicySection id="signing-up" title="Signing up, step by step" contents={contents}>
+            <p>
+              One thing about this order surprises nearly everyone, so it is
+              worth stating plainly: <strong>you pay before your login exists</strong>.
+              The payment is what creates the account for you to then set a
+              password on.
+            </p>
+            <ol class="policy-list">
+              <li>
+                <strong>Open the link with your code in it</strong> and choose
+                monthly or annual on the pricing section.
+              </li>
+              <li>
+                <strong>Pick a plan.</strong> The button will offer the free
+                trial if your code is recognised.
+              </li>
+              <li>
+                <strong>Enter your details on the payment page.</strong> This is
+                hosted by our payment provider, not by us. It collects your
+                billing address, your card, and your VAT number if you have one.
+              </li>
+              <li>
+                <strong>You are returned to Fleetlix to set a password.</strong>
+                {" "}This is the step that turns the payment into an account you
+                can log into.
+              </li>
+              <li>
+                <strong>Your workspace is created</strong> on the plan you paid
+                for, and you land in it as the first Admin.
+              </li>
+              <li>
+                <strong>Set the business up</strong> — vehicles, people,
+                waste tracking credentials. Section 7 covers the order that
+                works best.
+              </li>
+            </ol>
+
+            <PolicyCallout label="Do not close the tab at step 4" tone="graphite">
+              <p>
+                The page you are returned to carries a one-time reference that
+                proves the payment. If it is lost — the tab was closed,
+                the link was forwarded, a shortener trimmed it — the
+                sign-up page cannot confirm who you are and drops you at the
+                ordinary sign-in screen instead.
+              </p>
+              <p>
+                If that happens, <strong>do not pay again</strong>. Email us from
+                the address you paid with and we will finish the account by
+                hand, usually the same day. The payment is safe and we can see
+                it.
+              </p>
+            </PolicyCallout>
+          </PolicySection>
+
+          <PolicySection id="first-week" title="Your first week" contents={contents}>
+            <p>
+              You do not have to do all of this before you start taking jobs
+              through Fleetlix, and most operators do not. This is the order
+              that causes the least rework.
+            </p>
+            <ol class="mt-6 space-y-4">
+              {setupSteps.map((item, i) => (
+                <li class="flex gap-4">
+                  <span
+                    class="mt-0.5 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[color:var(--color-graphite)] font-[family-name:var(--font-display)] text-xs font-bold tabular-nums text-white"
+                    aria-hidden="true"
+                  >
+                    {i + 1}
+                  </span>
+                  <div>
+                    <p class="font-[family-name:var(--font-display)] font-bold text-[color:var(--color-graphite)]">
+                      {item.step}
+                    </p>
+                    <p class="mt-1 leading-relaxed">{item.detail}</p>
+                  </div>
+                </li>
+              ))}
+            </ol>
+            <p>
+              If any of it stalls, say so early rather than working around it.
+              Setting up a yard is the part where we are most useful, and it is
+              the part we would rather do with you than read about afterwards.
+            </p>
+          </PolicySection>
+
+          <PolicySection id="billing" title="Billing, invoices and receipts" contents={contents}>
+            <p class="policy-subhead">When you are charged</p>
+            <ul class="policy-list">
+              <li>
+                <strong>On a trial:</strong> nothing on the day you sign up. The
+                first payment is taken when the trial ends.
+              </li>
+              <li>
+                <strong>Monthly:</strong> on the same date each month, from the
+                date the subscription starts.
+              </li>
+              <li>
+                <strong>Annually:</strong> once, up front, for the whole year.
+              </li>
+            </ul>
+            <p>
+              Every charge is the plan price plus VAT. Nothing else is added
+              — there are no setup fees, no onboarding charges and no
+              per-submission cost for waste tracking within your plan's
+              allowance.
+            </p>
+
+            <p class="policy-subhead">Invoices and receipts</p>
+            <p>
+              Receipts are issued by our payment provider and emailed to the
+              address on the subscription at the time of each charge. They carry
+              our VAT registration and are valid VAT invoices for your records.
+              If you need one reissued, or sent to a different address from the
+              one that pays, ask us and we will arrange it.
+            </p>
+
+            <p class="policy-subhead">Changing your card or billing details</p>
+            <p>
+              Email us and we will send you a secure link to update the card,
+              the billing address or the VAT number on the account. We cannot
+              take card details by email or over any other channel, and we will
+              never ask you for them — see section 14 for why.
+            </p>
+
+            <PolicyCallout label="If a payment fails" tone="graphite">
+              <p>
+                Our payment provider retries a failed payment over the following
+                days and emails you each time. Your account keeps working during
+                that window — we do not lock a yard out of its own
+                operations over a card that expired. If it cannot be resolved,
+                we will email you directly before anything changes.
+              </p>
+            </PolicyCallout>
+          </PolicySection>
+
+          <PolicySection id="changing-plan" title="Changing your plan" contents={contents}>
+            <p>
+              You can move up or down at any time, and you are not locked to the
+              tier you started on.
+            </p>
+            <ul class="policy-list">
+              <li>
+                <strong>Moving up</strong> takes effect immediately — the
+                extra seats and modules are available straight away, and the
+                cost difference is applied from that point rather than charged
+                as a fresh full period.
+              </li>
+              <li>
+                <strong>Moving down</strong> takes effect at your next renewal,
+                so you keep what you have paid for until then. Check your seat
+                counts before it lands: if you are over the new plan's limit,
+                you will need to remove people first.
+              </li>
+              <li>
+                <strong>Switching between monthly and annual</strong> is
+                possible in either direction. Tell us which and we will arrange
+                it rather than have you cancel and re-sign.
+              </li>
+            </ul>
+            <p>
+              Nothing is deleted when you change plan. Data belonging to a
+              module you no longer have becomes read-only or hidden rather than
+              being destroyed, and it returns intact if you move back up.
+            </p>
+          </PolicySection>
+
+          <PolicySection id="cancelling" title="Cancelling and refunds" contents={contents}>
+            <p>
+              There is no minimum term, no notice period and no cancellation
+              fee. To cancel, email
+              {" "}<a href={mailto} class="policy-link">{SUPPORT.email}</a> from
+              the address on the account and say so. We will confirm in writing,
+              in {SUPPORT.responseTarget}, and tell you the exact date access
+              ends.
+            </p>
+
+            <p class="policy-subhead">What happens when you cancel</p>
+            <ul class="policy-list">
+              <li>
+                <strong>Your access runs to the end of the period you have paid
+                for.</strong> Cancelling does not cut you off that day. On a
+                monthly plan that is the end of the current month; on an annual
+                plan, the end of the year you bought.
+              </li>
+              <li>
+                <strong>You are not charged again</strong> after the
+                cancellation is confirmed.
+              </li>
+              <li>
+                <strong>Cancelling during a free trial costs nothing</strong>,
+                provided it is before the trial ends.
+              </li>
+              <li>
+                <strong>You can export your data</strong> before access ends.
+                Ask and we will help; do not leave it to the last day.
+              </li>
+            </ul>
+
+            <PolicyCallout label="We do not refund part-used periods" tone="amber">
+              <p>
+                Because access continues to the end of the period you have paid
+                for, we do not issue pro-rata refunds for the unused remainder
+                of a monthly subscription — you keep the service you
+                bought instead.
+              </p>
+              <p>
+                <strong>Annual plans are treated with more latitude.</strong> An
+                annual subscription is twelve months paid at once, and
+                circumstances change. If you cancel well inside an annual term,
+                ask about a refund of the unused whole months. We will look at
+                it properly rather than pointing at this paragraph. It is
+                discretionary, not guaranteed — but we would rather say
+                that honestly than promise nothing or promise everything.
+              </p>
+            </PolicyCallout>
+
+            <p class="policy-subhead">When we will refund</p>
+            <p>
+              Regardless of the above, we will refund you where we have got it
+              wrong: a duplicate charge, a charge after a cancellation we had
+              confirmed, a charge on the wrong plan, or a period in which the
+              service was not usable because of a failure at our end. Tell us
+              and we will put it right — we would rather refund a disputed
+              charge than argue about it.
+            </p>
+            <p>
+              Refunds are returned to the card that paid, through our payment
+              provider. They typically appear within five to ten working days,
+              depending on your bank.
+            </p>
+
+            <PolicyCallout label="This is the summary; the contract is the terms" tone="cyan">
+              <p>
+                The binding version of everything in this section — cancellation,
+                renewal, refunds — is in our
+                {" "}<a href="/terms-of-service" class="policy-link">terms of service</a>,
+                which is what governs your subscription. This page is the plain
+                reading of it, and where the two differ on substance, the terms
+                govern.
+              </p>
+              <p>
+                Fleetlix is sold to businesses rather than to consumers, so the
+                statutory cancellation rights that apply to consumer purchases do
+                not apply here. Nothing in these terms limits any right that
+                cannot lawfully be excluded.
+              </p>
+            </PolicyCallout>
+          </PolicySection>
+
+          <PolicySection id="checkout-problems" title="If checkout goes wrong" contents={contents}>
+            <p>
+              Checkout reports failures by briefly rewriting the label on the
+              button you pressed, then changing it back. So what you will
+              remember is a button that said something odd for a couple of
+              seconds. Every message it can produce is below, with what it
+              actually means.
+            </p>
+            <p>
+              <strong>A failed checkout does not charge you.</strong> If the
+              payment page never opened, no payment was attempted.
+            </p>
+
+            <div class="mt-6 divide-y divide-[color:var(--color-mist)] overflow-hidden rounded-2xl border border-[color:var(--color-mist)] bg-white">
+              {checkoutIssues.map((issue) => (
+                <details class="group">
+                  <summary class="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 font-semibold text-[color:var(--color-graphite)]">
+                    <span>
+                      {issue.kind === "message" ? <code>{issue.symptom}</code> : issue.symptom}
+                    </span>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="shrink-0 text-[color:var(--color-slate)] transition-transform group-open:rotate-180 motion-reduce:transition-none">
+                      <path d="m6 9 6 6 6-6" />
+                    </svg>
+                  </summary>
+                  <div class="space-y-3 px-5 pb-4 leading-relaxed text-[color:var(--color-slate)]">
+                    <p>{issue.meaning}</p>
+                    <p><strong class="font-semibold text-[color:var(--color-graphite)]">What to do:</strong> {issue.fix}</p>
+                  </div>
+                </details>
+              ))}
+            </div>
+
+            <p>
+              If you hit something that is not on this list, send us the exact
+              wording and roughly what time it happened. We can look up what our
+              side did and tell you what went wrong.
+            </p>
+          </PolicySection>
+
+          <PolicySection id="app-problems" title="If the app goes wrong" contents={contents}>
+            <p>
+              Installation questions — how to get Fleetlix onto a specific
+              phone, tablet or desktop, which devices are supported, and what to
+              do when the install option does not appear — are answered
+              per platform in the
+              {" "}<a href="/install" class="policy-link">install guide</a>.
+              Everything else starts here.
+            </p>
+
+            <div class="mt-6 divide-y divide-[color:var(--color-mist)] overflow-hidden rounded-2xl border border-[color:var(--color-mist)] bg-white">
+              {appIssues.map((issue) => (
+                <details class="group">
+                  <summary class="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 font-semibold text-[color:var(--color-graphite)]">
+                    {issue.symptom}
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="shrink-0 text-[color:var(--color-slate)] transition-transform group-open:rotate-180 motion-reduce:transition-none">
+                      <path d="m6 9 6 6 6-6" />
+                    </svg>
+                  </summary>
+                  <p class="px-5 pb-4 leading-relaxed text-[color:var(--color-slate)]">{issue.fix}</p>
+                </details>
+              ))}
+            </div>
+          </PolicySection>
+
+          <PolicySection id="availability" title="Availability and known limits" contents={contents}>
+            <p>
+              We would rather you knew these before you bought than found them
+              afterwards.
+            </p>
+
+            <p class="policy-subhead">Where Fleetlix is sold</p>
+            <p>
+              Fleetlix is built for UK operators and sold to UK businesses. The
+              compliance features — DVSA walk-around checks, waste
+              transfer notes, Digital Waste Tracking — implement UK
+              regimes and have no equivalent elsewhere. We are not currently
+              set up to support operators outside the UK.
+            </p>
+
+            <p class="policy-subhead">What we do not yet have</p>
+            <ul class="policy-list">
+              <li>
+                <strong>Multi-factor authentication.</strong> It is not
+                available yet. It is the single most requested control we do not
+                have, and it is stated plainly in our
+                {" "}<a href="/security" class="policy-link">security document</a> as well as here.
+              </li>
+              <li>
+                <strong>Single sign-on.</strong> Announced for the Network plan
+                and not yet built. Anything advertised but unbuilt carries its
+                expected date on the pricing card rather than being described as
+                included.
+              </li>
+              <li>
+                <strong>A published uptime figure or status page.</strong> We do
+                not quote an availability percentage, because a number we have
+                not measured over a meaningful period would be a number we made
+                up. If something is down, we will tell you rather than expect you
+                to find a dashboard.
+              </li>
+              <li>
+                <strong>Third-party security certification.</strong> We hold no
+                ISO 27001, SOC 2 or Cyber Essentials certification and have not
+                had an independent penetration test. The controls we do run are
+                documented in full, along with the ones we do not claim.
+              </li>
+            </ul>
+
+            <p class="policy-subhead">Changes and maintenance</p>
+            <p>
+              Fleetlix is deployed continuously rather than in scheduled
+              windows, so there is no routine downtime to plan around. Where a
+              change alters something you depend on, we will tell you before it
+              lands rather than after.
+            </p>
+          </PolicySection>
+
+          <PolicySection id="data-security" title="Data, payment security and privacy" contents={contents}>
+            <p class="policy-subhead">Your card details</p>
+            <p>
+              <strong>We never see your card number.</strong> Payments are taken
+              on pages hosted by our payment provider, a PCI DSS Level 1 service
+              provider, and the card details are entered directly into their
+              systems. What reaches Fleetlix is a reference, the last four
+              digits and the card type — enough to show you which card is
+              on the account, and not enough to charge it anywhere else.
+            </p>
+            <p>
+              This is also why we can never ask you for a card number, and why
+              you should treat any message that does as not being from us.
+            </p>
+
+            <p class="policy-subhead">The site and the app</p>
+            <p>
+              Everything is served over HTTPS and forced there by a strict
+              transport policy. The site runs a content security policy that
+              blocks scripts we have not explicitly allowed, and carries no
+              analytics, advertising or session-recording scripts — a
+              commitment set out in our
+              {" "}<a href="/cookies" class="policy-link">cookie policy</a>,
+              not just an implementation detail.
+            </p>
+
+            <p class="policy-subhead">Your operational data</p>
+            <p>
+              How tenant isolation is enforced, where data is hosted, how media
+              is encrypted, who can reach it, what our sub-processors are and
+              what happens in an incident are all documented in
+              {" "}<a href="/security" class="policy-link">App &amp; Data Security</a>,
+              including a section on what we deliberately do not claim. How we
+              handle personal data, and your rights over it, are in our
+              {" "}<a href="/privacy" class="policy-link">privacy policy</a>.
+            </p>
+            <p>
+              If you need a data processing agreement, ask. We will sign one
+              — it is a conversation rather than a form.
+            </p>
+          </PolicySection>
+
+          <PolicySection id="who-we-are" title="Who we are" contents={contents}>
+            <p>
+              Fleetlix is built and operated by <strong>FLEETLIX LTD</strong>,
+              a company registered in England and Wales, company number
+              <strong> 17331348</strong>. Our registered office is 66 Paul
+              Street, London EC2A 4NA, United Kingdom. The company is VAT
+              registered, and is registered with the Information Commissioner's
+              Office under reference
+              {" "}<a href="https://ico.org.uk/ESDWebPages/Entry/ZC207602" class="policy-link" rel="noopener" target="_blank">ZC207602</a>.
+            </p>
+            <p>
+              The product is built in Central Scotland. Support is answered by
+              the people who build it, which is both the reason we can usually
+              fix things quickly and the reason we do not staff a phone line.
+            </p>
+            <p>
+              For anything commercial or technical, write to
+              {" "}<a href={mailto} class="policy-link">{SUPPORT.email}</a>.
+            </p>
+          </PolicySection>
+
+          <!-- Document footer. -->
+          <footer class="rounded-2xl border border-[color:var(--color-mist)] bg-white p-6 text-sm leading-relaxed text-[color:var(--color-slate)]">
+            <p class="font-[family-name:var(--font-display)] font-bold text-[color:var(--color-graphite)]">
+              Fleetlix Support
+            </p>
+            <p class="mt-1">
+              Last updated{" "}
+              <time datetime={SUPPORT.lastUpdatedIso}>{SUPPORT.lastUpdated}</time>
+            </p>
+            <p class="mt-3">
+              The billing, cancellation and refund terms in sections 8 to 10
+              apply to Fleetlix subscriptions bought through this site, and are
+              the terms in force at the date shown. Where they change, the
+              change applies from your next renewal rather than retrospectively.
+            </p>
+          </footer>
+        </article>
+      </div>
+    </div>
+  </main>
+
+  <SiteFooter />
+</Base>
+
+<script>
+  // Imports a shared module, so Astro emits this as an external /_astro/*.js
+  // file under script-src 'self' — no CSP hash. See src/scripts/support.ts.
+  import "../scripts/support.ts";
+</script>

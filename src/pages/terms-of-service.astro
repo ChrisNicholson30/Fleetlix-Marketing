@@ -1,0 +1,907 @@
+---
+// /terms-of-service — the contract for the Fleetlix subscription.
+//
+// Before 28 Aug 2026 this site carried NO contractual language of any kind: no
+// terms, no warranty position, no liability cap, no indemnity. Everything here
+// is a first draft in the literal sense, and four commercial decisions sit
+// underneath it (recorded in src/config/terms.ts): a twelve-month fee cap,
+// England and Wales, business customers only, and acceptance by tick box at
+// Stripe Checkout.
+//
+// WHAT THIS PAGE MUST NOT CONTRADICT — checked when written, re-check on edit:
+//   - /support section 10: cancel any time, access to the end of the paid
+//     period, no pro-rata refund on monthly, discretionary on annual. Section
+//     14 below restates it; the two must move together.
+//   - /security: "you are the data controller and Fleetlix is your processor";
+//     a DPA is "a conversation, not a form"; on termination we export on
+//     request then delete, subject to any period you instruct us to hold.
+//     Sections 8 and 20 track that wording deliberately.
+//   - /security section 19 "What we do not claim": no ISO 27001, no SOC 2, no
+//     Cyber Essentials, no independent pen test, no MFA. Section 17 must not
+//     warrant anything that list denies.
+//   - No uptime percentage anywhere on this site. Section 6 keeps it that way.
+//
+// THE SECTION THAT MATTERS MOST IS 7. Fleetlix records and submits statutory
+// data — DWTS, DVSA walk-arounds, waste transfer notes — and an operator who
+// believes the software makes them compliant is an operator who will be fined
+// and then look for someone to blame. Section 7 says plainly that the duty
+// stays with them. It is the clause most likely to be tested and the one least
+// likely to be found in a generic template, so do not trim it for length.
+//
+// Section numbers derive from `contents` in src/config/terms.ts, but written
+// cross-references ("see section 18") do NOT. Grep for "section " on reorder.
+//
+// No data-reveal: same reason as /security and /support — unrevealed elements
+// print blank, and this is a document people print.
+import Base from "../layouts/Base.astro";
+import Header from "../components/Header.astro";
+import SiteFooter from "../components/SiteFooter.astro";
+import PolicySection from "../components/PolicySection.astro";
+import PolicyCallout from "../components/PolicyCallout.astro";
+import { TERMS, contents } from "../config/terms";
+import { SUPPORT } from "../config/support";
+
+const mailto = `mailto:${SUPPORT.email}`;
+const capMonths = TERMS.liabilityCapMonths;
+---
+
+<Base
+  title="Terms of Service | Fleetlix"
+  description="The terms on which FLEETLIX LTD provides the Fleetlix operations service to business customers in the UK — subscription, cancellation, data, liability and governing law."
+>
+  <Header />
+
+  <main id="terms-doc" class="policy-doc bg-[color:var(--color-offwhite)]">
+    <section class="policy-dark relative overflow-clip bg-[color:var(--color-graphite)] text-white">
+      <div class="aurora" aria-hidden="true">
+        <div class="aurora-blob aurora-blob--cyan absolute -left-28 -top-10 h-80 w-80 opacity-25"></div>
+        <div class="aurora-blob aurora-blob--amber absolute -right-24 bottom-0 h-80 w-80 opacity-20"></div>
+      </div>
+
+      <div class="relative mx-auto max-w-7xl px-6 py-16 md:py-24">
+        <div class="max-w-3xl">
+          <p class="hero-fade text-xs font-semibold uppercase tracking-[0.18em] text-[color:var(--color-cyan)]">
+            Fleetlix · Legal
+          </p>
+          <h1 class="hero-rise mt-3 font-[family-name:var(--font-display)] text-3xl font-extrabold leading-[1.08] tracking-tight text-white sm:text-4xl lg:text-5xl text-balance">
+            Terms of Service
+          </h1>
+          <p class="hero-rise mt-5 max-w-2xl text-lg leading-relaxed text-white/70">
+            The terms on which FLEETLIX LTD provides the Fleetlix operations
+            service. They are written to be read rather than survived — plain
+            sentences, one idea at a time, and the parts that limit what you can
+            expect from us marked out rather than buried.
+          </p>
+
+          <dl class="hero-fade mt-7 flex flex-wrap items-center gap-x-8 gap-y-3 text-sm">
+            <div>
+              <dt class="text-[10px] font-bold uppercase tracking-[0.16em] text-white/45">Version</dt>
+              <dd class="mt-0.5 font-semibold text-white tabular-nums">{TERMS.version}</dd>
+            </div>
+            <div>
+              <dt class="text-[10px] font-bold uppercase tracking-[0.16em] text-white/45">Effective</dt>
+              <dd class="mt-0.5 font-semibold text-white">
+                <time datetime={TERMS.effectiveIso}>{TERMS.effective}</time>
+              </dd>
+            </div>
+            <div>
+              <dt class="text-[10px] font-bold uppercase tracking-[0.16em] text-white/45">Applies to</dt>
+              <dd class="mt-0.5 font-semibold text-white">Business customers</dd>
+            </div>
+          </dl>
+
+          <div class="hero-fade mt-8 flex flex-wrap items-center gap-3" data-no-print>
+            <a
+              href="/support"
+              class="btn-sheen inline-flex items-center justify-center rounded-xl bg-[color:var(--color-amber)] px-5 py-3 text-sm font-semibold text-[color:var(--color-graphite)] transition hover:brightness-105"
+            >
+              Support and billing help
+            </a>
+            <a
+              href="/security"
+              class="inline-flex items-center gap-2 rounded-xl border border-white/25 px-5 py-3 text-sm font-semibold text-white transition hover:border-white/50 hover:bg-white/5"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="3" y="11" width="18" height="10" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" />
+              </svg>
+              App &amp; Data Security
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="mx-auto max-w-7xl px-6 py-12 md:py-16">
+      <div class="lg:grid lg:grid-cols-12 lg:gap-12">
+        <nav class="lg:col-span-4 xl:col-span-3" aria-label="Contents" data-no-print>
+          <details class="policy-toc group rounded-2xl border border-[color:var(--color-mist)] bg-white lg:hidden">
+            <summary class="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 font-semibold text-[color:var(--color-graphite)]">
+              Contents
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="shrink-0 text-[color:var(--color-slate)] transition-transform group-open:rotate-180 motion-reduce:transition-none">
+                <path d="m6 9 6 6 6-6" />
+              </svg>
+            </summary>
+            <ol class="border-t border-[color:var(--color-mist)] px-3 py-3">
+              {contents.map((entry, i) => (
+                <li>
+                  <a
+                    href={`#${entry.id}`}
+                    class="flex gap-3 rounded-lg px-3 py-2 text-sm text-[color:var(--color-slate)] hover:bg-[color:var(--color-mist)]/50 hover:text-[color:var(--color-graphite)]"
+                  >
+                    <span class="tabular-nums text-[color:var(--color-slate)]/50">
+                      {String(i + 1).padStart(2, "0")}
+                    </span>
+                    {entry.label}
+                  </a>
+                </li>
+              ))}
+            </ol>
+          </details>
+
+          <div class="hidden lg:sticky lg:top-24 lg:block">
+            <p class="text-[10px] font-bold uppercase tracking-[0.16em] text-[color:var(--color-slate)]/60">
+              Contents
+            </p>
+            <ol class="mt-4 space-y-0.5">
+              {contents.map((entry, i) => (
+                <li>
+                  <a
+                    href={`#${entry.id}`}
+                    data-nav-link
+                    class="policy-toc-link flex gap-2.5 py-1.5 pl-3 text-sm leading-snug text-[color:var(--color-slate)]"
+                  >
+                    <span class="tabular-nums text-[color:var(--color-slate)]/45">
+                      {String(i + 1).padStart(2, "0")}
+                    </span>
+                    <span>{entry.label}</span>
+                  </a>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </nav>
+
+        <article class="mt-10 space-y-12 lg:col-span-8 lg:mt-0 xl:col-span-9">
+          <PolicySection id="who-we-are" title="Who we are, and what these terms cover" contents={contents}>
+            <p>
+              These terms are between <strong>FLEETLIX LTD</strong> ("Fleetlix",
+              "we", "us", "our"), a company registered in England and Wales under
+              company number 17331348 with its registered office at 66 Paul
+              Street, London EC2A 4NA, United Kingdom, and the business that
+              subscribes to the service ("you", "your").
+            </p>
+            <p>
+              They govern your use of the <strong>Fleetlix operations service</strong>,
+              provided at fleetlix.app, together with this website and any
+              related documentation and support we provide (the "Service").
+            </p>
+            <p>
+              Three other documents sit alongside these terms and are worth
+              reading with them. Our
+              {" "}<a href="/privacy" class="policy-link">privacy policy</a> and
+              {" "}<a href="/cookies" class="policy-link">cookie policy</a>
+              {" "}explain how we handle personal data on this website.
+              {" "}<a href="/security" class="policy-link">App &amp; Data Security</a>
+              {" "}describes the controls protecting data held in the Service,
+              and states plainly which controls we do not have. That document is
+              descriptive: it forms part of these terms only where a section
+              below expressly says so.
+            </p>
+            <p>
+              Practical questions about billing, cancellation and getting set up
+              are answered in plainer language on our
+              {" "}<a href="/support" class="policy-link">support page</a>. Where
+              that page and these terms differ on a point of substance, these
+              terms govern.
+            </p>
+          </PolicySection>
+
+          <PolicySection id="agreement" title="The agreement, and who can enter it" contents={contents}>
+            <p>
+              The agreement between us is formed when you confirm your
+              acceptance of these terms at checkout and we accept your order by
+              making the Service available to you. At checkout you are asked to
+              tick a box confirming that you agree to these terms; that tick is
+              your acceptance, and it is recorded against your payment.
+            </p>
+            <p>
+              By entering into this agreement you confirm that you are acting in
+              the course of a business, that you have authority to bind the
+              business you are contracting for, and that the person accepting
+              these terms is at least 18 years old.
+            </p>
+
+            <PolicyCallout label="Business customers only" tone="amber">
+              <p>
+                The Service is offered to businesses only. It is not offered to
+                consumers, and nothing on this site is an offer to supply a
+                consumer. A sole trader buying Fleetlix to run their own haulage
+                or waste operation is buying in the course of business and is a
+                business customer for these purposes.
+              </p>
+              <p>
+                This matters because it changes which law applies. Consumer
+                protection legislation gives rights that these terms do not, and
+                does not apply to a business-to-business supply.
+              </p>
+            </PolicyCallout>
+          </PolicySection>
+
+          <PolicySection id="account" title="Your account and your users" contents={contents}>
+            <p>
+              You must give accurate account and billing information and keep it
+              up to date. You are responsible for everything done under your
+              account, including everything done by the users you invite —
+              drivers, yard staff, mechanics and office users alike.
+            </p>
+            <p>
+              You must make sure your users keep their credentials confidential
+              and do not share logins. Tell us promptly if you believe an account
+              has been compromised.
+            </p>
+            <p>
+              Your plan includes a stated number of seats in each role. Those
+              limits are enforced in the database, not only in the interface. If
+              you need more, move up a tier — see section 13.
+            </p>
+
+            <PolicyCallout label="Multi-factor authentication is not available yet" tone="graphite">
+              <p>
+                Sign-in today is email and password with short-lived sessions.
+                Multi-factor authentication is on our roadmap and is not
+                available at the effective date of these terms, which is stated
+                openly in
+                {" "}<a href="/security" class="policy-link">App &amp; Data Security</a>.
+                Until it exists, password hygiene at your end is doing more of
+                the work than it should, and choosing strong, unique passwords
+                for your users is a responsibility that sits with you.
+              </p>
+            </PolicyCallout>
+          </PolicySection>
+
+          <PolicySection id="acceptable-use" title="Acceptable use" contents={contents}>
+            <p>You must not, and must not permit anyone else to:</p>
+            <ul class="policy-list">
+              <li>use the Service for any unlawful purpose, or to store or transmit unlawful material;</li>
+              <li>use the Service to record or submit information you know or suspect to be false;</li>
+              <li>copy, modify, translate, reverse engineer, decompile or disassemble any part of the Service, except to the extent the law permits despite this restriction;</li>
+              <li>resell, sublicense, rent or otherwise make the Service available to any third party, or operate it as a service for another business, unless we have agreed in writing;</li>
+              <li>upload malicious code, or attempt to gain unauthorised access to the Service, to other customers' data, or to the infrastructure it runs on;</li>
+              <li>conduct penetration testing, vulnerability scanning or load testing against the Service without our prior written consent — ask us and we will usually say yes and help you scope it;</li>
+              <li>use automated means to place unreasonable load on the Service, or to extract data at a volume or rate that degrades it for others;</li>
+              <li>remove or obscure any proprietary notice in the Service.</li>
+            </ul>
+            <p>
+              If you find a security vulnerability, please report it rather than
+              exploit it. The disclosure process, including the timescales we
+              commit to, is set out in
+              {" "}<a href="/security" class="policy-link">App &amp; Data Security</a>.
+            </p>
+          </PolicySection>
+
+          <PolicySection id="service" title="What we provide" contents={contents}>
+            <p>
+              We provide the Service on the plan you have subscribed to, for
+              your internal business use, for the duration of your subscription.
+              Which capabilities are included at each tier is set out on our
+              {" "}<a href="/#pricing" class="policy-link">pricing section</a>,
+              which is the published description of the plans.
+            </p>
+            <p>
+              We may add, change or remove features over time. We will not make a
+              change that materially reduces the core functionality of your plan
+              during a period you have already paid for, except where we must for
+              legal, security or safety reasons.
+            </p>
+
+            <PolicyCallout label="Announced features are not promised features" tone="amber">
+              <p>
+                Where the pricing page describes a capability as forthcoming,
+                with a date, that is a statement of intent and not a contractual
+                commitment. Those items are marked as coming precisely so they
+                cannot be mistaken for included. If a dated feature is material
+                to your decision to buy, ask us before you subscribe and we will
+                tell you honestly where it stands.
+              </p>
+            </PolicyCallout>
+          </PolicySection>
+
+          <PolicySection id="availability" title="Availability, changes and support" contents={contents}>
+            <p>
+              We will provide the Service with reasonable skill and care, and we
+              will use reasonable endeavours to keep it available.
+            </p>
+            <p>
+              <strong>We do not offer a service level agreement or a guaranteed
+              uptime percentage.</strong> We do not publish an availability
+              figure anywhere, because a number we had not measured over a
+              meaningful period would be one we had invented. Deployment is
+              continuous rather than scheduled, so there are no routine
+              maintenance windows to plan around.
+            </p>
+            <p>
+              Support is provided by email to
+              {" "}<a href={mailto} class="policy-link">{SUPPORT.email}</a>. We
+              aim to respond within {SUPPORT.responseTarget}. That is a target we
+              take seriously and not a contractual service level.
+            </p>
+            <p>
+              The Service depends on the internet and on third-party
+              infrastructure. Interruptions caused by your connectivity, your
+              devices, or a third-party service outside our control are not a
+              breach of these terms — see sections 16 and 22.
+            </p>
+          </PolicySection>
+
+          <PolicySection id="compliance" title="Regulatory compliance stays yours" contents={contents}>
+            <p>
+              This section is the most important one in this document, and the
+              one most likely to matter to you in practice.
+            </p>
+            <p>
+              Fleetlix helps you record, manage and submit information that the
+              law requires you to keep. <strong>It does not discharge your legal
+              duties, and using it does not make you compliant.</strong> You
+              remain the duty holder.
+            </p>
+
+            <p class="policy-subhead">What remains yours</p>
+            <ul class="policy-list">
+              <li>
+                <strong>Your duty of care for waste</strong> under the
+                Environmental Protection Act 1990 and associated regulations,
+                including holding the right registrations as a carrier, broker or
+                dealer, and describing waste accurately.
+              </li>
+              <li>
+                <strong>Your obligations under the Digital Waste Tracking
+                Service.</strong> We submit records on your behalf, using your
+                credentials and the information you enter. Whether that
+                information is true, complete and submitted in time is your
+                responsibility.
+              </li>
+              <li>
+                <strong>Your operator licence and DVSA obligations</strong>,
+                including vehicle roadworthiness, driver walk-around checks,
+                defect reporting and rectification, drivers' hours and tachograph
+                duties. Fleetlix records these; it does not perform them, and it
+                does not verify that a check recorded as done was done.
+              </li>
+              <li>
+                <strong>Keeping your own statutory records.</strong> Do not rely
+                on the Service as your only copy. Export what you must keep.
+              </li>
+            </ul>
+
+            <PolicyCallout label="We do not verify what you record" tone="amber">
+              <p>
+                We do not check that the data you enter is accurate, that a
+                walk-around check actually happened, that a weight is correct, or
+                that a waste description matches the load. The Service records
+                what your people tell it.
+              </p>
+              <p>
+                Where a submission is rejected by a third-party service such as
+                Digital Waste Tracking, we will surface that rejection to you.
+                Acting on it — and doing so within any statutory deadline — is
+                yours. We are not your compliance adviser and nothing in the
+                Service is legal or regulatory advice.
+              </p>
+            </PolicyCallout>
+          </PolicySection>
+
+          <PolicySection id="your-data" title="Your data and our role" contents={contents}>
+            <p>
+              As between us, <strong>you own the data you and your users put into
+              the Service</strong>, and the records the Service creates from it
+              ("Customer Data"). We claim no ownership of it.
+            </p>
+            <p>
+              You grant us a non-exclusive licence to host, copy, transmit and
+              process Customer Data strictly to the extent needed to provide the
+              Service to you, to keep it secure, and to comply with law.
+            </p>
+
+            <p class="policy-subhead">Our role under data protection law</p>
+            <p>
+              For personal data within Customer Data — your staff, your drivers,
+              your customers — <strong>you are the data controller and we are
+              your processor</strong>. We act on your documented instructions.
+              For your own account, billing and support data, we are the
+              controller. This is the same split described in
+              {" "}<a href="/security" class="policy-link">App &amp; Data Security</a>.
+            </p>
+            <p>
+              We will process personal data in accordance with UK data protection
+              law, will impose confidentiality obligations on people with access,
+              and will assist you as your processor with data subject requests
+              and with any notification obligation you have. The security
+              controls, our sub-processors and our incident response are
+              documented in App &amp; Data Security.
+            </p>
+            <p>
+              If you require a data processing agreement, ask us and we will sign
+              one. We deliberately do not offer it as a click-through, because a
+              processing agreement is a conversation about your circumstances
+              rather than a form.
+            </p>
+
+            <PolicyCallout label="We do not train models on your data, and we do not sell it" tone="cyan">
+              <p>
+                We do not use Customer Data to train machine learning or
+                artificial intelligence models. We do not sell, rent or trade it,
+                and we do not disclose it to anyone except the sub-processors
+                listed in App &amp; Data Security, or where the law requires it.
+              </p>
+              <p>
+                We may produce aggregated, anonymised statistics about how the
+                Service is used, provided they cannot identify you, your
+                customers or any individual.
+              </p>
+            </PolicyCallout>
+          </PolicySection>
+
+          <PolicySection id="confidentiality" title="Confidentiality" contents={contents}>
+            <p>
+              Each of us may learn confidential information about the other.
+              Each of us agrees to keep the other's confidential information
+              confidential, to use it only for the purposes of this agreement,
+              and to disclose it only to people who need it and are under
+              equivalent obligations.
+            </p>
+            <p>
+              This does not apply to information that is public through no fault
+              of the receiving party, was already lawfully known, is
+              independently developed, or must be disclosed by law or a
+              regulator — in which case, where lawful, the disclosing party will
+              be told first.
+            </p>
+          </PolicySection>
+
+          <PolicySection id="ip" title="Intellectual property" contents={contents}>
+            <p>
+              We own, or are licensed to use, all intellectual property rights in
+              the Service, including its software, design, documentation and the
+              Fleetlix name and marks. Nothing in these terms transfers any of
+              those rights to you. You get a licence to use the Service, not the
+              Service itself.
+            </p>
+            <p>
+              You own your Customer Data, as set out in section 8.
+            </p>
+            <p>
+              If you send us feedback, suggestions or feature requests, we may use
+              them without restriction or payment. This does not give us any right
+              to your Customer Data or your confidential information.
+            </p>
+          </PolicySection>
+
+          <PolicySection id="fees" title="Fees, VAT and payment" contents={contents}>
+            <p>
+              The fees for each plan are those published on our
+              {" "}<a href="/#pricing" class="policy-link">pricing section</a> at
+              the time you subscribe, in pounds sterling. <strong>All published
+              prices exclude VAT.</strong> VAT is calculated and added at
+              checkout at the applicable rate. A business outside the United
+              Kingdom may provide its VAT number at checkout and be handled under
+              the reverse charge.
+            </p>
+            <p>
+              Monthly plans are billed in advance on the same date each month.
+              Annual plans are billed once, in advance, for the whole year.
+              There are no setup or onboarding fees.
+            </p>
+            <p>
+              Payments are taken by our payment provider. We do not receive or
+              store your full card details — see section 14 of our
+              {" "}<a href="/support" class="policy-link">support page</a>. You
+              authorise us to charge your payment method for all fees as they
+              fall due.
+            </p>
+            <p>
+              If a payment fails, our payment provider will retry it over the
+              following days. We may suspend the Service under section 15 if
+              payment remains outstanding, but we will contact you before doing
+              so.
+            </p>
+            <p>
+              We may change our prices. Any change takes effect at your next
+              renewal, not during a period you have already paid for, and we will
+              give you at least 30 days' notice before it applies. If you do not
+              accept a price change, you may cancel under section 13 before it
+              takes effect.
+            </p>
+          </PolicySection>
+
+          <PolicySection id="trials" title="Free trials and promotions" contents={contents}>
+            <p>
+              We may offer a free trial, usually through a promotion code that
+              sets its length. Where we do:
+            </p>
+            <ul class="policy-list">
+              <li>we take your card details when the trial starts, but charge nothing on that day;</li>
+              <li>you get the full plan you selected, not a reduced version;</li>
+              <li>the subscription converts to paid automatically when the trial ends, at the plan and billing period you chose, plus VAT;</li>
+              <li>you may cancel at any time before the trial ends and you will not be charged.</li>
+            </ul>
+            <p>
+              We may withdraw, change or decline a promotion at any time before
+              you subscribe under it. Promotion codes have no cash value and
+              cannot be combined unless we say so.
+            </p>
+            <p>
+              During a free trial, where you have paid us nothing, our liability
+              is limited as described in section 18.
+            </p>
+          </PolicySection>
+
+          <PolicySection id="term" title="Term, renewal and cancellation" contents={contents}>
+            <p>
+              The agreement starts when it is formed under section 2 and
+              continues for the billing period you selected. It then renews
+              automatically for successive periods of the same length until
+              cancelled.
+            </p>
+            <p>
+              <strong>There is no minimum term, no notice period and no
+              cancellation fee.</strong> You may cancel at any time by emailing
+              {" "}<a href={mailto} class="policy-link">{SUPPORT.email}</a> from
+              an address on the account. We will confirm in writing and tell you
+              the date your access ends.
+            </p>
+            <p>
+              Cancelling stops the next renewal. It does not end your access
+              immediately: <strong>you keep the Service until the end of the
+              period you have already paid for.</strong>
+            </p>
+            <p>
+              You may move between plans at any time. Moving up takes effect
+              immediately and the difference is applied from that point. Moving
+              down takes effect at your next renewal, so check your seat counts
+              before it lands.
+            </p>
+          </PolicySection>
+
+          <PolicySection id="refunds" title="Refunds" contents={contents}>
+            <p>
+              Because your access continues to the end of the period you have
+              paid for, we do not refund the unused remainder of a monthly
+              subscription. You keep the service you bought instead.
+            </p>
+            <p>
+              <strong>Annual subscriptions are treated with more latitude.</strong>
+              {" "}An annual plan is twelve months paid at once, and
+              circumstances change. If you cancel well inside an annual term, ask
+              us about a refund of the unused whole months and we will consider it
+              properly. That is discretionary rather than guaranteed, and we
+              would rather say so than promise nothing or promise everything.
+            </p>
+            <p>
+              Separately from the above, <strong>we will refund you where we have
+              got it wrong</strong>: a duplicate charge, a charge taken after a
+              cancellation we had confirmed, a charge on the wrong plan, or a
+              period during which the Service was not usable because of a failure
+              at our end. Refunds are returned to the card that paid.
+            </p>
+          </PolicySection>
+
+          <PolicySection id="suspension" title="Suspension" contents={contents}>
+            <p>We may suspend your access to the Service, in whole or in part, if:</p>
+            <ul class="policy-list">
+              <li>fees remain unpaid after our payment provider has exhausted its retries and we have contacted you;</li>
+              <li>we reasonably believe you are in material breach of section 4;</li>
+              <li>we reasonably believe continued access presents a security risk to the Service, to other customers, or to you; or</li>
+              <li>we are required to suspend by law or by a regulator.</li>
+            </ul>
+            <p>
+              We will give you as much notice as is reasonably practicable, and
+              will restore access promptly once the cause is resolved. We will not
+              use suspension as a substitute for termination under section 20, and
+              we are conscious that suspending an operations platform stops a yard
+              working — it is a last step, not a first one.
+            </p>
+          </PolicySection>
+
+          <PolicySection id="third-parties" title="Third-party services" contents={contents}>
+            <p>
+              The Service depends on third parties. Our hosting, database, email
+              and storage providers are named, with their purpose and region, in
+              {" "}<a href="/security" class="policy-link">App &amp; Data Security</a>.
+              We remain responsible to you for their performance of the parts of
+              the Service we have subcontracted to them.
+            </p>
+            <p>
+              Some third parties are outside that relationship. The Digital Waste
+              Tracking Service is operated by government, not by us: we submit to
+              it, but its availability, its acceptance criteria and its
+              timescales are not within our control, and an outage or a rule
+              change at that end is not a breach of these terms by us. The same
+              applies to any accounting or other system you choose to connect.
+            </p>
+            <p>
+              Where you connect a third-party service, your use of it is governed
+              by that provider's terms, not these.
+            </p>
+          </PolicySection>
+
+          <PolicySection id="warranties" title="Warranties and disclaimers" contents={contents}>
+            <p>We warrant that:</p>
+            <ul class="policy-list">
+              <li>we have the right and authority to enter into this agreement and to provide the Service; and</li>
+              <li>we will provide the Service with reasonable skill and care.</li>
+            </ul>
+            <p>Except as expressly stated in these terms, we do not warrant that:</p>
+            <ul class="policy-list">
+              <li>the Service will be uninterrupted, timely or error free;</li>
+              <li>the Service will meet your particular requirements, or will be fit for any purpose you have not told us about;</li>
+              <li>defects will be corrected within any particular time; or</li>
+              <li>your use of the Service will make you compliant with any legal or regulatory obligation — see section 7.</li>
+            </ul>
+            <p>
+              To the fullest extent the law permits, all terms, conditions and
+              warranties implied by statute or common law are excluded from this
+              agreement. This exclusion does not apply to anything that cannot
+              lawfully be excluded, and it does not apply to consumers, who are
+              not eligible for the Service in any event.
+            </p>
+
+            <PolicyCallout label="We hold no security certification" tone="amber">
+              <p>
+                We do not hold ISO 27001, SOC 2 or Cyber Essentials, and we have
+                not commissioned an independent penetration test. We do not
+                represent otherwise, here or anywhere else. The controls we do run
+                are described in full, alongside the ones we do not claim, in
+                {" "}<a href="/security" class="policy-link">App &amp; Data Security</a>.
+              </p>
+            </PolicyCallout>
+          </PolicySection>
+
+          <PolicySection id="liability" title="Limitation of liability" contents={contents}>
+            <p>
+              This section limits what we owe you if something goes wrong. Please
+              read it. It is written on the basis that you are a business, that
+              our fees reflect the risk each of us carries, and that you are able
+              to insure risks that matter to your operation.
+            </p>
+
+            <p class="policy-subhead">What is never limited</p>
+            <p>Nothing in these terms limits or excludes either party's liability for:</p>
+            <ul class="policy-list">
+              <li>death or personal injury caused by negligence;</li>
+              <li>fraud or fraudulent misrepresentation; or</li>
+              <li>anything else that cannot lawfully be limited or excluded.</li>
+            </ul>
+
+            <p class="policy-subhead">What neither of us is liable for</p>
+            <p>
+              Subject to the paragraph above, neither party is liable to the other
+              for any indirect or consequential loss, or for loss of profit, loss
+              of revenue, loss of business, loss of contracts or anticipated
+              savings, or loss of goodwill or reputation, in each case however
+              arising.
+            </p>
+
+            <p class="policy-subhead">The cap</p>
+            <p>
+              Subject to the paragraphs above, <strong>our total aggregate
+              liability arising out of or in connection with this agreement is
+              limited to the total fees you have paid us in the {capMonths} months
+              immediately before the event giving rise to the claim</strong>.
+              Where the claim arises before you have paid us anything — during a
+              free trial, for example — our total aggregate liability is limited
+              to £100.
+            </p>
+            <p>
+              This cap applies however the liability arises, including in
+              contract, in tort (including negligence), for breach of statutory
+              duty or otherwise. It does not apply to your obligation to pay fees
+              properly due.
+            </p>
+
+            <PolicyCallout label="Why the cap is set here" tone="amber">
+              <p>
+                A regulatory penalty, a lost contract, or a vehicle taken off the
+                road are business risks that sit with the operator, and they can
+                be worth many multiples of an annual subscription. We price the
+                Service on the basis that we do not underwrite them. If you need a
+                different allocation of risk, tell us before you subscribe — it is
+                a conversation we are willing to have, and a different position
+                would be reflected in the price.
+              </p>
+            </PolicyCallout>
+          </PolicySection>
+
+          <PolicySection id="indemnity" title="Indemnity" contents={contents}>
+            <p>
+              You will indemnify us against losses, damages and reasonable costs
+              we incur from a third-party claim arising out of your breach of
+              section 4, your Customer Data infringing a third party's rights or
+              breaching any law, or your failure to meet a regulatory obligation
+              described in section 7.
+            </p>
+            <p>
+              We will indemnify you against losses, damages and reasonable costs
+              you incur from a third-party claim that the Service, used as we have
+              permitted, infringes that third party's intellectual property
+              rights. Our liability under this paragraph is subject to the cap in
+              section 18.
+            </p>
+            <p>
+              In each case the indemnified party must notify the other promptly,
+              not admit liability, and allow the indemnifying party to conduct the
+              defence with the indemnified party's reasonable cooperation.
+            </p>
+          </PolicySection>
+
+          <PolicySection id="termination" title="Termination, and your data afterwards" contents={contents}>
+            <p>
+              You may cancel at any time under section 13. Either party may
+              terminate this agreement immediately by written notice if the other
+              materially breaches it and, where the breach can be remedied, fails
+              to remedy it within 30 days of being asked; or if the other becomes
+              insolvent, enters administration or ceases to carry on business.
+            </p>
+            <p>
+              We may also terminate on 30 days' written notice if we withdraw the
+              Service generally. In that case we will refund fees you have paid for
+              any period after termination.
+            </p>
+
+            <p class="policy-subhead">What happens to your data</p>
+            <p>
+              On termination your access ends. <strong>Export your data before
+              then, and ask us if you need help doing it.</strong> After
+              termination we will, on request, export your Customer Data in a
+              machine-readable form and then delete it, subject to any period you
+              instruct us to hold it so that you can meet your own statutory
+              obligations. Backups age out on the platform's own rotation.
+            </p>
+
+            <PolicyCallout label="Some records must be kept, and that is your call" tone="graphite">
+              <p>
+                Waste operations carry retention duties that outlive the account:
+                waste transfer notes must be kept for two years and hazardous
+                waste consignment notes for three. Deleting those on request could
+                put you in breach, so tell us what you need retained and for how
+                long before we delete anything.
+              </p>
+            </PolicyCallout>
+
+            <p>
+              Sections that by their nature should survive termination — including
+              sections 9, 10, 17, 18, 19, 22 and 23 — continue to apply.
+            </p>
+          </PolicySection>
+
+          <PolicySection id="changes" title="Changes to these terms" contents={contents}>
+            <p>
+              We may change these terms. When we do, we will publish the new
+              version on this page with a new version number and effective date,
+              and we will tell you by email if the change is material.
+            </p>
+            <p>
+              <strong>A change takes effect at your next renewal, not during a
+              period you have already paid for.</strong> If you do not accept a
+              change, you may cancel under section 13 before it takes effect.
+              Continuing to use the Service after a change has taken effect means
+              you accept it.
+            </p>
+            <p>
+              We may make a change with immediate effect where we must for legal,
+              regulatory or security reasons. We will tell you as soon as we can
+              if that happens.
+            </p>
+          </PolicySection>
+
+          <PolicySection id="general" title="General" contents={contents}>
+            <p>
+              <strong>Entire agreement.</strong> These terms, together with the
+              plan you subscribed to, are the entire agreement between us about
+              the Service and replace anything said or written beforehand. Neither
+              party has relied on any statement not set out in them. Nothing in
+              this paragraph limits liability for fraud or fraudulent
+              misrepresentation.
+            </p>
+            <p>
+              <strong>Assignment.</strong> You may not assign or transfer this
+              agreement without our written consent, not to be unreasonably
+              withheld. We may assign it to a group company or in connection with
+              a merger or sale of our business, provided your rights are not
+              adversely affected.
+            </p>
+            <p>
+              <strong>Subcontracting.</strong> We may subcontract parts of the
+              Service, and remain responsible to you for the subcontracted
+              performance.
+            </p>
+            <p>
+              <strong>Events outside our control.</strong> Neither party is liable
+              for failure or delay caused by an event beyond its reasonable
+              control, provided it tells the other and works to resume as soon as
+              it can.
+            </p>
+            <p>
+              <strong>Waiver and severance.</strong> A failure to enforce a term
+              is not a waiver of it. If any term is found to be unenforceable, the
+              rest continue in force and that term applies with the minimum
+              modification needed to make it enforceable.
+            </p>
+            <p>
+              <strong>Notices.</strong> Notices to us go to
+              {" "}<a href={mailto} class="policy-link">{SUPPORT.email}</a> or to
+              our registered office. Notices to you go to the email addresses on
+              your account.
+            </p>
+            <p>
+              <strong>No partnership.</strong> Nothing in these terms creates a
+              partnership, joint venture or employment relationship between us,
+              and neither party may bind the other.
+            </p>
+            <p>
+              <strong>Third parties.</strong> Nobody other than you and us has any
+              right to enforce these terms under the Contracts (Rights of Third
+              Parties) Act 1999.
+            </p>
+          </PolicySection>
+
+          <PolicySection id="law" title="Governing law and disputes" contents={contents}>
+            <p>
+              These terms, and any dispute or claim arising out of or in
+              connection with them or their subject matter — including
+              non-contractual disputes or claims — are governed by and construed
+              in accordance with the law of <strong>{TERMS.governingLaw}</strong>.
+            </p>
+            <p>
+              Each party irrevocably agrees that {TERMS.courts} have exclusive
+              jurisdiction to settle any such dispute or claim.
+            </p>
+            <p>
+              Before either of us starts proceedings, we ask that you contact us
+              and give us a fair chance to put the problem right. Most things that
+              look like disputes are misunderstandings about billing, and they are
+              quicker to fix by email than by letter.
+            </p>
+          </PolicySection>
+
+          <PolicySection id="contact" title="Contact" contents={contents}>
+            <p>
+              Questions about these terms, or anything else, go to
+              {" "}<a href={mailto} class="policy-link">{SUPPORT.email}</a>. We aim
+              to reply within {SUPPORT.responseTarget}.
+            </p>
+            <p>
+              FLEETLIX LTD, registered in England and Wales, company number
+              17331348. Registered office: 66 Paul Street, London EC2A 4NA, United
+              Kingdom. Registered with the Information Commissioner's Office under
+              reference
+              {" "}<a href="https://ico.org.uk/ESDWebPages/Entry/ZC207602" class="policy-link" rel="noopener" target="_blank">ZC207602</a>.
+            </p>
+          </PolicySection>
+
+          <footer class="rounded-2xl border border-[color:var(--color-mist)] bg-white p-6 text-sm leading-relaxed text-[color:var(--color-slate)]">
+            <p class="font-[family-name:var(--font-display)] font-bold text-[color:var(--color-graphite)]">
+              Fleetlix Terms of Service
+            </p>
+            <p class="mt-1">
+              Version {TERMS.version} · Effective{" "}
+              <time datetime={TERMS.effectiveIso}>{TERMS.effective}</time>
+            </p>
+            <p class="mt-3">
+              These are the terms in force at the version and date shown. Changes
+              take effect at your next renewal, as set out in section 21, so the
+              version you accepted continues to apply until then.
+            </p>
+          </footer>
+        </article>
+      </div>
+    </div>
+  </main>
+
+  <SiteFooter />
+</Base>
+
+<script>
+  // Imports a shared module, so Astro emits this as an external /_astro/*.js
+  // file under script-src 'self' — no CSP hash. See src/scripts/terms.ts.
+  import "../scripts/terms.ts";
+</script>

@@ -1,5 +1,5 @@
 ---
-import { SHOW_CONTACT } from "../config/featureFlags";
+import { SHOW_BROKERS, SHOW_CONTACT } from "../config/featureFlags";
 
 const year = new Date().getFullYear();
 ---
@@ -16,11 +16,19 @@ const year = new Date().getFullYear();
              desktop nav is already at its width budget (a sixth anchor wraps at
              640px — see Header.astro), and both are pages someone seeks out
              rather than browses to. They're also linked in context from the
-             hero, ProductShowcase and WhyPwa. -->
+             hero, ProductShowcase and WhyPwa.
+             Support leads the row for the same reason plus one more: it is the
+             URL given to Stripe as the account's support site, so it is printed
+             on every receipt and has to stay reachable from every page. -->
+        <a href="/support" class="hover:text-[color:var(--color-graphite)]">Support</a>
+        {SHOW_BROKERS && (
+          <a href="/brokers" class="hover:text-[color:var(--color-graphite)]">Broker Network</a>
+        )}
         <a href="/walkthrough" class="hover:text-[color:var(--color-graphite)]">Walkthrough</a>
         <a href="/install" class="hover:text-[color:var(--color-graphite)]">Install guide</a>
         <a href="/digital-waste-tracking" class="hover:text-[color:var(--color-graphite)]">Digital Waste Tracking</a>
         <a href="/security" class="hover:text-[color:var(--color-graphite)]">Security</a>
+        <a href="/terms-of-service" class="hover:text-[color:var(--color-graphite)]">Terms</a>
         <a href="/privacy" class="hover:text-[color:var(--color-graphite)]">Privacy</a>
         <a href="/cookies" class="hover:text-[color:var(--color-graphite)]">Cookies</a>
         {SHOW_CONTACT && (

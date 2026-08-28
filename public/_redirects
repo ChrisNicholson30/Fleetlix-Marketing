@@ -7,3 +7,9 @@
 # old URL and can't be recalled, so this stays permanently.
 /card    /rwm2026    301
 /card/   /rwm2026    301
+
+# /terms-of-service is the canonical path (it is the URL registered with Stripe
+# and referenced from the checkout consent box). /terms is what people type and
+# what a reviewer guesses, so it resolves rather than 404s.
+/terms              /terms-of-service    301
+/terms/             /terms-of-service    301

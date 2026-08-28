@@ -10,6 +10,13 @@ const ROLES = [
   "Other",
 ] as const;
 
+// Broker Network variant. Deliberately NOT reusing FLEET_SIZES: Broker Free
+// eligibility is "no owned fleet", so asking a broker how many vehicles they run
+// contradicts the page they arrived from. Mirrors the enums in
+// functions/api/register-interest.ts — change both together.
+const CARRIER_COUNTS = ["1-5", "6-15", "16-40", "40+", "Not sure"] as const;
+const JOB_VOLUMES = ["Under 50", "50-150", "150-500", "500+", "Not sure"] as const;
+
 type FieldErrors = Partial<Record<keyof FormState | "_", string>>;
 
 type FormState = {
@@ -18,6 +25,8 @@ type FormState = {
   company: string;
   fleet_size: (typeof FLEET_SIZES)[number] | "";
   role: (typeof ROLES)[number] | "";
+  carriers: (typeof CARRIER_COUNTS)[number] | "";
+  jobs_per_month: (typeof JOB_VOLUMES)[number] | "";
   message: string;
   consent: boolean;
 };
@@ -28,6 +37,8 @@ const EMPTY: FormState = {
   company: "",
   fleet_size: "",
   role: "",
+  carriers: "",
+  jobs_per_month: "",
   message: "",
   consent: false,
 };
@@ -53,8 +64,41 @@ const fieldBase =
   "w-full rounded-lg bg-white/[0.05] border border-white/15 px-3.5 py-2.5 text-white placeholder:text-white/55 focus:outline-none focus:border-[color:var(--color-amber)] focus:bg-white/[0.07] transition";
 const labelBase = "block text-xs font-semibold tracking-[0.14em] uppercase text-white/75";
 const errorText = "mt-1.5 text-xs text-[color:var(--color-error)]";
+const selectBase = `${fieldBase} mt-1.5 appearance-none bg-[length:14px_14px] bg-[right_0.85rem_center] bg-no-repeat pr-9`;
+const selectChevron = {
+  backgroundImage:
+    "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23ffffffaa' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>\")",
+};
 
-export default function InterestForm() {
+export type InterestVariant = "operator" | "broker";
+
+/** Copy that differs between the two audiences. Everything else is shared. */
+const COPY = {
+  operator: {
+    id: "register-interest",
+    eyebrow: "Pre-launch",
+    heading: "Be first in line when Fleetlix opens.",
+    body: "The platform is being built right now in Central Scotland. We're inviting the first five operators in for pilot pricing — introductory rates in exchange for case-study rights. Leave your details and we'll be in touch the moment there's something real to show you.",
+    footnote: "No obligation · One email when we launch · UK GDPR",
+    success:
+      "the moment Fleetlix is ready to demo. We've also sent you a quick confirmation just so you know it landed.",
+  },
+  broker: {
+    id: "broker-interest",
+    eyebrow: "Broker Network",
+    heading: "Get on the Broker Network at launch.",
+    body: "Broker accounts open in mid-September 2026. Leave your details and we'll set yours up on day one, with your referral code ready to share. Broker Free stays free — there is no card to add and nothing to cancel.",
+    footnote: "No obligation · Broker Free is free forever · UK GDPR",
+    success:
+      "as soon as broker accounts open in mid-September. We've also sent you a quick confirmation just so you know it landed.",
+  },
+} as const;
+
+export default function InterestForm({
+  variant = "operator",
+}: { variant?: InterestVariant } = {}) {
+  const isBroker = variant === "broker";
+  const copy = COPY[variant];
   const [state, setState] = useState<FormState>(EMPTY);
   const [errors, setErrors] = useState<FieldErrors>({});
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">(
@@ -93,8 +137,11 @@ export default function InterestForm() {
           name: state.name.trim(),
           email: state.email.trim(),
           company: state.company.trim() || undefined,
-          fleet_size: state.fleet_size || undefined,
-          role: state.role || undefined,
+          fleet_size: isBroker ? undefined : state.fleet_size || undefined,
+          role: isBroker ? undefined : state.role || undefined,
+          carriers: isBroker ? state.carriers || undefined : undefined,
+          jobs_per_month: isBroker ? state.jobs_per_month || undefined : undefined,
+          enquiry_type: variant,
           message: state.message.trim() || undefined,
           consent: state.consent,
         }),
@@ -121,7 +168,7 @@ export default function InterestForm() {
   const submitting = status === "submitting";
 
   return (
-    <section id="register-interest" className="relative overflow-hidden bg-[color:var(--color-graphite)] text-white">
+    <section id={copy.id} className="relative overflow-hidden bg-[color:var(--color-graphite)] text-white">
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 opacity-[0.06] mix-blend-screen"
@@ -141,19 +188,16 @@ export default function InterestForm() {
           {/* Copy column */}
           <div className="lg:col-span-5">
             <p className="text-xs font-semibold tracking-[0.18em] uppercase text-[color:var(--color-amber)]">
-              Pre-launch
+              {copy.eyebrow}
             </p>
             <h2 className="mt-3 font-[family-name:var(--font-display)] font-extrabold text-3xl sm:text-4xl lg:text-5xl tracking-tight text-white">
-              Be first in line when Fleetlix opens.
+              {copy.heading}
             </h2>
             <p className="mt-4 text-white/85 text-base sm:text-lg">
-              The platform is being built right now in Central Scotland. We're inviting
-              the first five operators in for pilot pricing — introductory rates in
-              exchange for case-study rights. Leave your details and we'll be in touch
-              the moment there's something real to show you.
+              {copy.body}
             </p>
             <p className="mt-6 text-sm text-white/75">
-              No obligation · One email when we launch · UK GDPR
+              {copy.footnote}
             </p>
           </div>
 
@@ -172,8 +216,7 @@ export default function InterestForm() {
                     <p className="text-sm text-emerald-100">
                       Thanks — we've got your details. You'll hear from us at{" "}
                       <span className="font-semibold text-white">{state.email}</span>{" "}
-                      the moment Fleetlix is ready to demo. We've also sent you a quick
-                      confirmation just so you know it landed.
+                      {copy.success}
                     </p>
                   </div>
                   <button
@@ -235,51 +278,98 @@ export default function InterestForm() {
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label htmlFor={`${formId}-fleet`} className={labelBase}>
-                        Fleet size <span className="ml-1 text-[10px] font-bold tracking-wider text-[color:var(--color-amber)]">MOST USEFUL</span>
-                      </label>
-                      <select
-                        id={`${formId}-fleet`}
-                        value={state.fleet_size}
-                        onChange={(e) =>
-                          setState((s) => ({
-                            ...s,
-                            fleet_size: e.target.value as FormState["fleet_size"],
-                          }))
-                        }
-                        className={`${fieldBase} mt-1.5 appearance-none bg-[length:14px_14px] bg-[right_0.85rem_center] bg-no-repeat pr-9`}
-                        style={{
-                          backgroundImage:
-                            "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23ffffffaa' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>\")",
-                        }}
-                      >
-                        <option value="" className="bg-[#0c0a08]">Select…</option>
-                        {FLEET_SIZES.map((size) => (
-                          <option key={size} value={size} className="bg-[#0c0a08]">{size} vehicles</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div>
-                      <label htmlFor={`${formId}-role`} className={labelBase}>Your role</label>
-                      <select
-                        id={`${formId}-role`}
-                        value={state.role}
-                        onChange={(e) =>
-                          setState((s) => ({ ...s, role: e.target.value as FormState["role"] }))
-                        }
-                        className={`${fieldBase} mt-1.5 appearance-none bg-[length:14px_14px] bg-[right_0.85rem_center] bg-no-repeat pr-9`}
-                        style={{
-                          backgroundImage:
-                            "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23ffffffaa' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>\")",
-                        }}
-                      >
-                        <option value="" className="bg-[#0c0a08]">Select…</option>
-                        {ROLES.map((r) => (
-                          <option key={r} value={r} className="bg-[#0c0a08]">{r}</option>
-                        ))}
-                      </select>
-                    </div>
+                    {isBroker ? (
+                      <>
+                        <div>
+                          <label htmlFor={`${formId}-carriers`} className={labelBase}>
+                            Carriers on your panel <span className="ml-1 text-[10px] font-bold tracking-wider text-[color:var(--color-amber)]">MOST USEFUL</span>
+                          </label>
+                          <select
+                            id={`${formId}-carriers`}
+                            value={state.carriers}
+                            onChange={(e) =>
+                              setState((s) => ({
+                                ...s,
+                                carriers: e.target.value as FormState["carriers"],
+                              }))
+                            }
+                            className={selectBase}
+                            style={selectChevron}
+                          >
+                            <option value="" className="bg-[#0c0a08]">Select…</option>
+                            {CARRIER_COUNTS.map((c) => (
+                              <option key={c} value={c} className="bg-[#0c0a08]">
+                                {c === "Not sure" ? c : `${c} carriers`}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <div>
+                          <label htmlFor={`${formId}-jobs`} className={labelBase}>
+                            Jobs passed per month
+                          </label>
+                          <select
+                            id={`${formId}-jobs`}
+                            value={state.jobs_per_month}
+                            onChange={(e) =>
+                              setState((s) => ({
+                                ...s,
+                                jobs_per_month: e.target.value as FormState["jobs_per_month"],
+                              }))
+                            }
+                            className={selectBase}
+                            style={selectChevron}
+                          >
+                            <option value="" className="bg-[#0c0a08]">Select…</option>
+                            {JOB_VOLUMES.map((j) => (
+                              <option key={j} value={j} className="bg-[#0c0a08]">{j}</option>
+                            ))}
+                          </select>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div>
+                          <label htmlFor={`${formId}-fleet`} className={labelBase}>
+                            Fleet size <span className="ml-1 text-[10px] font-bold tracking-wider text-[color:var(--color-amber)]">MOST USEFUL</span>
+                          </label>
+                          <select
+                            id={`${formId}-fleet`}
+                            value={state.fleet_size}
+                            onChange={(e) =>
+                              setState((s) => ({
+                                ...s,
+                                fleet_size: e.target.value as FormState["fleet_size"],
+                              }))
+                            }
+                            className={selectBase}
+                            style={selectChevron}
+                          >
+                            <option value="" className="bg-[#0c0a08]">Select…</option>
+                            {FLEET_SIZES.map((size) => (
+                              <option key={size} value={size} className="bg-[#0c0a08]">{size} vehicles</option>
+                            ))}
+                          </select>
+                        </div>
+                        <div>
+                          <label htmlFor={`${formId}-role`} className={labelBase}>Your role</label>
+                          <select
+                            id={`${formId}-role`}
+                            value={state.role}
+                            onChange={(e) =>
+                              setState((s) => ({ ...s, role: e.target.value as FormState["role"] }))
+                            }
+                            className={selectBase}
+                            style={selectChevron}
+                          >
+                            <option value="" className="bg-[#0c0a08]">Select…</option>
+                            {ROLES.map((r) => (
+                              <option key={r} value={r} className="bg-[#0c0a08]">{r}</option>
+                            ))}
+                          </select>
+                        </div>
+                      </>
+                    )}
                   </div>
 
                   <div>

@@ -37,6 +37,7 @@ type Env = {
   // every UK sale. Set to "off" ONLY if Stripe Tax isn't yet enabled on the
   // account, since session creation fails outright in that state.
   STRIPE_AUTOMATIC_TAX?: string;
+  STRIPE_TOS_CONSENT?: string;
 };
 
 type Ctx = { request: Request; env: Env };
@@ -142,6 +143,18 @@ const handleCheckout = async ({ request, env }: Ctx): Promise<Response> => {
     : "month";
 
   const taxEnabled = env.STRIPE_AUTOMATIC_TAX?.trim().toLowerCase() !== "off";
+  // Terms-of-service acceptance. Stripe renders a required tick box and records
+  // the acceptance against the session, which is what makes /terms-of-service
+  // binding and gives us evidence in a dispute — section 2 of that page
+  // describes exactly this mechanism, so switching it off makes the page untrue.
+  //
+  // PREREQUISITE: the terms URL is configured in the Stripe DASHBOARD, not in
+  // this request — the API has no field for it. Until it is set, Stripe rejects
+  // session creation outright, exactly like automatic_tax does without Stripe
+  // Tax enabled. STRIPE_TOS_CONSENT=off is the escape hatch for unblocking a
+  // test, not a setting to leave off: checkout would then take money without
+  // anyone having accepted the terms.
+  const tosConsent = env.STRIPE_TOS_CONSENT?.trim().toLowerCase() !== "off";
 
   // Gate: a valid promo is required.
   const resolved = resolvePromo(promo);
@@ -183,6 +196,9 @@ const handleCheckout = async ({ request, env }: Ctx): Promise<Response> => {
     // charge rather than charging them UK VAT they'd have to reclaim.
     "tax_id_collection[enabled]": String(taxEnabled),
     billing_address_collection: "required",
+    ...(tosConsent
+      ? { "consent_collection[terms_of_service]": "required" }
+      : {}),
     success_url: env.CHECKOUT_SUCCESS_URL || DEFAULT_SUCCESS_URL,
     cancel_url: env.CHECKOUT_CANCEL_URL || DEFAULT_CANCEL_URL,
   });

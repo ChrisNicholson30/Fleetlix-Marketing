@@ -1,24 +1,33 @@
 ---
-// One numbered section of the /security document.
+// One numbered section of a policy document. Used by /security and /support.
 //
-// The number is NOT passed in — it is derived from the section's position in
-// `contents` (src/config/security.ts), which is the same array the sticky
-// contents rail renders from. That way the rail, the on-page numbering and the
-// cross-references ("see section 6") cannot drift apart when a section is
-// inserted: reorder the config and everything renumbers together.
+// The number is NOT passed in — it is derived from the section's position in a
+// `contents` array, which is the same array the sticky contents rail renders
+// from. That way the rail, the on-page numbering and the cross-references
+// ("see section 6") cannot drift apart when a section is inserted: reorder the
+// config and everything renumbers together.
+//
+// `contents` defaults to /security's, so that page passes nothing and is
+// unaffected. /support passes its own (src/config/support.ts). Any future
+// document does the same rather than adding a second numbering scheme.
 //
 // An id with no entry in `contents` renders unnumbered rather than as "00",
 // so a typo is visible on the page instead of silently mislabelling a section.
-import { contents } from "../config/security";
+import {
+  contents as securityContents,
+  type TocEntry,
+} from "../config/security";
 
 interface Props {
   /** Must match an id in `contents`. Also the anchor target. */
   id: string;
   /** Full section heading. `contents` carries the shortened rail label. */
   title: string;
+  /** The document this section belongs to. Defaults to /security's. */
+  contents?: TocEntry[];
 }
 
-const { id, title } = Astro.props;
+const { id, title, contents = securityContents } = Astro.props;
 
 const index = contents.findIndex((entry) => entry.id === id);
 const number = index === -1 ? null : String(index + 1).padStart(2, "0");

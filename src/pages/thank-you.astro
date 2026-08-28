@@ -64,11 +64,16 @@ import SiteFooter from "../components/SiteFooter.astro";
             <path d="M5 12h14"/><path d="M13 5l7 7-7 7"/>
           </svg>
         </a>
+        <!-- /support, not a mailto: this is where every paying customer lands,
+             and the questions they arrive with (what happens next, when am I
+             charged, how do I cancel, I never got to set a password) are all
+             answered there. It is also the support URL Stripe prints on the
+             receipt for this payment, so the two agree. -->
         <a
-          href="mailto:contact@fleetlix.com"
+          href="/support"
           class="inline-flex items-center justify-center rounded-lg border border-white/15 bg-white/5 px-7 py-3.5 text-sm font-semibold text-white backdrop-blur transition hover:bg-white/10"
         >
-          Get in touch
+          Get help
         </a>
       </div>
 

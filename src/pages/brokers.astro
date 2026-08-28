@@ -1,0 +1,355 @@
+---
+// /brokers — the Broker Network offer in full.
+//
+// The homepage section (BrokerNetwork.astro) is the teaser; this is the whole
+// thing: the two rungs, how Pro is earned, and the margin-visibility table.
+//
+// WHY THE VISIBILITY TABLE IS HERE AND NOT IN A FAQ: "your carriers cannot see
+// your margin" is the single objection that decides whether a broker will put
+// their panel into someone else's software. A paragraph asserting it would not
+// be believed. The table answers it row by row, in both directions, including
+// the two rows where the broker is the one who cannot see — which is what makes
+// the rest of it credible.
+//
+// The offer is NOT purchasable yet. Broker accounts open mid-September 2026
+// (BROKER_LAUNCH), so every CTA on this page goes to the registration form at
+// the bottom, not to checkout. Broker Pro has no Stripe plan slug on purpose —
+// see the header comment in src/config/brokers.ts.
+//
+// No date is typed on this page. The launch window comes from BROKER_LAUNCH and
+// the Phase 2 mandate from src/config/dwts.ts, caveat included.
+import Base from "../layouts/Base.astro";
+import Header from "../components/Header.astro";
+import SiteFooter from "../components/SiteFooter.astro";
+import PolicyCallout from "../components/PolicyCallout.astro";
+import InterestForm from "../components/InterestForm";
+import {
+  BROKER_TIERS,
+  BROKER_LIMITS,
+  BROKER_RAIL,
+  BROKER_PRO_FEATURES,
+  BROKER_LAUNCH,
+  BROKER_DWTS_MILESTONE,
+  REFERRAL_STEPS,
+  REFERRAL_PRINCIPLES,
+  VISIBILITY,
+  DISCOVERY_NOTE,
+  ELIGIBILITY,
+} from "../config/brokers";
+
+const tick = `<path d="M20 6 9 17l-5-5"/>`;
+const cross = `<path d="M18 6 6 18M6 6l12 12"/>`;
+---
+
+<Base
+  title="Broker Network — free tier for UK waste brokers | Fleetlix"
+  description="Pass jobs to your carriers, get live status and waste transfer notes back, and file digital waste tracking — free for up to five carriers. Broker Pro is earned by introducing carriers, not bought."
+>
+  <Header />
+
+  <main class="bg-[color:var(--color-offwhite)]">
+    <!-- Masthead -->
+    <section class="relative overflow-clip bg-[color:var(--color-graphite)] text-white">
+      <div class="aurora" aria-hidden="true">
+        <div class="aurora-blob aurora-blob--cyan absolute -left-28 -top-10 h-80 w-80 opacity-25"></div>
+        <div class="aurora-blob aurora-blob--amber absolute -right-24 bottom-0 h-80 w-80 opacity-20"></div>
+      </div>
+
+      <div class="relative mx-auto max-w-5xl px-6 py-16 md:py-24">
+        <p class="hero-fade text-xs font-semibold uppercase tracking-[0.18em] text-[color:var(--color-cyan)]">
+          Fleetlix · Broker Network
+        </p>
+        <h1 class="hero-rise mt-3 max-w-3xl font-[family-name:var(--font-display)] text-3xl font-extrabold leading-[1.08] tracking-tight text-white sm:text-4xl lg:text-5xl text-balance">
+          Two rungs for brokers. One of them is free.
+        </h1>
+        <p class="hero-rise mt-5 max-w-2xl text-lg leading-relaxed text-white/70">
+          Free connects the panel you already have. Pro grows and defends the
+          panel you want. Nothing here asks you to move your carriers onto
+          something they have to pay for first.
+        </p>
+
+        <div class="hero-fade mt-8 flex flex-wrap items-center gap-3">
+          <a
+            href="#broker-interest"
+            class="btn-sheen inline-flex items-center justify-center rounded-xl bg-[color:var(--color-amber)] px-5 py-3 text-sm font-semibold text-[color:var(--color-graphite)] transition hover:brightness-105"
+          >
+            Register for launch
+          </a>
+          <span class="inline-flex items-center gap-2 rounded-xl border border-white/25 px-4 py-3 text-sm font-medium text-white/85">
+            <span class="h-1.5 w-1.5 rounded-full bg-[color:var(--color-amber)]" aria-hidden="true"></span>
+            Broker accounts open <time datetime={BROKER_LAUNCH.iso} class="font-semibold text-white">{BROKER_LAUNCH.label}</time>
+          </span>
+        </div>
+      </div>
+    </section>
+
+    <article class="mx-auto max-w-5xl px-6 py-16 md:py-20">
+      <!-- The two rungs -->
+      <section>
+        <div class="grid gap-6 lg:grid-cols-2">
+          {BROKER_TIERS.map((tier) => (
+            <div
+              class={`rounded-2xl border bg-white p-7 ${
+                tier.featured
+                  ? "border-[color:var(--color-amber)]/40 shadow-lg shadow-[color:var(--color-amber)]/5"
+                  : "border-[color:var(--color-mist)]"
+              }`}
+            >
+              <div class="flex items-start justify-between gap-4">
+                <div
+                  class={`inline-flex h-11 w-11 items-center justify-center rounded-xl ${
+                    tier.accent === "amber"
+                      ? "bg-[color:var(--color-amber)]/12 text-[color:var(--color-amber)] ring-1 ring-[color:var(--color-amber)]/20"
+                      : "bg-[color:var(--color-cyan)]/12 text-[color:var(--color-cyan)] ring-1 ring-[color:var(--color-cyan)]/20"
+                  }`}
+                >
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" set:html={tier.icon} />
+                </div>
+                {tier.featured && (
+                  <span class="inline-flex items-center rounded-full bg-[color:var(--color-amber)]/12 px-2.5 py-0.5 text-[11px] font-semibold text-[color:var(--color-amber)] ring-1 ring-[color:var(--color-amber)]/25">
+                    Earn it, or buy it
+                  </span>
+                )}
+              </div>
+              <h2 class="mt-5 font-[family-name:var(--font-display)] text-xl font-bold text-[color:var(--color-graphite)]">
+                {tier.name}
+              </h2>
+              <p class="mt-1 text-[color:var(--color-slate)]">{tier.blurb}</p>
+              <p
+                class={`mt-5 font-[family-name:var(--font-display)] text-4xl font-extrabold tabular-nums ${
+                  tier.accent === "amber"
+                    ? "text-[color:var(--color-amber)]"
+                    : "text-[color:var(--color-graphite)]"
+                }`}
+              >
+                {tier.price}
+              </p>
+              <p class="mt-1 text-sm text-[color:var(--color-slate)]/80">{tier.priceNote}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <!-- Limits -->
+      <section class="mt-14">
+        <h2 class="font-[family-name:var(--font-display)] text-2xl font-bold text-[color:var(--color-graphite)]">
+          What each rung carries
+        </h2>
+        <div class="policy-table-wrap mt-4">
+          <table class="policy-table">
+            <thead>
+              <tr>
+                <th scope="col">Limit</th>
+                <th scope="col">Broker Free</th>
+                <th scope="col">Broker Pro</th>
+              </tr>
+            </thead>
+            <tbody>
+              {BROKER_LIMITS.map((row) => (
+                <tr>
+                  <th scope="row">{row.label}</th>
+                  <td data-label="Broker Free" class="tabular-nums">{row.free}</td>
+                  <td data-label="Broker Pro" class="tabular-nums">{row.pro}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- The rail. Rendered as a list rather than a tick-tick table: every row
+           is identical on both rungs, and a column of matching ticks says
+           nothing a heading cannot say better. -->
+      <section class="mt-14">
+        <h2 class="font-[family-name:var(--font-display)] text-2xl font-bold text-[color:var(--color-graphite)]">
+          The rail — included on both
+        </h2>
+        <p class="mt-3 leading-relaxed text-[color:var(--color-slate)]">
+          Everything needed to actually run work through Fleetlix is on the free
+          rung. The paid rung adds reach, not function.
+        </p>
+        <ul class="mt-5 grid gap-3 rounded-2xl border border-[color:var(--color-mist)] bg-white p-6 sm:grid-cols-2">
+          {BROKER_RAIL.map((f) => (
+            <li class="flex items-start gap-2.5 text-[color:var(--color-slate)]">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="mt-1 shrink-0 text-[color:var(--color-success)]" set:html={tick} />
+              {f.label}
+            </li>
+          ))}
+        </ul>
+
+        <div class="mt-5">
+          <PolicyCallout label="Waste tracking is not an upsell" tone="cyan">
+            <p>
+              Digital waste tracking submission is on both rungs, including the
+              free one. Brokers must file from{" "}
+              <a href="/digital-waste-tracking" class="policy-link">
+                {BROKER_DWTS_MILESTONE.dateLabel}
+              </a>, and we do not charge for it.
+            </p>
+            <p class="text-sm">
+              {BROKER_DWTS_MILESTONE.caveat}
+            </p>
+          </PolicyCallout>
+        </div>
+      </section>
+
+      <!-- Pro only. Here the contrast IS the argument, so it stays a table. -->
+      <section class="mt-14">
+        <h2 class="font-[family-name:var(--font-display)] text-2xl font-bold text-[color:var(--color-graphite)]">
+          Growing and defending the panel
+        </h2>
+        <p class="mt-3 leading-relaxed text-[color:var(--color-slate)]">
+          What Broker Pro adds on top of the rail.
+        </p>
+        <div class="policy-table-wrap mt-4">
+          <table class="policy-table">
+            <thead>
+              <tr>
+                <th scope="col">Capability</th>
+                <th scope="col">Broker Free</th>
+                <th scope="col">Broker Pro</th>
+              </tr>
+            </thead>
+            <tbody>
+              {BROKER_PRO_FEATURES.map((f) => (
+                <tr>
+                  <th scope="row">{f.label}</th>
+                  <td data-label="Broker Free">
+                    <span class="sr-only">Not included</span>
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="text-[color:var(--color-slate)]/35" set:html={cross} />
+                  </td>
+                  <td data-label="Broker Pro">
+                    <span class="sr-only">Included</span>
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="text-[color:var(--color-success)]" set:html={tick} />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Earning Pro -->
+      <section class="mt-14">
+        <h2 class="font-[family-name:var(--font-display)] text-2xl font-bold text-[color:var(--color-graphite)]">
+          Earning Broker Pro
+        </h2>
+        <p class="mt-3 max-w-2xl leading-relaxed text-[color:var(--color-slate)]">
+          Introduce a carrier who actually starts using Fleetlix and you both get
+          something. <strong class="font-semibold text-[color:var(--color-graphite)]">No cash changes hands</strong> —
+          so nobody is ever put in the position of leaning on a carrier to sign up.
+        </p>
+
+        <ol class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {REFERRAL_STEPS.map((s, i) => (
+            <li class="relative overflow-hidden rounded-2xl border border-[color:var(--color-mist)] bg-white p-5">
+              <span class="absolute inset-x-0 top-0 h-[3px] bg-[color:var(--color-amber)]" aria-hidden="true"></span>
+              <p class="font-[family-name:var(--font-display)] text-xs font-bold tabular-nums tracking-wider text-[color:var(--color-amber)]">
+                {String(i + 1).padStart(2, "0")}
+              </p>
+              <p class="mt-2 font-[family-name:var(--font-display)] font-bold text-[color:var(--color-graphite)]">
+                {s.step}
+              </p>
+              <p class="mt-2 text-sm leading-relaxed text-[color:var(--color-slate)]">{s.body}</p>
+            </li>
+          ))}
+        </ol>
+
+        <div class="mt-6">
+          <PolicyCallout label="How the reward behaves" tone="cyan">
+            <ul class="policy-list">
+              {REFERRAL_PRINCIPLES.map((p) => (
+                <li>
+                  <strong>{p.lead}</strong> {p.detail}
+                </li>
+              ))}
+            </ul>
+          </PolicyCallout>
+        </div>
+      </section>
+
+      <!-- Visibility -->
+      <section class="mt-14">
+        <h2 class="font-[family-name:var(--font-display)] text-2xl font-bold text-[color:var(--color-graphite)]">
+          What your carriers can and cannot see
+        </h2>
+        <p class="mt-3 max-w-2xl text-lg leading-relaxed text-[color:var(--color-graphite)]">
+          Your margin is <strong class="font-bold text-[color:var(--color-error)]">never</strong> visible
+          to your carriers. By design, not by policy.
+        </p>
+        <div class="policy-table-wrap mt-5">
+          <table class="policy-table">
+            <thead>
+              <tr>
+                <th scope="col">&nbsp;</th>
+                <th scope="col">You see</th>
+                <th scope="col">Carrier sees</th>
+              </tr>
+            </thead>
+            <tbody>
+              {VISIBILITY.map((row) => (
+                <tr>
+                  <th scope="row">{row.label}</th>
+                  {([["You see", row.you], ["Carrier sees", row.carrier]] as const).map(
+                    ([label, cell]) => (
+                      <td data-label={label}>
+                        {cell === "yes" ? (
+                          <>
+                            <span class="sr-only">Visible</span>
+                            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="text-[color:var(--color-success)]" set:html={tick} />
+                          </>
+                        ) : (
+                          <span class="text-xs font-bold uppercase tracking-[0.08em] text-[color:var(--color-error)]">
+                            Never
+                          </span>
+                        )}
+                      </td>
+                    ),
+                  )}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p class="mt-4 text-sm leading-relaxed text-[color:var(--color-slate)]/80">
+          {DISCOVERY_NOTE}
+        </p>
+      </section>
+
+      <!-- Eligibility -->
+      <section class="mt-14">
+        <PolicyCallout label="Who Broker Free is for" tone="amber">
+          <p>{ELIGIBILITY}</p>
+          <p>
+            If you run your own containers or your own vehicles, the{" "}
+            <a href="/#pricing" class="policy-link">standard Fleetlix tiers</a>{" "}
+            are the right ladder — they carry the brokerage margin tracking as
+            part of the operations platform rather than as a separate product.
+          </p>
+        </PolicyCallout>
+      </section>
+
+      <div class="mt-14 flex flex-wrap items-center gap-3 border-t border-[color:var(--color-mist)] pt-8">
+        <a
+          href="#broker-interest"
+          class="btn-sheen inline-flex items-center justify-center rounded-xl bg-[color:var(--color-amber)] px-5 py-3 text-sm font-semibold text-[color:var(--color-graphite)] ring-1 ring-[color:var(--color-amber)]/40 transition hover:brightness-105"
+        >
+          Register for launch
+        </a>
+        <a
+          href="/#pricing"
+          class="inline-flex items-center justify-center rounded-xl border border-[color:var(--color-graphite)]/25 px-5 py-3 text-sm font-semibold text-[color:var(--color-graphite)] transition hover:bg-[color:var(--color-graphite)] hover:text-white"
+        >
+          Operator pricing
+        </a>
+        <p class="ml-auto text-xs text-[color:var(--color-slate)]/70">
+          Opens <time datetime={BROKER_LAUNCH.iso}>{BROKER_LAUNCH.label}</time>
+        </p>
+      </div>
+    </article>
+
+    <InterestForm client:visible variant="broker" />
+  </main>
+
+  <SiteFooter />
+</Base>
