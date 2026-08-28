@@ -54,6 +54,14 @@ const mailto = `mailto:${SUPPORT.email}`;
 // rather than restated. If the code is ever renamed this returns null and the
 // trial paragraph disappears, which is the correct failure: better to say
 // nothing than to advertise a trial the checkout will refuse to grant.
+//
+// Only `promo.trialDays` is rendered. The code string itself is deliberately
+// NOT on the page: paid signup is invitation-only and codes are handed to
+// named customers, so publishing one on an indexed page gives it away to
+// everyone. PROMO_CODE stays as the lookup key — same rule as the feature
+// flags, where credentials stay in source and only the rendered surface is
+// cut. /rwm2026 is the one page that prints a code, and it is noindex and
+// reachable only from a printed card. Do not put {promo.code} back.
 const PROMO_CODE = "letsrecycle";
 const promo = resolvePromo(PROMO_CODE);
 ---
@@ -383,16 +391,17 @@ const promo = resolvePromo(PROMO_CODE);
               <>
                 <p>
                   A promotion code extends a free trial rather than discounting
-                  the price. The code <code>{promo.code}</code> currently opens a
+                  the price. A code currently opens a
                   {" "}<strong>{promo.trialDays}-day free trial</strong> on any
-                  plan. The code is not case-sensitive and stray spaces are
+                  plan. Codes are not case-sensitive and stray spaces are
                   ignored.
                 </p>
                 <p>
-                  The code has to be in the link you follow, as
-                  <code>?promo={promo.code}</code>, not typed into the payment
-                  page. If you were handed a card or sent an email, use that
-                  link as it stands.
+                  Codes are issued individually rather than published, so there
+                  is nothing to copy from this page. The code has to be in the
+                  link you follow, as <code>?promo=</code> followed by your
+                  code, not typed into the payment page. If you were handed a
+                  card or sent an email, use that link as it stands.
                 </p>
               </>
             ) : (
