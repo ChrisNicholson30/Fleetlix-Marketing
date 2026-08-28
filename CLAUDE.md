@@ -428,6 +428,29 @@ card QR / link → fleetlix.com/?promo=letsrecycle#pricing
 | `CHECKOUT_SUCCESS_URL` _(optional)_           | `https://fleetlix.app/onboarding?session_id={CHECKOUT_SESSION_ID}` | Defaults to this. Keep the literal `{CHECKOUT_SESSION_ID}` placeholder. For testing, point it at `https://fleetlix.com/thank-you?session_id={CHECKOUT_SESSION_ID}` until the app onboarding exists.                                          |
 | `CHECKOUT_CANCEL_URL` _(optional)_            | `https://fleetlix.com/#pricing`                                    | Defaults to this.                                                                                                                                                                                                                            |
 
+## Legal entity
+
+The registered details behind every legal line on the site. They are rendered
+in `SiteFooter.astro`, `/privacy`, `/terms-of-service`, `/support`, `/security`,
+`/rwm2026` and the interest-form email in
+`functions/api/register-interest.ts` — none of it reads from a shared config, so
+changing one means grepping for the rest.
+
+|                               |                                          |
+| ----------------------------- | ---------------------------------------- |
+| Legal name                    | FLEETLIX LTD                             |
+| Company number                | 17331348 (registered in England and Wales) |
+| Registered office             | 66 Paul Street, London EC2A 4NA           |
+| ICO registration              | ZC207602                                 |
+| VAT registration number (VRN) | 526781566                                |
+
+**The VRN is not currently rendered anywhere on the site**, and it is not in the
+Organization JSON-LD either — `Base.astro` carries a single Companies House
+`identifier`, no `vatID`. `/support` section 7 says the VAT invoice "shows our
+VAT registration", which is Stripe printing it from the account's tax settings,
+not this repo. Publishing it here is a separate decision; this table is the
+record of what the number is.
+
 ## DNS / Cloudflare snapshot
 
 These are the records that need to stay correct for the site + email to keep working:
