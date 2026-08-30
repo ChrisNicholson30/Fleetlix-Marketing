@@ -169,11 +169,12 @@ import { APP_ORIGIN, ONBOARDING_PATH, ONBOARDING_STEPS } from "../config/onboard
         </ol>
       </div>
 
-      <!-- The handoff. href is the app root as a safe default; the script
-           rewrites it to /onboarding?session_id=… when the URL carries a
-           well-formed one. That id is how the app confirms the paid session,
-           so a link without it lands on sign-in for an account that doesn't
-           exist yet. -->
+      <!-- The handoff. Server-renders as the bare /onboarding URL; the script
+           appends ?session_id=… when the page URL carries a well-formed one.
+           That id is how the app confirms the paid session, so without it the
+           buyer reaches onboarding with nothing to prove they paid. Keeping
+           /onboarding in the static href means a no-JS visitor still lands on
+           the right screen rather than the app's front door. -->
       <!-- Wraps rather than overflowing: three buttons at px-7 come to roughly
            553px, which only just clears a 640px viewport once the section's
            px-6 is taken off. The global overflow-x guard would hide the
@@ -181,7 +182,7 @@ import { APP_ORIGIN, ONBOARDING_PATH, ONBOARDING_STEPS } from "../config/onboard
       <div class="reveal reveal-6 mt-12 flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:flex-wrap sm:justify-center">
         <a
           data-open-app
-          href={APP_ORIGIN}
+          href={`${APP_ORIGIN}${ONBOARDING_PATH}`}
           class="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-lg bg-[color:var(--color-cyan)] px-7 py-3.5 text-sm font-semibold text-white shadow-lg shadow-[color:var(--color-cyan)]/30 transition hover:-translate-y-0.5 hover:brightness-110"
         >
           Create your login
