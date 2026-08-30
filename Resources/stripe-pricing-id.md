@@ -72,6 +72,28 @@ should be removed rather than left wired to a price that no longer exists. Still
 **test an annual signup end to end before launch** — that path has never been
 exercised.
 
+## What kind of Stripe integration this is
+
+Worth settling, because it decides where Stripe Tax gets turned on.
+
+Signup on fleetlix.com is **neither a Payment Link nor a Pricing Table**. There
+is no Stripe-hosted object to configure, and no Stripe.js on the site. The only
+Stripe integration is `functions/api/checkout.ts`, which POSTs to
+`https://api.stripe.com/v1/checkout/sessions` and redirects to the hosted page
+it gets back. (`functions/api/checkout-session.ts` reads the session back for
+the welcome screen; it is a GET and changes nothing.)
+
+So the "enable Stripe Tax on the object in the dashboard, no code needed" route
+does not apply here — there is no object. Tax is already requested **per
+session, in code**: `automatic_tax[enabled]=true` and
+`tax_id_collection[enabled]=true`. What is outstanding is everything that
+request depends on, and none of it is on this site:
+
+1. **Stripe Tax enabled on the account**, with the UK origin address set.
+2. **Prices created with `tax_behavior: 'exclusive'`** — see the table above.
+   This is immutable per Price; getting it wrong means recreating all ten.
+3. **`STRIPE_PRICE_MAP` repointed** at those ids, and a redeploy.
+
 ## Before the first live checkout
 
 1. Enable **Stripe Tax** on the account and set the UK origin address. The
@@ -83,4 +105,8 @@ exercised.
 2. Repoint `STRIPE_PRICE_MAP` at the v2 ids, in the nested shape.
 3. Redeploy — Pages env var changes need one.
 4. Run one test-mode signup on each interval via `TEST_STRIPE_SECRET_KEY` +
-   `TEST_STRIPE_PRICE_MAP`, then remove both to go live.
+   `TEST_STRIPE_PRICE_MAP`, then remove both to go live. Check the welcome
+   screen at the end of each: it should show the plan, the trial end and the
+   first charge, carry the amber "Stripe test mode" strip, and put a
+   `session_id` on the "Create your login" button. Full runbook in `CLAUDE.md`
+   under _Testing the signup flow end to end_.

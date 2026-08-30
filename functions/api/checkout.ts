@@ -2,9 +2,12 @@
 //
 // Creates a Stripe Checkout Session for the paid-signup flow. The customer
 // pays on Stripe (which collects their details + card and starts a free
-// trial), then Stripe redirects to the app's onboarding page where they
-// create their login. This function runs on the marketing site only; the
-// tenant is provisioned app-side from the resulting subscription.
+// trial), then Stripe redirects to the welcome screen at /thank-you, which
+// confirms what they bought and hands them on to the app to create their
+// login. This function runs on the marketing site only; the tenant is
+// provisioned app-side from the resulting subscription.
+//
+//   pricing card → Stripe Checkout → /thank-you → fleetlix.app/onboarding
 //
 // GATED: a valid promo code is REQUIRED — checkout is only offered to people
 // who arrived with one (e.g. from the printed card's letsrecycle code). The
@@ -55,8 +58,16 @@ const PROMOS: Record<string, { trialDays: number }> = {
 const INTERVALS = ["month", "year"] as const;
 type Interval = (typeof INTERVALS)[number];
 
+// The welcome screen, NOT the app. Stripe hands back a completed session and
+// nothing else; dropping a buyer straight onto a login form gives them no
+// confirmation of what they just bought (the receipt email is minutes behind)
+// and no route back if the app is mid-deploy. /thank-you reads the session
+// back through /api/checkout-session, states the plan, trial end and first
+// charge, then links on to fleetlix.app/onboarding carrying the same id.
+// The literal {CHECKOUT_SESSION_ID} placeholder is substituted by Stripe and
+// must survive any override — the app can't provision the tenant without it.
 const DEFAULT_SUCCESS_URL =
-  "https://fleetlix.app/onboarding?session_id={CHECKOUT_SESSION_ID}";
+  "https://fleetlix.com/thank-you?session_id={CHECKOUT_SESSION_ID}";
 const DEFAULT_CANCEL_URL = "https://fleetlix.com/#pricing";
 
 const json = (status: number, body: unknown) =>

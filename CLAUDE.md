@@ -79,13 +79,16 @@ fleetlix-marketing/
 │   ├── components/             # Astro sections + React islands
 │   ├── config/featureFlags.ts  # SHOW_PRICING, SHOW_CONTACT
 │   ├── config/dwts.ts          # DWTS milestones, Fleetlix build stages, facts, FAQ
+│   ├── config/onboarding.ts    # post-payment welcome screen: app handoff, next steps
 │   ├── scripts/lib/motion.ts   # shared reveal/scroll/count-up/spotlight initialisers
 │   ├── scripts/cinematic.ts    # homepage bundle — composes the motion initialisers
 │   ├── scripts/dwts-timeline.ts # recomputes the DWTS timeline against the reader's clock
 │   ├── styles/global.css       # colour tokens, Tailwind base, html/body overflow-clip
 │   └── assets/hero/            # source PNGs; Astro <Picture> emits avif/webp
 ├── functions/api/
-│   └── register-interest.ts    # Cloudflare Pages Function — POST → Resend
+│   ├── register-interest.ts    # Cloudflare Pages Function — POST → Resend
+│   ├── checkout.ts             # POST → Stripe Checkout Session (promo-gated)
+│   └── checkout-session.ts     # GET  → read a session back for /thank-you
 └── public/
     ├── _headers                # CSP + cache rules (Cloudflare reads this verbatim)
     ├── _redirects              # 301s: /card → /rwm2026, /terms → /terms-of-service
@@ -109,7 +112,7 @@ fleetlix-marketing/
 | `/terms-of-service` | **Terms of Service** — the contract for the subscription, and the first contractual language this site has ever carried. Twenty-four sections numbered off `contents` in `src/config/terms.ts`, same machinery as `/security` and `/support`. Four commercial decisions are baked in and recorded in that config: **liability capped at 12 months' fees**, **England and Wales**, **business customers only** (which is what lets the cap and exclusions stand under UCTA 1977 — admitting consumers makes sections 17–18 unsafe as written), and **acceptance by required tick box at Stripe Checkout**. **Section 7, "Regulatory compliance stays yours", is the load-bearing one** — Fleetlix records and submits DWTS, DVSA walk-arounds and waste transfer notes, and an operator who thinks the software makes them compliant will be fined and then look for someone to blame. Don't trim it. Cross-references in the prose ("see section 18") are hand-written and do **not** renumber with the array — grep `section ` after any reorder. `/terms` and `/terms/` 301 here via `_redirects`. Bump `TERMS.version` **and** `effective` together; section 21 promises changes take effect at next renewal, which only means something if the version moves. |
 | `/privacy`   | UK GDPR policy. Update the `lastUpdated` const when material content changes.                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | `/cookies`   | PECR cookie policy. Asserts "no first-party cookies, no analytics".                                                                                                                                                                                                                                                                                                                                                                                                                                              |
-| `/thank-you` | Post-payment landing. Links to `https://app.fleetlix.com` (not yet live).                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| `/thank-you` | **The welcome screen** — step three of paid signup, and the page Stripe's `success_url` points at. It is not just a celebration: it confirms the plan, the trial end and the first charge (read back from Stripe by `GET /api/checkout-session`), states the three onboarding steps from `src/config/onboarding.ts`, and hands the buyer on to `fleetlix.app/onboarding` **carrying the `session_id`** — that id is how the app confirms the paid session and provisions the tenant, so `src/scripts/thank-you.ts` forwarding it is load-bearing, not a nicety. Everything on it degrades: with no session id, an unconfigured endpoint or a dead network the page still reads as a correct thank-you and the button still opens the app. `?demo` renders a sample order for design review without touching Stripe; a real test-mode session self-labels with an amber "Stripe test mode" strip. `noindex`, and excluded from the sitemap. |
 | `/404`       | Custom not-found page (`src/pages/404.astro`). `noindex`; Astro emits `dist/404.html`, which Cloudflare Pages serves for unmatched routes.                                                                                                                                                                                                                                                                                                                                                                       |
 
 ### Conversion path
@@ -400,21 +403,84 @@ visitor submits InterestForm (React island)
 
 The paid-signup entry point. **Checkout-first:** the customer pays on Stripe on the marketing site, _then_ creates their login on the app (`fleetlix.app`). Gated to promo-code holders.
 
+**Four steps, and the third one is ours.** Choose a plan → pay on Stripe →
+welcome screen → set up in the app:
+
 ```
 card QR / link → fleetlix.com/?promo=letsrecycle#pricing
   → src/scripts/checkout.ts sees a valid ?promo=, turns each pricing CTA into
     "Start N-day free trial" (otherwise CTAs stay #register-interest links)
-  → POST /api/checkout { plan, promo }        (functions/api/checkout.ts)
-    → Stripe Checkout Session (mode=subscription, trial_period_days from promo)
+  → POST /api/checkout { plan, promo, interval }   (functions/api/checkout.ts)
+    → Stripe Checkout Session (mode=subscription, trial_period_days from promo,
+      automatic_tax + tax_id_collection on, terms-of-service tick box required)
       → hosted Stripe page collects details + card, starts the trial
-        → success_url → fleetlix.app/onboarding?session_id=…  (APP repo — TBD)
-          → app provisions the tenant + plan, user sets their password
+        → success_url → fleetlix.com/thank-you?session_id=…   ← THE WELCOME SCREEN
+          → GET /api/checkout-session?session_id=…  (functions/api/checkout-session.ts)
+            reads the session back: plan, interval, trial end, amount, email
+          → "Create your login" → fleetlix.app/onboarding?session_id=…  (APP repo)
+            → app provisions the tenant + plan, user sets their password
 ```
 
 - **Promo is authoritative server-side.** `functions/api/checkout.ts` requires a valid promo (403 otherwise) and keeps its OWN copy of the promo/plan config — no import from `src/`, so the payment path can't break on a bundling change. The client copy lives in `src/config/checkout.ts`; **keep the two in sync**.
 - The promo sets the **trial length via `trial_period_days`**, not a Stripe coupon (coupons discount price, not time). **Monthly only** — no annual price ids.
-- `checkout.ts` (client) imports the shared `src/scripts/lib/env.ts`, so it's an external `/_astro/*.js` under `script-src 'self'` — no CSP hash. Hosted Checkout is a redirect (no Stripe.js), so no CSP change either.
+- `checkout.ts` (client) imports the shared `src/scripts/lib/env.ts`, so it's an external `/_astro/*.js` under `script-src 'self'` — no CSP hash. Hosted Checkout is a redirect (no Stripe.js), so no CSP change either. `src/scripts/thank-you.ts` follows the same pattern — it imports `lib/env.ts` and is emitted external, so the welcome screen adds no hash either.
 - The function returns 503 until the Stripe env vars are set, so it's safe to ship ahead of them; non-promo visitors see no change.
+
+### The welcome screen (`/thank-you`)
+
+**Why the redirect lands here and not on the app.** Stripe returns a completed
+session and nothing else. A buyer bounced from a card form straight onto a login
+screen has no confirmation of what they bought — the receipt email is minutes
+behind — and no route back if the app is mid-deploy. This page is the join
+between the two systems, and the only place the `session_id` is visible to a
+human before the app consumes it.
+
+- **`GET /api/checkout-session` is read-only and deliberately narrow.** It
+  returns a hand-written summary, never a proxied Stripe object — a Checkout
+  Session carries the buyer's address, card brand and tax ids, none of which has
+  any business being fetched by whoever holds the URL. A session that is not
+  `complete` gets its status back and nothing else, so a stale link can't be
+  turned into a lookup of someone's details.
+- **It must use the same key mode as `checkout.ts`.** `TEST_STRIPE_SECRET_KEY`
+  takes precedence in both files; a live key returns 404 for a test session id
+  and vice versa, which shows up as a welcome screen with no summary card.
+- **Amounts are ex VAT**, like every price on the site, and the page renders the
+  `+ VAT` suffix with them. Stripe Tax adds the VAT at invoice time.
+- **Rows are toggled with the `hidden` ATTRIBUTE, not Tailwind's `hidden`
+  class** — they carry `flex`/`sm:flex` for their laid-out state, and a plain
+  display utility wins the cascade against the class. Get this wrong and the
+  placeholder rows show through with an em dash beside "First payment".
+- The cancellation line in the summary card restates **support section 10** and
+  **terms sections 13–14**. That is the same policy written for three readers;
+  move all three together.
+
+### Testing the signup flow end to end
+
+The whole path is walkable without a live price or a real card.
+
+1. **The welcome screen alone**, no Stripe at all:
+   `/thank-you?demo` renders a sample order from `DEMO_SUMMARY` in
+   `src/config/onboarding.ts` and labels itself "Preview only". Use it for
+   design and copy review; it proves nothing about the payment path.
+2. **The real path in Stripe test mode.** Set `TEST_STRIPE_SECRET_KEY` +
+   `TEST_STRIPE_PRICE_MAP` (test-mode price ids — they are separate objects from
+   live) in Pages Production and redeploy. Then open
+   `fleetlix.com/?promo=letsrecycle#pricing`, which is what turns the plan CTAs
+   into "Start 14-day free trial" buttons, and pay with `4242 4242 4242 4242`.
+   A test-mode session self-labels on the welcome screen with an amber strip —
+   **if that strip is missing you are on live keys.**
+3. **Check the handoff.** The "Create your login" button must read
+   `fleetlix.app/onboarding?session_id=cs_…`. No id means the app will land the
+   buyer on a sign-in screen for an account that does not exist yet.
+4. **Test annual as well as monthly.** Flip the billing toggle before clicking;
+   the interval is read at click time. That path has never been exercised.
+5. **Remove `TEST_STRIPE_SECRET_KEY` and `TEST_STRIPE_PRICE_MAP` to go live**,
+   and redeploy — leaving them set means real customers get a test checkout they
+   cannot actually pay.
+
+**Still outstanding before any of this bills correctly:** `STRIPE_PRICE_MAP`
+points at the stale v1 ladder, so a checkout today would advertise £99 and charge
+£79. See `Resources/stripe-pricing-id.md`.
 
 ### Checkout env vars (Pages Production)
 
@@ -425,7 +491,7 @@ card QR / link → fleetlix.com/?promo=letsrecycle#pricing
 | `TEST_STRIPE_SECRET_KEY` _(secret, optional)_ | `sk_test_…`                                                        | **Test override.** When set, the function runs entirely in test mode (this key + `TEST_STRIPE_PRICE_MAP`), leaving the live vars untouched. **Remove it to go live** — otherwise real customers get a test checkout they can't actually pay. |
 | `TEST_STRIPE_PRICE_MAP`                       | JSON, **test-mode** price ids                                      | Required alongside `TEST_STRIPE_SECRET_KEY` — Stripe test prices are separate objects from live, so this must hold `price_…` ids created in test mode.                                                                                       |
 | `STRIPE_TOS_CONSENT` _(optional)_             | `off`                                                              | **Escape hatch, not a setting.** Terms-of-service consent is ON by default: the session is created with `consent_collection[terms_of_service]=required`, so Stripe renders a required tick box and records acceptance — that is what makes `/terms-of-service` binding. **Prerequisite: the terms URL must be set in the Stripe Dashboard** (the API has no field for it); until it is, Stripe rejects session creation outright, exactly as `automatic_tax` does without Stripe Tax enabled. Set to `off` only to unblock a test — leaving it off means taking money with nobody having accepted the terms, and makes section 2 of that page untrue. |
-| `CHECKOUT_SUCCESS_URL` _(optional)_           | `https://fleetlix.app/onboarding?session_id={CHECKOUT_SESSION_ID}` | Defaults to this. Keep the literal `{CHECKOUT_SESSION_ID}` placeholder. For testing, point it at `https://fleetlix.com/thank-you?session_id={CHECKOUT_SESSION_ID}` until the app onboarding exists.                                          |
+| `CHECKOUT_SUCCESS_URL` _(optional)_           | `https://fleetlix.com/thank-you?session_id={CHECKOUT_SESSION_ID}` | Defaults to this — the **welcome screen**, not the app. Stripe hands back a completed session and nothing else, so bouncing a buyer straight to a login form leaves them with no confirmation of what they bought (the receipt email is minutes behind) and no route back if the app is mid-deploy. `/thank-you` states the order, then links on to `fleetlix.app/onboarding` with the same id. **Keep the literal `{CHECKOUT_SESSION_ID}` placeholder** in any override — the app cannot provision the tenant without it. |
 | `CHECKOUT_CANCEL_URL` _(optional)_            | `https://fleetlix.com/#pricing`                                    | Defaults to this.                                                                                                                                                                                                                            |
 
 ## Legal entity
