@@ -41,7 +41,13 @@ const SESSION_ID = /^cs_[A-Za-z0-9_]+$/;
 const params = new URLSearchParams(window.location.search);
 const sessionId = params.get("session_id")?.trim() ?? "";
 const validSession = SESSION_ID.test(sessionId);
+// ?demo previews the screen with no Stripe call at all. ?demo=<plan> picks
+// which tier to preview (?demo=depot), &interval=year shows the annual figure —
+// the amounts come from src/config/pricing.ts, so a preview can't quote a price
+// the cards don't. Bare ?demo falls back to DEMO_SUMMARY's plan.
 const demo = params.has("demo");
+const demoPlan = params.get("demo")?.trim().toLowerCase() || DEMO_SUMMARY.plan;
+const demoInterval = params.get("interval") === "year" ? "year" : "month";
 
 // British English throughout, same as the rest of the site: "13 September
 // 2026", not "September 13, 2026". Fixed locale rather than the reader's,
@@ -85,7 +91,10 @@ const reveal = (selector: string) => {
 // ---------------------------------------------------------------- app handoff
 
 const link = qs<HTMLAnchorElement>("[data-open-app]");
-const APP_ROOT = link?.href ?? APP_ORIGIN;
+// Whatever the page server-rendered (`${APP_ORIGIN}${ONBOARDING_PATH}`), kept
+// so the incomplete-session branch can put the button back without
+// hardcoding a second copy of the URL.
+const APP_FALLBACK = link?.href ?? `${APP_ORIGIN}${ONBOARDING_PATH}`;
 if (link && validSession) {
   // Demo mode deliberately does NOT rewrite this — a fabricated session id
   // would be rejected by the app, which looks like a broken handoff rather
@@ -108,7 +117,7 @@ const render = (summary: Summary) => {
     // an old link. Undo the handoff: passing an incomplete session to the app
     // gets it rejected, which reads as a broken product rather than as the
     // unfinished checkout it is.
-    if (link) link.href = APP_ROOT;
+    if (link) link.href = APP_FALLBACK;
     set("state", "This checkout wasn't completed, so nothing has been charged.");
     showRow("state", true);
     showRow("details", false);
@@ -157,7 +166,21 @@ if (card && demo) {
   const { trialInDays, ...sample } = DEMO_SUMMARY;
   const trialEnd = new Date();
   trialEnd.setDate(trialEnd.getDate() + trialInDays);
-  render({ ...sample, trialEnd: trialEnd.toISOString() });
+
+  // An unknown slug falls back rather than rendering a blank plan row, so a
+  // typo'd preview URL is obvious as a wrong plan, not as a broken screen.
+  const tier =
+    TIERS.find((t) => t.slug === demoPlan) ??
+    TIERS.find((t) => t.slug === DEMO_SUMMARY.plan);
+
+  render({
+    ...sample,
+    plan: tier?.slug ?? null,
+    interval: demoInterval,
+    // Minor units, matching what Stripe returns. Ex VAT, like the cards.
+    amount: tier ? (demoInterval === "year" ? tier.annual : tier.monthly) * 100 : null,
+    trialEnd: trialEnd.toISOString(),
+  });
 } else if (card && validSession) {
   // Reveal the card immediately, in its placeholder state, so the summary
   // doesn't shove the page around when the fetch lands.
