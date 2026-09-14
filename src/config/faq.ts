@@ -9,6 +9,9 @@
 // never drift from what the visitor reads. Answers are plain text — no markup —
 // so they serialise cleanly into the JSON-LD `acceptedAnswer.text`.
 
+import { COMPLIANCE } from "./compliance";
+import { ENTRY_MONTHLY, TOP_MONTHLY } from "./pricing";
+
 export interface FaqItem {
   question: string;
   answer: string;
@@ -28,7 +31,7 @@ export const faqItems: FaqItem[] = [
   {
     question: "How much does Fleetlix cost?",
     answer:
-      "Five plans, from £99 to £949 per month plus VAT: Operator, Workshop, Depot, Haulier, and Network. Paying annually costs ten months rather than twelve, so two months are free. Every plan runs the full operations platform — tiers differ by team size and which commercial modules are unlocked. That sits well below the enterprise software vendors serving the sector, and a clear step up from the spreadsheet-and-paper status quo.",
+      `Fleetlix Compliance is our upcoming standalone DWTS portal at £${COMPLIANCE.monthly}/month plus VAT, billed monthly. It is not yet available to buy; you can register interest now. The separate operations platform has five plans from £${ENTRY_MONTHLY} to £${TOP_MONTHLY} per month plus VAT: Operator, Workshop, Depot, Haulier, and Network. Each operations plan includes the full operations core, with different team capacities and commercial modules. Annual billing on operations plans costs ten months rather than twelve.`,
   },
   {
     question: "Do the prices include VAT?",
@@ -38,7 +41,7 @@ export const faqItems: FaqItem[] = [
   {
     question: "How are user seats counted?",
     answer:
-      "Each plan includes a set number of driver, yard, mechanic, and office seats — the four roles the app actually assigns. Drivers is the headline number because it is the one a yard owner can answer without checking. Admin is a permission rather than a seat type, so an office or yard user can hold admin rights without using an extra login. Seat limits are enforced in the database, not just the interface.",
+      `Compliance includes ${COMPLIANCE.users} users for DWTS records, with no driver, yard or mechanic seats. Each operations plan includes a set number of driver, yard, mechanic, and office seats. Admin is a permission rather than a seat type, so an office or yard user can hold admin rights without using an extra login. Seat limits are enforced in the database, not just the interface.`,
   },
   {
     question: "Does Fleetlix support haulage operators?",

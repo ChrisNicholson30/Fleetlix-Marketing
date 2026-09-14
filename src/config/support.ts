@@ -54,8 +54,8 @@ export const SUPPORT = {
    * says plainly that there isn't one yet, which is the honest version.
    */
   phone: null as string | null,
-  lastUpdated: "28 August 2026",
-  lastUpdatedIso: "2026-08-28",
+  lastUpdated: "14 September 2026",
+  lastUpdatedIso: "2026-09-14",
 } as const;
 
 /* ------------------------------------------------------------------ *
