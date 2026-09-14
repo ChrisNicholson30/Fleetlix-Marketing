@@ -24,6 +24,7 @@
 // data-checkout-cta / data-plan / data-checkout-label are its hooks.
 
 import { TIERS, COMING_LABEL, annualSaving, formatCap, gbp } from "../config/pricing";
+import ComplianceTier from "./ComplianceTier.astro";
 
 // The operations core — identical in every plan, because none of it is gated.
 //
@@ -77,11 +78,12 @@ const stagger = [
       <div class="max-w-2xl">
         <p class="text-xs font-semibold tracking-[0.18em] uppercase text-[color:var(--color-cyan)]" data-reveal>Pricing</p>
         <h2 class="mt-3 font-[family-name:var(--font-display)] font-extrabold text-3xl md:text-4xl lg:text-5xl text-[color:var(--color-graphite)] tracking-tight [--stagger:80ms]" data-reveal="clip">
-          Five plans. One product. No locked doors.
+          DWTS portal. Operations platform.
         </h2>
         <p class="mt-4 text-[color:var(--color-slate)] text-lg [--stagger:160ms]" data-reveal>
-          Every plan runs the full operations platform — the tiers differ by
-          team size and which commercial modules are unlocked. All prices in
+          Compliance is a standalone portal for DWTS submissions. The separate
+          operations platform has five plans for running your fleet and business.
+          All prices in
           GBP and <strong class="font-semibold text-[color:var(--color-graphite)]">exclude VAT</strong>.
         </p>
       </div>
@@ -89,7 +91,7 @@ const stagger = [
       <!-- Billing toggle. Two radios; global.css swaps the price blocks with
            :has(). Labels wrap their input so has-[:checked] styles the pill. -->
       <fieldset class="shrink-0 [--stagger:200ms]" data-reveal>
-        <legend class="sr-only">Billing interval</legend>
+        <legend class="mb-2 text-xs font-semibold text-[color:var(--color-slate)]">Operations plan billing</legend>
         <div class="inline-flex rounded-xl border border-[color:var(--color-mist)] bg-white p-1 shadow-sm">
           <label class="cursor-pointer rounded-lg px-4 py-2.5 text-sm font-semibold text-[color:var(--color-slate)] transition has-[:checked]:bg-[color:var(--color-graphite)] has-[:checked]:text-white has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-[color:var(--color-cyan)]">
             <input type="radio" name="billing" id="billing-monthly" class="sr-only" checked />
@@ -108,6 +110,11 @@ const stagger = [
         </div>
       </fieldset>
     </div>
+
+    <ComplianceTier />
+
+    <h3 class="mt-12 font-[family-name:var(--font-display)] text-2xl font-bold text-[color:var(--color-graphite)]">The full operations platform</h3>
+    <p class="mt-2 text-[color:var(--color-slate)]">From Operator upwards: dispatch, fleet and team workflows, with DWTS included.</p>
 
     <!-- The rule that explains the whole ladder. Promoted from the footnote it
          used to be: a buyer who reads this knows which tier they need.
@@ -295,7 +302,7 @@ const stagger = [
     <div class="mt-12 grid lg:grid-cols-12 gap-5" data-reveal>
       <div class="lg:col-span-8 rounded-2xl bg-white border border-[color:var(--color-mist)] p-6 md:p-7">
         <p class="font-[family-name:var(--font-display)] font-bold text-[color:var(--color-graphite)]">
-          In every plan — the full operations core
+          In every operations plan — the full operations core
         </p>
         <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2.5">
           {core.map((label) => (
@@ -321,7 +328,7 @@ const stagger = [
           DWTS is the floor, not a feature.
         </p>
         <p class="mt-2 text-sm text-white/70 leading-relaxed">
-          DEFRA Digital Waste Tracking is a legal mandate — so every plan
+          DEFRA Digital Waste Tracking is a legal mandate — so every operations plan
           submits to DWTS, from Operator up. Only the monthly submission
           allowance scales with tier; the capability never does.
         </p>

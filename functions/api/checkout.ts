@@ -50,6 +50,7 @@ type PlanSlug = (typeof PLAN_SLUGS)[number];
 
 // Keep in sync with src/config/checkout.ts.
 const PROMOS: Record<string, { trialDays: number }> = {
+  fleet30: { trialDays: 30 },
   letsrecycle: { trialDays: 14 },
 };
 

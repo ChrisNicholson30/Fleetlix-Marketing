@@ -1,4 +1,4 @@
-// Client-side config for the paid-signup checkout (the letsrecycle promo flow).
+// Client-side config for promo-gated paid signup.
 // Used by src/scripts/checkout.ts to gate the pricing CTAs to promo holders.
 //
 // The Cloudflare Pages Function (functions/api/checkout.ts) re-validates the
@@ -24,8 +24,11 @@ export const PLAN_SLUGS: PlanSlug[] = [
 // Promo codes extend the free trial (they discount *time*, not price). The
 // trial length is applied to the Stripe subscription server-side.
 export const PROMOS: Record<string, { trialDays: number }> = {
+  fleet30: { trialDays: 30 },
   letsrecycle: { trialDays: 14 },
 };
+
+export const CARD_PROMO_CODE = "fleet30";
 
 export const resolvePromo = (
   raw: string | null | undefined,
