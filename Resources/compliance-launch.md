@@ -1,7 +1,7 @@
 # Fleetlix Compliance marketing integration
 
 Prepared 14 September 2026 from the supplied build handover. Updated
-15 September 2026 when signup opened.
+15 September 2026, first for assisted signup, then for self-serve checkout.
 
 The owner's clarification supersedes the handover's introductory pricing:
 Compliance is a standalone portal at £49/month + VAT, with no introductory
@@ -9,49 +9,54 @@ period, scheduled price increase or relationship to the £99 Operator plan.
 The £99 entry price elsewhere still describes the operations platform.
 The portal price lives in `src/config/compliance.ts`.
 
-## Status: open for assisted signup (15 September 2026)
+## Status: self-serve checkout (15 September 2026)
 
-The card reads **Available now**. Its CTA links to `#register-compliance`, which
-lands on the homepage form with **Fleetlix Compliance** preselected. That
-submission is stamped `enquiry_type: "compliance"`, asks for waste movements per
-month instead of fleet size, and reaches the inbox as `Fleetlix COMPLIANCE`.
-Each account is then set up by hand, as item 8 of the app handover expects. The
-site promises a reply within one working day, which is the same commitment
-`/support` already makes.
+**Start Fleetlix Compliance → Stripe → welcome screen → create login → records.**
 
-There is still **no checkout slug, no checkout hook, no annual price and no
-purchasable structured-data offer** for this tier.
+1. The card's CTA is `[data-open-checkout] data-plan="compliance"`.
+   `src/scripts/checkout.ts` posts `{plan:"compliance"}` to `/api/checkout`.
+2. `functions/api/checkout.ts` finds the price by lookup key
+   `fleetlix_compliance_monthly_gbp`. It refuses to sell unless there is exactly
+   one active price, and that price is 4900 GBP, tax-exclusive and billed every
+   one month. Anyone can buy (no promo code). There is no trial. It collects
+   billing address, VAT number and the terms-of-service tick box.
+3. Stripe returns to `/thank-you?session_id=…&plan=compliance`, which shows the
+   order (£49 + VAT, taken today) and the three Compliance next steps.
+4. "Create your login" opens `fleetlix.app/onboarding?session_id=…`. The app's
+   `provision.ts` accepts the session only when `metadata.plan` is `compliance`
+   **and** the billed price is the monthly Compliance price. It creates:
+   - a `compliance` tenant: `business_type='compliance'`, plus the columns from
+     `complianceEntitlementPatch()` — the same ones the webhook writes;
+   - a top-admin login, signed straight in, landing on `/compliance`, where the
+     first-run Compliance tour runs.
+5. The existing webhook path (`handleComplianceSubscriptionEvent`) keeps the
+   account in step afterwards. Cancellation puts records under legal hold; it
+   never floors the plan.
 
-### Why not self-serve checkout yet
+The homepage form's Compliance option stays, but for questions rather than
+signup. With JS off, the card's CTA falls back to it.
 
-Checked against the app repository's `main` on 15 September 2026:
+### Decisions this follows
 
-1. **The app cannot provision a Compliance tenant from a website checkout.**
-   `functions/api/onboarding/provision.ts` resolves the plan with `isPlanName()`,
-   which only knows the five carrier plans, then falls back to
-   `STRIPE_PRICE_MAP`, where the Compliance price deliberately is not. A
-   `plan=compliance` session therefore returns 422, "This checkout has no valid
-   plan", after the buyer has already given their card to Stripe.
-2. **The app's own `/api/billing/compliance-checkout` is admin-gated.** It
-   bills a tenant that already exists (the hand-provisioned route), not a new
-   signup.
-3. **That checkout does not appear to collect terms acceptance.** No
-   `consent_collection` was found in `functions/api/billing/_lib/complianceBilling.ts`.
-   Section 2 of `/terms-of-service` says acceptance is a required tick box at
-   Stripe Checkout. Resolve this before the first Compliance customer is
-   charged, or record acceptance another way.
-
-### Decisions already made for when checkout opens
-
-- **Anyone can buy, no promo code.** This needs the promo gate in
-  `functions/api/checkout.ts` relaxed for this slug (or a separate endpoint),
-  and the "Paid signup is invitation-only" callout on `/support` rewording.
-- **No free trial.** This matches the app, which sends no
+- **Anyone can buy, no promo code.**
+- **No free trial.** This matches the app, which never sends
   `subscription_data[trial_period_days]` for this price.
-- **Monthly only.** The price is found by lookup key
-  `fleetlix_compliance_monthly_gbp`. It must never go into `STRIPE_PRICE_MAP`,
-  because the app's `parsePriceMap()` throws on a non-carrier entry and 503s
-  every carrier checkout.
+- **Monthly only.** The price is never in `STRIPE_PRICE_MAP`: the app's
+  `parsePriceMap()` throws on a non-carrier entry and 503s every carrier
+  checkout.
+
+## Before this takes a real customer's money
+
+1. **Deploy the app first** (branch `feat/broker-pro-checkout`, which also
+   carries Broker Pro). Until then a buyer pays and hits "This checkout has no
+   valid plan" on `/onboarding`.
+2. **Create the test-mode price** and walk the whole path with `4242 4242 4242
+   4242`. As of 15 Sep 2026 only the live price exists (`price_1UFqRv…` on
+   `prod_VGNCeeldr2o1bP`). The app's `node scripts/stripe/seed-catalog.mjs`
+   dry-runs in test mode by default; `--apply` creates it.
+3. **An existing Compliance customer set up by hand** who buys here would be
+   told their email already has an account. Point them to Plan & billing in the
+   app instead.
 
 ## App-side launch gates
 
@@ -64,15 +69,13 @@ marketing implementation does not verify or complete these.
 2. **Done 15 Sep 2026.** Migrations 228–230 applied to staging, then live.
 3. **Outstanding.** Verify the seeded bank holidays before enabling a nation's
    deadline logic.
-4. **Live price done 15 Sep 2026** (`prod_VGNCeeldr2o1bP`, made in the
-   Dashboard). **No sandbox price yet**, so a test-mode run is not possible.
+4. **Live price done 15 Sep 2026.** Test-mode price not yet created.
 5. **Outstanding.** Resolve the submission-liability terms and keep
    contractual/support copy aligned.
 6. **Outstanding.** Decide whether the allowance counts jobs or transfer notes.
    The card calls 100 submissions a planned allowance until that is decided.
 7. **Outstanding.** Exercise the actual app and record form in a browser at 375px.
-8. **In use.** Provision accounts by hand. Self-serve signup needs the app
-   work described above.
+8. **Built, not yet deployed.** Self-serve provisioning, described above.
 
 No AI, automatic filing, automated carrier-register lookup, unlimited allowance,
 or specific Northern Ireland obligation date is advertised for this tier.

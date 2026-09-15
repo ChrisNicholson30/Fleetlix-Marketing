@@ -28,24 +28,26 @@
 //   3. £249 EXCLUDES VAT, like every other published price. FLEETLIX LTD is VAT
 //      registered; an unqualified figure is a misquote to a business buyer.
 //
-// Broker Pro is NOT purchasable at launch — it is earned through referral, and
-// £249 is shown as the stated alternative. There is deliberately no Stripe
-// plan slug for it: `STRIPE_PRICE_MAP` is still pointed at the stale v1 prices
-// (Resources/stripe-pricing-id.md), and adding two more slugs on top of that
-// would compound a known blocker. When it does become buyable it needs a price
-// created with tax_behavior: 'exclusive' and slugs added to BOTH copies of the
-// checkout config.
+// SIGNUP IS OPEN (15 Sep 2026), down two different doors on purpose:
+//
+//   - BROKER FREE signs up on the app (BROKER_FREE_SIGNUP_URL) with no card and
+//     no Stripe object. A £0 checkout would ask for a card the offer promises
+//     is never taken.
+//   - BROKER PRO is bought through the marketing checkout at £249/month + VAT,
+//     no trial, monthly only (plan slug `broker_pro`). Its price is found by
+//     LOOKUP KEY, not through `STRIPE_PRICE_MAP`, so the stale v1 map
+//     (Resources/stripe-pricing-id.md) is not in its path. Earning Pro through
+//     referral is unchanged and still the headline.
 
 import { DWTS_MILESTONES } from "./dwts";
+import { BROKER_FREE_SIGNUP_URL, BROKER_PRO_MONTHLY } from "./checkout";
 
 /**
- * When brokers can actually sign up. One const, because a date on a public page
- * is a commitment — this is the single line to edit if it slips, the same
- * discipline COMING_LABEL uses in pricing.ts.
+ * When broker accounts opened. Kept because <time datetime> reads it; the copy
+ * now says "open", not "opens".
  */
 export const BROKER_LAUNCH = {
-  label: "mid-September 2026",
-  /** Modelled point inside the window, for <time datetime>. */
+  label: "15 September 2026",
   iso: "2026-09-15",
 } as const;
 
@@ -71,6 +73,12 @@ export interface BrokerTier {
   featured?: boolean;
   limits: { carriers: string; users: string; jobs: string };
   icon: string;
+  /**
+   * The way in. `checkout: true` renders a [data-broker-checkout] button that
+   * src/scripts/checkout.ts turns into a Stripe Checkout; its `href` is the
+   * no-JS fallback. Otherwise `href` is followed as a plain link.
+   */
+  cta: { label: string; href: string; note: string; checkout?: boolean };
 }
 
 export const BROKER_TIERS: BrokerTier[] = [
@@ -82,18 +90,33 @@ export const BROKER_TIERS: BrokerTier[] = [
     blurb: "Connects the panel you already have.",
     accent: "cyan",
     limits: { carriers: "5", users: "2", jobs: "150 / month" },
+    cta: {
+      label: "Start free",
+      href: BROKER_FREE_SIGNUP_URL,
+      note: "Create your account on Fleetlix. No card, nothing to cancel.",
+    },
     // Hub and spoke: the broker in the middle, carriers connected around them.
     icon: `<circle cx="12" cy="12" r="2.6"/><circle cx="5" cy="5" r="1.9"/><circle cx="19" cy="5" r="1.9"/><circle cx="5" cy="19" r="1.9"/><circle cx="19" cy="19" r="1.9"/><path d="m6.5 6.5 3.3 3.3M17.5 6.5l-3.3 3.3M6.5 17.5l3.3-3.3M17.5 17.5l-3.3-3.3"/>`,
   },
   {
     slug: "broker-pro",
     name: "Broker Pro",
-    price: "Earned",
-    priceNote: "or £249/month + VAT",
+    price: `£${BROKER_PRO_MONTHLY}`,
+    priceNote: "a month + VAT — or earn it by introducing carriers",
     blurb: "Grows and defends the panel you want.",
     accent: "amber",
     featured: true,
     limits: { carriers: "Unlimited", users: "10", jobs: "Unlimited" },
+    cta: {
+      label: "Buy Broker Pro",
+      // No-JS fallback: the enquiry form at the foot of /brokers.
+      href: "#broker-interest",
+      // The second sentence is load-bearing until the app has an in-app upgrade:
+      // a Free broker buying here would be charged, then refused at onboarding
+      // because their email already has an account.
+      note: "Billed monthly, no trial, cancel any time. Already on Broker Free? Email us to upgrade.",
+      checkout: true,
+    },
     icon: `<path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/>`,
   },
 ];

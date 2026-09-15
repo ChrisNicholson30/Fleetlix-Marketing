@@ -11,13 +11,15 @@
 // the two rows where the broker is the one who cannot see — which is what makes
 // the rest of it credible.
 //
-// The offer is NOT purchasable yet. Broker accounts open mid-September 2026
-// (BROKER_LAUNCH), so every CTA on this page goes to the registration form at
-// the bottom, not to checkout. Broker Pro has no Stripe plan slug on purpose —
-// see the header comment in src/config/brokers.ts.
+// Signup is OPEN. Broker Free CTAs link to the app's no-card signup
+// (fleetlix.app/broker/sign-up). Broker Pro CTAs carry [data-broker-checkout],
+// which src/scripts/checkout.ts turns into a £249/month Stripe Checkout with no
+// promo code; with JS off they fall back to the enquiry form at the bottom,
+// which is now for questions rather than a waitlist. See the header comment in
+// src/config/brokers.ts, and functions/api/checkout.ts for the price checks.
 //
-// No date is typed on this page. The launch window comes from BROKER_LAUNCH and
-// the Phase 2 mandate from src/config/dwts.ts, caveat included.
+// No date is typed on this page. The Phase 2 mandate comes from
+// src/config/dwts.ts, caveat included.
 import Base from "../layouts/Base.astro";
 import Header from "../components/Header.astro";
 import SiteFooter from "../components/SiteFooter.astro";
@@ -43,7 +45,7 @@ const cross = `<path d="M18 6 6 18M6 6l12 12"/>`;
 
 <Base
   title="Broker Network — free tier for UK waste brokers | Fleetlix"
-  description="Pass jobs to your carriers, get live status and waste transfer notes back, and file digital waste tracking — free for up to five carriers. Broker Pro is earned by introducing carriers, not bought."
+  description="Pass jobs to your carriers, get live status and waste transfer notes back, and file digital waste tracking — free for up to five carriers. Broker Pro is £249/month + VAT, or earned."
 >
   <Header />
 
@@ -70,26 +72,33 @@ const cross = `<path d="M18 6 6 18M6 6l12 12"/>`;
 
         <div class="hero-fade mt-8 flex flex-wrap items-center gap-3">
           <a
-            href="#broker-interest"
-            class="btn-sheen inline-flex items-center justify-center rounded-xl bg-[color:var(--color-amber)] px-5 py-3 text-sm font-semibold text-[color:var(--color-graphite)] transition hover:brightness-105"
+            href={BROKER_TIERS[0].cta.href}
+            class="btn-sheen inline-flex min-h-11 items-center justify-center rounded-xl bg-[color:var(--color-amber)] px-5 py-3 text-sm font-semibold text-[color:var(--color-graphite)] transition hover:brightness-105"
           >
-            Register for launch
+            Start free — no card
           </a>
-          <span class="inline-flex items-center gap-2 rounded-xl border border-white/25 px-4 py-3 text-sm font-medium text-white/85">
-            <span class="h-1.5 w-1.5 rounded-full bg-[color:var(--color-amber)]" aria-hidden="true"></span>
-            Broker accounts open <time datetime={BROKER_LAUNCH.iso} class="font-semibold text-white">{BROKER_LAUNCH.label}</time>
+          <a
+            href="#broker-plans"
+            class="inline-flex min-h-11 items-center justify-center rounded-xl border border-white/25 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
+          >
+            Compare Free and Pro
+          </a>
+          <span class="inline-flex items-center gap-2 px-1 py-3 text-sm font-medium text-white/85">
+            <span class="h-1.5 w-1.5 rounded-full bg-[color:var(--color-success)]" aria-hidden="true"></span>
+            Broker accounts are open
           </span>
         </div>
       </div>
     </section>
 
     <article class="mx-auto max-w-5xl px-6 py-16 md:py-20">
-      <!-- The two rungs -->
-      <section>
+      <!-- The two rungs. #broker-plans is where a cancelled Broker Pro checkout
+           returns (functions/api/checkout.ts), so keep the id. -->
+      <section id="broker-plans" class="scroll-mt-24">
         <div class="grid gap-6 lg:grid-cols-2">
           {BROKER_TIERS.map((tier) => (
             <div
-              class={`rounded-2xl border bg-white p-7 ${
+              class={`flex flex-col rounded-2xl border bg-white p-7 ${
                 tier.featured
                   ? "border-[color:var(--color-amber)]/40 shadow-lg shadow-[color:var(--color-amber)]/5"
                   : "border-[color:var(--color-mist)]"
@@ -125,6 +134,20 @@ const cross = `<path d="M18 6 6 18M6 6l12 12"/>`;
                 {tier.price}
               </p>
               <p class="mt-1 text-sm text-[color:var(--color-slate)]/80">{tier.priceNote}</p>
+              <div class="mt-auto pt-6">
+                <a
+                  href={tier.cta.href}
+                  {...(tier.cta.checkout ? { "data-broker-checkout": "" } : {})}
+                  class={`inline-flex min-h-11 w-full items-center justify-center rounded-xl px-5 py-3 text-sm font-semibold transition ${
+                    tier.featured
+                      ? "btn-sheen bg-[color:var(--color-amber)] text-[color:var(--color-graphite)] ring-1 ring-[color:var(--color-amber)]/40 hover:brightness-105"
+                      : "bg-[color:var(--color-graphite)] text-white hover:bg-[color:var(--color-graphite)]/90"
+                  }`}
+                >
+                  <span data-checkout-label>{tier.cta.label}</span>
+                </a>
+                <p class="mt-2 text-center text-xs text-[color:var(--color-slate)]/80">{tier.cta.note}</p>
+              </div>
             </div>
           ))}
         </div>
@@ -331,25 +354,33 @@ const cross = `<path d="M18 6 6 18M6 6l12 12"/>`;
 
       <div class="mt-14 flex flex-wrap items-center gap-3 border-t border-[color:var(--color-mist)] pt-8">
         <a
-          href="#broker-interest"
-          class="btn-sheen inline-flex items-center justify-center rounded-xl bg-[color:var(--color-amber)] px-5 py-3 text-sm font-semibold text-[color:var(--color-graphite)] ring-1 ring-[color:var(--color-amber)]/40 transition hover:brightness-105"
+          href={BROKER_TIERS[0].cta.href}
+          class="btn-sheen inline-flex min-h-11 items-center justify-center rounded-xl bg-[color:var(--color-amber)] px-5 py-3 text-sm font-semibold text-[color:var(--color-graphite)] ring-1 ring-[color:var(--color-amber)]/40 transition hover:brightness-105"
         >
-          Register for launch
+          Start free — no card
+        </a>
+        <a
+          href={BROKER_TIERS[1].cta.href}
+          data-broker-checkout
+          class="inline-flex min-h-11 items-center justify-center rounded-xl bg-[color:var(--color-graphite)] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[color:var(--color-graphite)]/90"
+        >
+          <span data-checkout-label>{BROKER_TIERS[1].cta.label}</span>
         </a>
         <a
           href="/#pricing"
-          class="inline-flex items-center justify-center rounded-xl border border-[color:var(--color-graphite)]/25 px-5 py-3 text-sm font-semibold text-[color:var(--color-graphite)] transition hover:bg-[color:var(--color-graphite)] hover:text-white"
+          class="inline-flex min-h-11 items-center justify-center rounded-xl border border-[color:var(--color-graphite)]/25 px-5 py-3 text-sm font-semibold text-[color:var(--color-graphite)] transition hover:bg-[color:var(--color-graphite)] hover:text-white"
         >
           Operator pricing
         </a>
-        <p class="ml-auto text-xs text-[color:var(--color-slate)]/70">
-          Opens <time datetime={BROKER_LAUNCH.iso}>{BROKER_LAUNCH.label}</time>
-        </p>
       </div>
     </article>
 
     <InterestForm client:visible variant="broker" />
   </main>
+
+  <script>
+    import "../scripts/checkout";
+  </script>
 
   <SiteFooter />
 </Base>

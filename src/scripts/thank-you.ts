@@ -11,6 +11,11 @@
 //    to confirm the paid session and provision the tenant. Drop it and the
 //    buyer can't create their login.
 //
+// Three ladders land here: an operations plan (from a promo checkout), Broker
+// Pro and Fleetlix Compliance (both bought outright; the checkout adds
+// &plan=<slug> to the success URL). The right "what happens next" list shows
+// from the first paint, without waiting for the session read-back.
+//
 // Everything here degrades: with no session id, an unconfigured endpoint, or a
 // dead network, the page still reads as a complete, correct thank-you and the
 // button still opens the app. Nothing throws in front of someone who has just
@@ -20,6 +25,8 @@
 // script-src 'self' (no CSP hash). See public/_headers.
 import { qs } from "./lib/env";
 import { TIERS } from "../config/pricing";
+import { COMPLIANCE } from "../config/compliance";
+import { BROKER_PRO_MONTHLY, BROKER_PRO_SLUG, COMPLIANCE_SLUG } from "../config/checkout";
 import { APP_ORIGIN, ONBOARDING_PATH, DEMO_SUMMARY } from "../config/onboarding";
 
 type Summary = {
@@ -34,6 +41,14 @@ type Summary = {
   currency?: string | null;
 };
 
+type Ladder = "operations" | "broker" | "compliance";
+
+/** Plans bought outright: no promo, no trial, monthly only. */
+const OPEN_PLANS: Record<string, { name: string; ladder: Ladder; monthly: number }> = {
+  [BROKER_PRO_SLUG]: { name: "Broker Pro", ladder: "broker", monthly: BROKER_PRO_MONTHLY },
+  [COMPLIANCE_SLUG]: { name: COMPLIANCE.name, ladder: "compliance", monthly: COMPLIANCE.monthly },
+};
+
 // Mirrors the app's server-side check, and the one in
 // functions/api/checkout-session.ts.
 const SESSION_ID = /^cs_[A-Za-z0-9_]+$/;
@@ -42,9 +57,10 @@ const params = new URLSearchParams(window.location.search);
 const sessionId = params.get("session_id")?.trim() ?? "";
 const validSession = SESSION_ID.test(sessionId);
 // ?demo previews the screen with no Stripe call at all. ?demo=<plan> picks
-// which tier to preview (?demo=depot), &interval=year shows the annual figure —
-// the amounts come from src/config/pricing.ts, so a preview can't quote a price
-// the cards don't. Bare ?demo falls back to DEMO_SUMMARY's plan.
+// which plan to preview (?demo=depot, ?demo=broker_pro, ?demo=compliance),
+// &interval=year shows the annual figure — the amounts come from config, so a
+// preview can't quote a price the cards don't. Bare ?demo falls back to
+// DEMO_SUMMARY's plan.
 const demo = params.has("demo");
 const demoPlan = params.get("demo")?.trim().toLowerCase() || DEMO_SUMMARY.plan;
 const demoInterval = params.get("interval") === "year" ? "year" : "month";
@@ -67,7 +83,7 @@ const money = (minor: number, currency: string) =>
   }).format(minor / 100);
 
 const planName = (slug: string | null | undefined) =>
-  TIERS.find((t) => t.slug === slug)?.name ?? null;
+  (slug && OPEN_PLANS[slug]?.name) || (TIERS.find((t) => t.slug === slug)?.name ?? null);
 
 const set = (hook: string, text: string) => {
   const el = qs<HTMLElement>(`[data-order-${hook}]`);
@@ -87,6 +103,22 @@ const reveal = (selector: string) => {
   const el = qs<HTMLElement>(selector);
   if (el) el.hidden = false;
 };
+
+// Which "what happens next" list is showing. All three are server-rendered; the
+// operations list is the default so a no-JS visitor still reads correct steps
+// for the ladder that has always landed here.
+const showLadder = (ladder: Ladder) => {
+  for (const which of ["operations", "broker", "compliance"] as const) {
+    const list = qs<HTMLElement>(`[data-steps="${which}"]`);
+    if (list) list.hidden = which !== ladder;
+  }
+};
+
+const ladderOf = (slug: string | null | undefined): Ladder | null =>
+  (slug && OPEN_PLANS[slug]?.ladder) || null;
+
+const initialLadder = ladderOf(params.get("plan")) ?? (demo ? ladderOf(demoPlan) : null);
+if (initialLadder) showLadder(initialLadder);
 
 // ---------------------------------------------------------------- app handoff
 
@@ -124,6 +156,9 @@ const render = (summary: Summary) => {
     return;
   }
 
+  const ladder = ladderOf(summary.plan);
+  if (ladder) showLadder(ladder);
+
   const name = planName(summary.plan);
   const interval = summary.interval === "year" ? "year" : "month";
   const amount =
@@ -138,12 +173,16 @@ const render = (summary: Summary) => {
   );
 
   const trialEnd = summary.trialEnd ? new Date(summary.trialEnd) : null;
-  const trialValid = trialEnd && !Number.isNaN(trialEnd.getTime());
-  showRow("trial", Boolean(trialValid));
-  showRow("charge", Boolean(trialValid && amount));
-  if (trialValid) {
+  const trialValid = Boolean(trialEnd && !Number.isNaN(trialEnd.getTime()));
+  showRow("trial", trialValid);
+  // With a trial the first charge lands when it ends; without one it was taken
+  // at checkout. Saying "today" answers the question either way.
+  showRow("charge", Boolean(amount));
+  if (trialValid && trialEnd) {
     set("trial", `Free until ${DATE.format(trialEnd)}`);
     if (amount) set("charge", `${amount} on ${DATE.format(trialEnd)}`);
+  } else if (amount) {
+    set("charge", `${amount}, taken today`);
   }
 
   showRow("email", Boolean(summary.email));
@@ -164,23 +203,37 @@ if (card && demo) {
   // it is destructured off rather than passed through, since Summary is the
   // shape /api/checkout-session returns and this isn't one of its fields.
   const { trialInDays, ...sample } = DEMO_SUMMARY;
-  const trialEnd = new Date();
-  trialEnd.setDate(trialEnd.getDate() + trialInDays);
+  const open = OPEN_PLANS[demoPlan];
 
-  // An unknown slug falls back rather than rendering a blank plan row, so a
-  // typo'd preview URL is obvious as a wrong plan, not as a broken screen.
-  const tier =
-    TIERS.find((t) => t.slug === demoPlan) ??
-    TIERS.find((t) => t.slug === DEMO_SUMMARY.plan);
+  if (open) {
+    // Bought outright: no promo, no trial, monthly only.
+    render({
+      ...sample,
+      plan: demoPlan,
+      promo: null,
+      interval: "month",
+      amount: open.monthly * 100,
+      trialEnd: null,
+    });
+  } else {
+    const trialEnd = new Date();
+    trialEnd.setDate(trialEnd.getDate() + trialInDays);
 
-  render({
-    ...sample,
-    plan: tier?.slug ?? null,
-    interval: demoInterval,
-    // Minor units, matching what Stripe returns. Ex VAT, like the cards.
-    amount: tier ? (demoInterval === "year" ? tier.annual : tier.monthly) * 100 : null,
-    trialEnd: trialEnd.toISOString(),
-  });
+    // An unknown slug falls back rather than rendering a blank plan row, so a
+    // typo'd preview URL is obvious as a wrong plan, not as a broken screen.
+    const tier =
+      TIERS.find((t) => t.slug === demoPlan) ??
+      TIERS.find((t) => t.slug === DEMO_SUMMARY.plan);
+
+    render({
+      ...sample,
+      plan: tier?.slug ?? null,
+      interval: demoInterval,
+      // Minor units, matching what Stripe returns. Ex VAT, like the cards.
+      amount: tier ? (demoInterval === "year" ? tier.annual : tier.monthly) * 100 : null,
+      trialEnd: trialEnd.toISOString(),
+    });
+  }
 } else if (card && validSession) {
   // Reveal the card immediately, in its placeholder state, so the summary
   // doesn't shove the page around when the fetch lands.

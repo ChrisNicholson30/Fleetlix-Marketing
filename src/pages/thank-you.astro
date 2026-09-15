@@ -18,7 +18,13 @@
 import Base from "../layouts/Base.astro";
 import Header from "../components/Header.astro";
 import SiteFooter from "../components/SiteFooter.astro";
-import { APP_ORIGIN, ONBOARDING_PATH, ONBOARDING_STEPS } from "../config/onboarding";
+import {
+  APP_ORIGIN,
+  BROKER_ONBOARDING_STEPS,
+  COMPLIANCE_ONBOARDING_STEPS,
+  ONBOARDING_PATH,
+  ONBOARDING_STEPS,
+} from "../config/onboarding";
 ---
 
 <Base
@@ -130,8 +136,8 @@ import { APP_ORIGIN, ONBOARDING_PATH, ONBOARDING_STEPS } from "../config/onboard
              the same policy written for three readers. Change all three. -->
         <p class="mt-6 border-t border-white/8 pt-4 text-sm leading-relaxed text-white/50">
           Prices exclude VAT, which Stripe adds at the rate for your billing
-          address. You can cancel any time from the app — see
-          <a href="/support" class="font-semibold text-white/75 underline underline-offset-2 hover:text-white">support</a>
+          address. You can cancel any time from the app — see{" "}
+          <a href="/support" class="font-semibold text-white/75 underline underline-offset-2 hover:text-white">support</a>{" "}
           for how billing, plan changes and refunds work.
         </p>
       </div>
@@ -144,8 +150,11 @@ import { APP_ORIGIN, ONBOARDING_PATH, ONBOARDING_STEPS } from "../config/onboard
           What happens next
         </h2>
 
-        <ol class="mt-8 space-y-5">
-          {ONBOARDING_STEPS.map((step, i) => (
+        <!-- Three lists, all server-rendered. Operations shows by default;
+             src/scripts/thank-you.ts swaps to the Broker Pro or Compliance list. -->
+        {([["operations", ONBOARDING_STEPS], ["broker", BROKER_ONBOARDING_STEPS], ["compliance", COMPLIANCE_ONBOARDING_STEPS]] as const).map(([ladder, steps]) => (
+        <ol class="mt-8 space-y-5" data-steps={ladder} hidden={ladder !== "operations"}>
+          {steps.map((step, i) => (
             <li class="flex gap-4 rounded-2xl border border-white/10 bg-white/[0.03] p-5 sm:gap-5 sm:p-6">
               <span
                 aria-hidden="true"
@@ -157,7 +166,7 @@ import { APP_ORIGIN, ONBOARDING_PATH, ONBOARDING_STEPS } from "../config/onboard
                 <p class="font-semibold text-white">
                   {step.title}
                   {step.owner === "app" && (
-                    <span class="ml-2 align-middle rounded-full bg-white/8 px-2 py-0.5 text-[11px] font-medium uppercase tracking-wider text-white/50">
+                    <span class="ml-2 inline-block whitespace-nowrap align-middle rounded-full bg-white/8 px-2 py-0.5 text-[11px] font-medium uppercase tracking-wider text-white/50">
                       In the app
                     </span>
                   )}
@@ -167,6 +176,7 @@ import { APP_ORIGIN, ONBOARDING_PATH, ONBOARDING_STEPS } from "../config/onboard
             </li>
           ))}
         </ol>
+        ))}
       </div>
 
       <!-- The handoff. Server-renders as the bare /onboarding URL; the script
