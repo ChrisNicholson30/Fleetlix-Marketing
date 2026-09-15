@@ -17,7 +17,8 @@ const ROLES = [
 const CARRIER_COUNTS = ["1-5", "6-15", "16-40", "40+", "Not sure"] as const;
 const JOB_VOLUMES = ["Under 50", "50-150", "150-500", "500+", "Not sure"] as const;
 
-// Fleetlix Compliance signup requests, on the homepage form. Waste movements
+// Fleetlix Compliance enquiries, on the homepage form — questions before
+// buying; the tier itself is bought through checkout on its pricing card. Waste movements
 // rather than fleet size: a receiving site may run no vehicles at all, and the
 // tier's allowance is counted in submissions. Mirrors
 // functions/api/register-interest.ts — change both together.
@@ -102,11 +103,11 @@ const COPY = {
   broker: {
     id: "broker-interest",
     eyebrow: "Broker Network",
-    heading: "Get on the Broker Network at launch.",
-    body: "Broker accounts open in mid-September 2026. Leave your details and we'll set yours up on day one, with your referral code ready to share. Broker Free stays free — there is no card to add and nothing to cancel.",
+    heading: "Questions before you join?",
+    body: "Broker accounts are open — start free or buy Pro from the plans above. If you would rather talk it through first, or want a hand bringing a large carrier panel across, leave your details and we'll reply within one working day.",
     footnote: "No obligation · Broker Free is free forever · UK GDPR",
     success:
-      "as soon as broker accounts open in mid-September. We've also sent you a quick confirmation just so you know it landed.",
+      "within one working day. We've also sent you a quick confirmation just so you know it landed.",
   },
 } as const;
 
@@ -253,7 +254,7 @@ export default function InterestForm({
                       Thanks — we've got your details. You'll hear from us at{" "}
                       <span className="font-semibold text-white">{state.email}</span>{" "}
                       {isCompliance
-                        ? "within one working day to set up your Fleetlix Compliance account. We've also sent you a quick confirmation just so you know it landed."
+                        ? "within one working day. We've also sent you a quick confirmation just so you know it landed."
                         : copy.success}
                     </p>
                   </div>
@@ -343,7 +344,7 @@ export default function InterestForm({
                       </div>
                       {isCompliance && (
                         <p className="mt-2 text-xs text-white/75">
-                          Available now. We set your account up with you and reply within one working day.
+                          Ready to start? Use Start Fleetlix Compliance on the pricing card to pay and create your login. Questions first? Ask here and we reply within one working day.
                         </p>
                       )}
                     </fieldset>
@@ -499,7 +500,7 @@ export default function InterestForm({
                     />
                     <span>
                       {isCompliance
-                        ? "I'm happy for Fleetlix to email me about setting up my Compliance account."
+                        ? "I'm happy for Fleetlix to email me about Fleetlix Compliance."
                         : "I'm happy for Fleetlix to email me about the launch and pilot programme."}
                       {" "}No marketing lists, no third parties.
                     </span>
@@ -529,7 +530,7 @@ export default function InterestForm({
                         </>
                       ) : (
                         <>
-                          {isCompliance ? "Request my Compliance account" : "Register your interest"}
+                          {isCompliance ? "Ask about Compliance" : "Register your interest"}
                           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.25} strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4" aria-hidden="true">
                             <path d="M5 12h14" />
                             <path d="m13 5 7 7-7 7" />

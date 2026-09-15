@@ -29,8 +29,8 @@ const ROLES = [
 // fleet", so asking a broker their fleet size contradicts the offer on the page
 // they just came from. `enquiry_type` is what tells the two apart in the inbox.
 //
-// Fleetlix Compliance enquiries are signup requests for the £49 DWTS portal,
-// which is set up by hand rather than sold through checkout. They ask for waste
+// Fleetlix Compliance enquiries are questions about the £49 DWTS portal from
+// people not ready to buy it through checkout yet. They ask for waste
 // movements a month instead of fleet size: a receiving site may run no vehicles.
 const ENQUIRY_TYPES = ["operator", "broker", "compliance"] as const;
 const CARRIER_COUNTS = ["1-5", "6-15", "16-40", "40+", "Not sure"] as const;
@@ -112,7 +112,7 @@ function renderEmail(
     payload.enquiry_type === "broker"
       ? "FLEETLIX · New BROKER NETWORK registration"
       : payload.enquiry_type === "compliance"
-        ? "FLEETLIX · New COMPLIANCE signup request — set up by hand"
+        ? "FLEETLIX · New COMPLIANCE enquiry"
         : "FLEETLIX · New registration of interest",
     "",
     `Name:        ${payload.name}`,
@@ -185,7 +185,7 @@ function renderEmail(
 
   const action =
     payload.enquiry_type === "compliance"
-      ? "just asked to start Fleetlix Compliance. The account is set up by hand — reply within one working day."
+      ? "just asked about Fleetlix Compliance — reply within one working day."
       : "just registered interest in Fleetlix.";
 
   const lead = payload.company
@@ -316,16 +316,16 @@ function renderConfirmation(payload: ParsedPayload) {
   }
   const isCompliance = payload.enquiry_type === "compliance";
   const subject = isCompliance
-    ? "Your Fleetlix Compliance request"
+    ? "Your Fleetlix Compliance question"
     : "Thanks for registering interest in Fleetlix";
   const preheader = isCompliance
-    ? "We've got your Fleetlix Compliance request — we'll reply within one working day."
+    ? "We've got your Fleetlix Compliance question — we'll reply within one working day."
     : "We've received your interest in Fleetlix — confirmation inside.";
   const heading = isCompliance
-    ? `Thanks, ${escapeHtml(firstName)} — we've got your request.`
+    ? `Thanks, ${escapeHtml(firstName)} — we've got your question.`
     : `Thanks, ${escapeHtml(firstName)} — you're on the list.`;
   const intro = isCompliance
-    ? "We set each Fleetlix Compliance account up with you directly, and we'll reply within one working day to get yours running."
+    ? "We'll reply within one working day. If you are ready to start sooner, you can buy Fleetlix Compliance from the pricing section and create your login straight after paying."
     : "Your details have landed safely. We'll be in touch the moment there's something real to show you — typically when the pilot programme opens to its first five operators.";
 
   const summaryHtml = summaryRows.length
@@ -345,7 +345,7 @@ function renderConfirmation(payload: ParsedPayload) {
     `Hi ${firstName},`,
     "",
     isCompliance
-      ? "Thanks for asking to start Fleetlix Compliance. Your details have landed safely. We set each account up with you directly, and we'll reply within one working day to get yours running."
+      ? "Thanks for asking about Fleetlix Compliance. Your details have landed safely and we'll reply within one working day. If you are ready to start sooner, you can buy it from the pricing section at fleetlix.com and create your login straight after paying."
       : "Thanks for registering interest in Fleetlix. Your details have landed safely and we'll be in touch the moment there's something real to show you — typically when we open the pilot programme.",
     "",
     "What you sent us:",

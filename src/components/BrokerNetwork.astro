@@ -3,21 +3,25 @@
 // operator pricing cards on the homepage.
 //
 // This section is a TEASER, not the offer. It carries the two rungs, the free
-// tier's limits, and the eligibility line; the referral mechanics and the
-// margin-visibility table live at /brokers, because putting all of it here
-// roughly doubles the homepage on the main conversion path.
+// tier's limits, the eligibility line and a way in to each rung; the referral
+// mechanics and the margin-visibility table live at /brokers, because putting
+// all of it here roughly doubles the homepage on the main conversion path.
 //
 // Two things must survive any edit:
 //   1. THE ELIGIBILITY LINE. Without "intermediaries only — no owned fleet",
 //      every Operator at £99 reclassifies as a free broker.
 //   2. "+ VAT" on the £249. House rule, and FLEETLIX LTD is VAT registered.
 //
+// Each card's CTA comes from BROKER_TIERS: Broker Free links to the app's no-card
+// signup, Broker Pro is a [data-broker-checkout] button that
+// src/scripts/checkout.ts turns into a Stripe Checkout (no promo needed). With
+// JS off it falls back to /brokers#broker-interest.
+//
 // The October 2027 date is read from src/config/dwts.ts, not typed.
 import {
   BROKER_TIERS,
   BROKER_LIMITS,
   BROKER_RAIL,
-  BROKER_LAUNCH,
   BROKER_DWTS_MILESTONE,
   ELIGIBILITY,
 } from "../config/brokers";
@@ -113,6 +117,21 @@ const stagger = ["[--stagger:0ms]", "[--stagger:120ms]"];
               </div>
             ))}
           </dl>
+
+          <div class="mt-auto pt-6">
+            <a
+              href={tier.cta.checkout ? "/brokers#broker-interest" : tier.cta.href}
+              {...(tier.cta.checkout ? { "data-broker-checkout": "" } : {})}
+              class={`inline-flex min-h-11 w-full items-center justify-center rounded-xl px-5 py-3 text-sm font-semibold transition ${
+                tier.featured
+                  ? "btn-sheen bg-[color:var(--color-amber)] text-[color:var(--color-graphite)] ring-1 ring-[color:var(--color-amber)]/40 hover:brightness-105"
+                  : "bg-[color:var(--color-graphite)] text-white hover:bg-[color:var(--color-graphite)]/90"
+              }`}
+            >
+              <span data-checkout-label>{tier.cta.label}</span>
+            </a>
+            <p class="mt-2 text-center text-xs text-[color:var(--color-slate)]/80">{tier.cta.note}</p>
+          </div>
         </article>
       ))}
     </div>
@@ -150,7 +169,7 @@ const stagger = ["[--stagger:0ms]", "[--stagger:120ms]"];
     <div class="mt-8 flex flex-wrap items-center gap-3 [--stagger:280ms]" data-reveal>
       <a
         href="/brokers"
-        class="btn-sheen inline-flex items-center justify-center gap-2 rounded-xl bg-[color:var(--color-amber)] px-6 py-3 text-base font-semibold text-[color:var(--color-graphite)] ring-1 ring-[color:var(--color-amber)]/40 transition hover:brightness-105"
+        class="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-[color:var(--color-graphite)]/25 px-6 py-3 text-base font-semibold text-[color:var(--color-graphite)] transition hover:bg-[color:var(--color-graphite)] hover:text-white"
       >
         See how the Broker Network works
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="transition-transform group-hover:translate-x-1 motion-reduce:transition-none" aria-hidden="true">
@@ -158,9 +177,13 @@ const stagger = ["[--stagger:0ms]", "[--stagger:120ms]"];
         </svg>
       </a>
       <span class="inline-flex items-center gap-2 rounded-full border border-[color:var(--color-mist)] bg-white px-3.5 py-1.5 text-sm font-medium text-[color:var(--color-slate)]">
-        <span class="h-1.5 w-1.5 rounded-full bg-[color:var(--color-amber)]" aria-hidden="true"></span>
-        Opens <time datetime={BROKER_LAUNCH.iso}>{BROKER_LAUNCH.label}</time>
+        <span class="h-1.5 w-1.5 rounded-full bg-[color:var(--color-success)]" aria-hidden="true"></span>
+        Broker accounts are open
       </span>
     </div>
   </div>
 </section>
+
+<script>
+  import "../scripts/checkout";
+</script>

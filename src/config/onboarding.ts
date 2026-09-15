@@ -58,6 +58,58 @@ export const ONBOARDING_STEPS: {
 ];
 
 /**
+ * The same three-step promise for a Broker Pro buyer. A broker has no depots,
+ * vehicles or drivers, so the operations steps would send them looking for
+ * screens their account deliberately does not have.
+ */
+export const BROKER_ONBOARDING_STEPS: typeof ONBOARDING_STEPS = [
+  {
+    title: "Create your login",
+    body:
+      "Set a password. Your Broker Pro subscription is already paid for, so this signs you straight in to the broker desk.",
+    owner: "app",
+  },
+  {
+    title: "Connect your carriers",
+    body:
+      "Invite the carriers you already use. Each one accepts under their own account, and your margin stays invisible to them.",
+    owner: "app",
+  },
+  {
+    title: "Pass your first job",
+    body:
+      "Send a job to a connected carrier and watch the status, proof of delivery and waste transfer note come back to you.",
+    owner: "you",
+  },
+];
+
+/**
+ * The three steps for a Fleetlix Compliance buyer. It lands on the records list
+ * with a three-step first-run tour, so these match what that screen shows
+ * rather than inventing a setup the tier does not have.
+ */
+export const COMPLIANCE_ONBOARDING_STEPS: typeof ONBOARDING_STEPS = [
+  {
+    title: "Create your login",
+    body:
+      "Set a password. Your Fleetlix Compliance subscription is already paid for, so this signs you straight in to your records.",
+    owner: "app",
+  },
+  {
+    title: "Record your first load",
+    body:
+      "Who brought it, when it landed and what was in it. The form checks each field and the EWC code as you go, and shows the filing deadline.",
+    owner: "app",
+  },
+  {
+    title: "Confirm the submission",
+    body:
+      "Nothing files itself. Each record waits for you to confirm it, and the outstanding list shows what is still owed and how long you have.",
+    owner: "you",
+  },
+];
+
+/**
  * The preview payload behind ?demo= on the welcome screen. It is here rather
  * than in the script so the numbers sit beside the real ones and can be checked
  * against src/config/pricing.ts at a glance.

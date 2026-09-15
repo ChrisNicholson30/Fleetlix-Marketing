@@ -23,8 +23,8 @@
 // the operator pricing cards) and the footer link to /brokers are rendered. The
 // /brokers PAGE itself always builds and is always reachable — the flag governs
 // discovery, not existence, so a link already shared cannot 404. Broker accounts
-// open mid-September 2026 (BROKER_LAUNCH in src/config/brokers.ts); until then
-// both surfaces collect registrations rather than provisioning anything.
+// are open: both surfaces link Broker Free to the app's no-card signup and start
+// a Broker Pro checkout directly.
 export const SHOW_BROKERS = true
 
 export const SHOW_PRICING = true
