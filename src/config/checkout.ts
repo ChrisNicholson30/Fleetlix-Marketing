@@ -38,6 +38,12 @@ export const BROKER_PRO_SLUG = "broker_pro";
 // Fleetlix Compliance is the other open plan: £49/month + VAT (COMPLIANCE.monthly
 // in ./compliance), monthly only, no trial, no code.
 export const COMPLIANCE_SLUG = "compliance";
+// Operator is the one operations plan anyone can buy: £99/month or £990/year +
+// VAT (TIERS in ./pricing), no trial, and promo codes do not apply to it. The
+// other four operations plans stay promo-gated.
+export const OPERATOR_SLUG = "operator";
+/** Plans bought outright with no code. Mirrors OPEN_PLANS in functions/api/checkout.ts. */
+export const OPEN_PLAN_SLUGS: readonly string[] = [OPERATOR_SLUG, BROKER_PRO_SLUG, COMPLIANCE_SLUG];
 /** £, ex VAT. The server refuses to sell a price that is not exactly this. */
 export const BROKER_PRO_MONTHLY = 249;
 export const BROKER_FREE_SIGNUP_URL = "https://fleetlix.app/broker/sign-up";

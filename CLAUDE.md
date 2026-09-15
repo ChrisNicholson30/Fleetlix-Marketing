@@ -87,7 +87,7 @@ fleetlix-marketing/
 │   └── assets/hero/            # source PNGs; Astro <Picture> emits avif/webp
 ├── functions/api/
 │   ├── register-interest.ts    # Cloudflare Pages Function — POST → Resend
-│   ├── checkout.ts             # POST → Stripe Checkout Session (promo-gated)
+│   ├── checkout.ts             # POST → Stripe Checkout Session (open plans + promo-gated)
 │   └── checkout-session.ts     # GET  → read a session back for /thank-you
 └── public/
     ├── _headers                # CSP + cache rules (Cloudflare reads this verbatim)
@@ -144,7 +144,7 @@ Always test at **375px (iPhone SE)** before merge — that's the narrowest targe
 
 ## Feature flags — `src/config/featureFlags.ts`
 
-- **`SHOW_PRICING`** (currently `true`) — when on: the Pricing nav link, `PricingSection` (five fixed plans mirroring `Resources/Pricing.md`: Operator £79 / Workshop £189 / Depot £350 / Haulier £550 / Network £899), and the hero "Prices from £79/month" CTA (→ `#pricing`) are rendered. `InterestForm` renders regardless of this flag. By default the per-plan CTAs anchor to `#register-interest`; `src/scripts/checkout.ts` progressively enhances them into Stripe checkout **only when a valid `?promo=` is in the URL** (see _Promo checkout_ below). If `Resources/Pricing.md` and the app repo's `shared/plans/index.ts` disagree, the code wins.
+- **`SHOW_PRICING`** (currently `true`) — when on: the Pricing nav link, `PricingSection` (five fixed plans mirroring `Resources/Pricing.md`: Operator £79 / Workshop £189 / Depot £350 / Haulier £550 / Network £899), and the hero "Prices from £79/month" CTA (→ `#pricing`) are rendered. `InterestForm` renders regardless of this flag. **Operator's CTA is an open checkout** (`[data-open-checkout] data-follows-billing`): anyone can buy it at £99/month or £990/year + VAT, with no trial, promo codes ignored, and prices found by lookup key (`fleetlix_operator_monthly_gbp` / `fleetlix_operator_annual_gbp`), never the stale marketing `STRIPE_PRICE_MAP`. The other four per-plan CTAs anchor to `#register-interest`; `src/scripts/checkout.ts` progressively enhances them into Stripe checkout **only when a valid `?promo=` is in the URL** (see _Promo checkout_ below). If `Resources/Pricing.md` and the app repo's `shared/plans/index.ts` disagree, the code wins.
 - **`SHOW_BROKERS`** (currently `true`) — when on: the `BrokerNetwork` section on the homepage (directly below `PricingSection`) and the footer link to `/brokers`. **The `/brokers` page itself always builds and is always reachable** — the flag governs discovery, not existence, so a link already handed to a broker cannot 404.
 - **`SHOW_CONTACT`** (currently `false`) — when off: "Book a demo" CTAs in Header + Hero, the Contact nav link, the `CtaFooter` section, and the footer email are all hidden. Legal pages keep their statutory data-protection contact regardless.
 
@@ -431,7 +431,7 @@ visitor submits InterestForm (React island)
 
 ## Promo checkout pipeline
 
-The paid-signup entry point. **Checkout-first:** the customer pays on Stripe on the marketing site, _then_ creates their login on the app (`fleetlix.app`). Gated to promo-code holders.
+The paid-signup entry point. **Checkout-first:** the customer pays on Stripe on the marketing site, _then_ creates their login on the app (`fleetlix.app`). Gated to promo-code holders **for Workshop, Depot, Haulier and Network only**. Operator, Fleetlix Compliance and Broker Pro are `OPEN_PLANS` in `functions/api/checkout.ts`: no code, no trial, each price found by lookup key and checked (amount, currency, tax-exclusive, cadence, exactly one active price) before a session is created.
 
 **Four steps, and the third one is ours.** Choose a plan → pay on Stripe →
 welcome screen → set up in the app:

@@ -210,7 +210,7 @@ export const checkoutIssues: CheckoutIssue[] = [
     kind: "behaviour",
     symptom: "The button still says Register interest and never offers a trial",
     meaning:
-      "There is no promo code in the address bar. Paid signup is currently open to code holders only, so without one the pricing buttons stay as enquiry links rather than becoming buy buttons.",
+      "You are looking at Workshop, Depot, Haulier or Network with no promo code in the address bar. Those plans are open to code holders only, so without one their buttons stay as enquiry links rather than becoming buy buttons. Operator does not need a code: its button starts checkout on its own, with no trial.",
     fix: "Use the full link you were given, including the ?promo= part, rather than typing fleetlix.com by hand. If you have a code but no link, email us and we will send you one.",
   },
   {
@@ -259,7 +259,7 @@ export const checkoutIssues: CheckoutIssue[] = [
     symptom: "The card was declined on the payment page",
     meaning:
       "That decision is your bank's and we are not told why. We never see your card number, so we cannot check it for you.",
-    fix: "Try another card, or call the number on the back of yours — business cards are often blocked on a first online subscription. Note that we take card details to start a free trial even though nothing is charged that day.",
+    fix: "Try another card, or call the number on the back of yours — business cards are often blocked on a first online subscription. On a plan with a free trial, we take card details even though nothing is charged that day.",
   },
   {
     kind: "behaviour",

@@ -11,33 +11,34 @@
 //
 // TWO GATES:
 //
-//   - The five OPERATIONS plans are GATED: a valid promo code is REQUIRED, and
-//     the promo sets the trial length (it discounts time, not price, so no
-//     Stripe coupon is involved). Prices come from STRIPE_PRICE_MAP.
-//
-//   - OPEN_PLANS — Broker Pro (£249) and Fleetlix Compliance (£49) — can be
-//     bought by anyone: no code, no trial, monthly only. Each price is found by
-//     LOOKUP KEY and checked before a session is created, never through
-//     STRIPE_PRICE_MAP — the app's parser throws on a non-carrier entry there,
-//     which would take down every carrier checkout and webhook. Broker Free is
+//   - OPEN_PLANS — Operator (£99/month or £990/year), Fleetlix Compliance (£49)
+//     and Broker Pro (£249) — can be bought by anyone: no code, no trial. A promo
+//     sent with one is ignored. Each price is found by LOOKUP KEY and checked
+//     before a session is created, never through STRIPE_PRICE_MAP — the app's
+//     parser throws on a non-carrier entry there, and the marketing map still
+//     holds the stale v1 ladder (Resources/stripe-pricing-id.md). Broker Free is
 //     not sold here at all: it is £0 with no card, and signs up directly on
 //     fleetlix.app/broker/sign-up.
 //
+//   - Workshop, Depot, Haulier and Network are GATED: a valid promo code is
+//     REQUIRED, and the promo sets the trial length (it discounts time, not
+//     price, so no Stripe coupon is involved). Prices come from STRIPE_PRICE_MAP.
+//
 // Self-contained on purpose: no imports from src/ or elsewhere, so the payment
 // path can't break on a cross-boundary bundling change. Keep PLAN_SLUGS/PROMOS/
-// OPEN_PLANS in sync with src/config/checkout.ts, and OPEN_PLANS with the app's
-// shared/billing/broker.ts and shared/billing/compliance.ts, which provision and
-// honour what is sold here.
+// OPEN_PLANS in sync with src/config/checkout.ts, and OPEN_PLANS with the app,
+// which provisions and honours what is sold here (shared/plans for Operator,
+// shared/billing/broker.ts and shared/billing/compliance.ts for the other two).
 
 type Env = {
   STRIPE_SECRET_KEY?: string;
   // JSON map of plan slug -> Stripe price id(s). Two accepted shapes:
-  //   {"operator":"price_..."}                        -> monthly only
-  //   {"operator":{"month":"price_...","year":"price_..."}}
+  //   {"workshop":"price_..."}                        -> monthly only
+  //   {"workshop":{"month":"price_...","year":"price_..."}}
   // The flat form is the original one and still works, so the live env var
   // keeps functioning unchanged until annual prices exist in Stripe; a plan
   // with no id for the requested interval fails with a graceful 400.
-  // Operations plans only — OPEN_PLANS never read it.
+  // Promo-gated plans only — OPEN_PLANS never read it.
   STRIPE_PRICE_MAP?: string;
   // Test override: when TEST_STRIPE_SECRET_KEY is set, the function runs
   // entirely in test mode (test key + TEST_STRIPE_PRICE_MAP, which must hold
@@ -66,34 +67,42 @@ const PROMOS: Record<string, { trialDays: number }> = {
   letsrecycle: { trialDays: 14 },
 };
 
-// Plans anyone can buy. `unitAmount` is what the price MUST be before it is
-// sold — a lookup key moved onto a mispriced object in the Dashboard is refused
-// rather than charged. `tenantType` is stamped so the app's onboarding can
-// cross-check it against the billed price.
-const OPEN_PLANS = {
-  broker_pro: {
-    lookupKey: "fleetlix_broker_pro_monthly_gbp",
-    unitAmount: 24900,
-    tenantType: "broker",
-    cancelUrl: "https://fleetlix.com/brokers#broker-plans",
-  },
-  compliance: {
-    lookupKey: "fleetlix_compliance_monthly_gbp",
-    unitAmount: 4900,
-    tenantType: "compliance",
-    cancelUrl: "https://fleetlix.com/#compliance-tier",
-  },
-} as const;
-type OpenPlanSlug = keyof typeof OPEN_PLANS;
-const isOpenPlan = (v: unknown): v is OpenPlanSlug =>
-  typeof v === "string" && Object.prototype.hasOwnProperty.call(OPEN_PLANS, v);
-
-const OPEN_CURRENCY = "gbp";
-
 // Billing intervals the pricing toggle can ask for. Annual is 10x monthly
 // (two months free) — a separate Stripe Price, not a discount on the monthly.
 const INTERVALS = ["month", "year"] as const;
 type Interval = (typeof INTERVALS)[number];
+
+type OpenPrice = { lookupKey: string; unitAmount: number };
+
+// Plans anyone can buy. Each interval a plan sells on has its own price, and
+// `unitAmount` is what that price MUST be before it is sold — a lookup key
+// moved onto a mispriced object in the Dashboard is refused rather than
+// charged. An interval with no entry is not sold. `tenantType` is stamped so
+// the app's onboarding can cross-check it against the billed price.
+const OPEN_PLANS: Record<string, { tenantType: string; cancelUrl: string; prices: Partial<Record<Interval, OpenPrice>> }> = {
+  operator: {
+    tenantType: "carrier",
+    cancelUrl: "https://fleetlix.com/#pricing",
+    prices: {
+      month: { lookupKey: "fleetlix_operator_monthly_gbp", unitAmount: 9900 },
+      year: { lookupKey: "fleetlix_operator_annual_gbp", unitAmount: 99000 },
+    },
+  },
+  broker_pro: {
+    tenantType: "broker",
+    cancelUrl: "https://fleetlix.com/brokers#broker-plans",
+    prices: { month: { lookupKey: "fleetlix_broker_pro_monthly_gbp", unitAmount: 24900 } },
+  },
+  compliance: {
+    tenantType: "compliance",
+    cancelUrl: "https://fleetlix.com/#compliance-tier",
+    prices: { month: { lookupKey: "fleetlix_compliance_monthly_gbp", unitAmount: 4900 } },
+  },
+};
+const isOpenPlan = (v: unknown): v is string =>
+  typeof v === "string" && Object.prototype.hasOwnProperty.call(OPEN_PLANS, v);
+
+const OPEN_CURRENCY = "gbp";
 
 // The welcome screen, NOT the app. Stripe hands back a completed session and
 // nothing else; dropping a buyer straight onto a login form gives them no
@@ -169,31 +178,31 @@ type StripePrice = {
 // Why this price must not be sold, or an empty list. Checked on every checkout
 // because a lookup key is only a pointer: it can be transferred in the
 // Dashboard to a price with a different amount, cadence or tax behaviour.
-function openPlanSaleProblems(slug: OpenPlanSlug, prices: StripePrice[]): string[] {
+function openPlanSaleProblems(expected: OpenPrice, interval: Interval, prices: StripePrice[]): string[] {
   if (prices.length > 1) return [`${prices.length} active prices carry the lookup key`];
   const price = prices[0];
   if (!price?.id) return ["no active price carries the lookup key"];
   const problems: string[] = [];
   if (price.active === false) problems.push("price is archived");
   if (price.currency !== OPEN_CURRENCY) problems.push(`currency ${price.currency}`);
-  if (price.unit_amount !== OPEN_PLANS[slug].unitAmount) problems.push(`amount ${price.unit_amount}`);
+  if (price.unit_amount !== expected.unitAmount) problems.push(`amount ${price.unit_amount}`);
   if (price.tax_behavior !== "exclusive") problems.push(`tax_behavior ${price.tax_behavior}`);
   const r = price.recurring;
-  if (!r || r.interval !== "month" || (r.interval_count ?? 1) !== 1) {
-    problems.push("does not bill every one month");
+  if (!r || r.interval !== interval || (r.interval_count ?? 1) !== 1) {
+    problems.push(`does not bill every one ${interval}`);
   }
   return problems;
 }
 
-async function findOpenPlanPrices(secretKey: string, slug: OpenPlanSlug): Promise<StripePrice[] | undefined> {
+async function findPrices(secretKey: string, lookupKey: string): Promise<StripePrice[] | undefined> {
   // limit=2 so a second active price on the same key is seen and refused,
   // rather than one of the two being sold at random.
   const url =
     "https://api.stripe.com/v1/prices?active=true&limit=2" +
-    `&lookup_keys[]=${encodeURIComponent(OPEN_PLANS[slug].lookupKey)}`;
+    `&lookup_keys[]=${encodeURIComponent(lookupKey)}`;
   const res = await fetch(url, { headers: { authorization: `Bearer ${secretKey}` } });
   if (!res.ok) {
-    console.error(`checkout: ${slug} price lookup failed`, res.status, await res.text().catch(() => ""));
+    console.error(`checkout: ${lookupKey} price lookup failed`, res.status, await res.text().catch(() => ""));
     return undefined;
   }
   const data = (await res.json()) as { data?: StripePrice[] };
@@ -292,18 +301,25 @@ const handleCheckout = async ({ request, env }: Ctx): Promise<Response> => {
     ...(tosConsent ? { "consent_collection[terms_of_service]": "required" } : {}),
   };
 
-  // ── Open plans: anyone, no trial, monthly only ────────────────────────────
+  // ── Open plans: anyone, no trial, and any promo is ignored ────────────────
   if (isOpenPlan(plan)) {
-    if (interval !== undefined && interval !== "month") {
-      return json(400, { error: "This plan is billed monthly." });
+    // No interval means monthly, which is what the cards show by default.
+    const billing = interval === undefined ? "month" : interval;
+    const expected = INTERVALS.includes(billing as Interval)
+      ? OPEN_PLANS[plan].prices[billing as Interval]
+      : undefined;
+    if (!expected) {
+      return json(400, {
+        error: billing === "year" ? "This plan is billed monthly." : "Unknown billing interval.",
+      });
     }
 
-    const prices = await findOpenPlanPrices(secretKey, plan);
-    const problems = prices ? openPlanSaleProblems(plan, prices) : ["price lookup failed"];
+    const prices = await findPrices(secretKey, expected.lookupKey);
+    const problems = prices ? openPlanSaleProblems(expected, billing as Interval, prices) : ["price lookup failed"];
     const priceId = prices?.[0]?.id;
     if (problems.length || !priceId) {
       console.error(
-        `checkout: refusing to sell ${plan} (mode=${useTest ? "test" : "live"}) — ${problems.join("; ")}`,
+        `checkout: refusing to sell ${plan} ${billing} (mode=${useTest ? "test" : "live"}) — ${problems.join("; ")}`,
       );
       return json(409, { error: "This plan isn't available for checkout right now." });
     }
@@ -315,10 +331,10 @@ const handleCheckout = async ({ request, env }: Ctx): Promise<Response> => {
       "subscription_data[metadata][plan]": plan,
       "subscription_data[metadata][plan_code]": plan,
       "subscription_data[metadata][tenant_type]": tenantType,
-      "subscription_data[metadata][interval]": "month",
+      "subscription_data[metadata][interval]": billing as string,
       "metadata[plan]": plan,
       "metadata[tenant_type]": tenantType,
-      "metadata[interval]": "month",
+      "metadata[interval]": billing as string,
       // plan= lets the welcome screen show the right next steps before the
       // session read-back lands, and when it can't run at all.
       success_url: withParam(env.CHECKOUT_SUCCESS_URL || DEFAULT_SUCCESS_URL, "plan", plan),
@@ -327,7 +343,7 @@ const handleCheckout = async ({ request, env }: Ctx): Promise<Response> => {
     return createSession(secretKey, form);
   }
 
-  // ── Operations plans: promo-gated ─────────────────────────────────────────
+  // ── Workshop, Depot, Haulier, Network: promo-gated ────────────────────────
   if (typeof plan !== "string" || !PLAN_SLUGS.includes(plan as PlanSlug)) {
     return json(400, { error: "Unknown plan." });
   }

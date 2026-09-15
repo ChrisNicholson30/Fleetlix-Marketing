@@ -19,12 +19,18 @@
 // crawlable. src/scripts/checkout.ts reads the same radios to pick the billing
 // interval it sends to Stripe.
 //
-// CTAs server-render as #register-interest links; checkout.ts progressively
-// enhances them into Stripe Checkout only when a valid ?promo= is present.
-// data-checkout-cta / data-plan / data-checkout-label are its hooks.
+// CTAs server-render as #register-interest links, which is also the no-JS
+// fallback. src/scripts/checkout.ts enhances them two ways:
+//   - OPERATOR is an open checkout ([data-open-checkout] data-follows-billing):
+//     anyone can buy it at the price the toggle shows, with no trial, and a
+//     ?promo= never changes it;
+//   - the other four keep [data-checkout-cta] and only become Stripe Checkout
+//     buttons when a valid ?promo= is present.
+// data-plan / data-checkout-label are shared hooks.
 
 import { TIERS, COMING_LABEL, annualSaving, formatCap, gbp } from "../config/pricing";
 import ComplianceTier from "./ComplianceTier.astro";
+import { OPERATOR_SLUG } from "../config/checkout";
 
 // The operations core — identical in every plan, because none of it is gated.
 //
@@ -281,7 +287,9 @@ const stagger = [
 
           <a
             href="#register-interest"
-            data-checkout-cta
+            {...(p.slug === OPERATOR_SLUG
+              ? { "data-open-checkout": "", "data-follows-billing": "" }
+              : { "data-checkout-cta": "" })}
             data-plan={p.slug}
             class={`mt-auto pt-5 block`}
           >
@@ -290,7 +298,7 @@ const stagger = [
                 ? "bg-[color:var(--color-amber)] text-[color:var(--color-graphite)] hover:brightness-105 ring-1 ring-[color:var(--color-amber)]/40"
                 : "border border-[color:var(--color-graphite)]/25 text-[color:var(--color-graphite)] hover:bg-[color:var(--color-graphite)] hover:text-white"
             }`}>
-              <span data-checkout-label>Register interest</span>
+              <span data-checkout-label>{p.slug === OPERATOR_SLUG ? "Start Operator" : "Register interest"}</span>
             </span>
           </a>
         </article>
@@ -359,7 +367,7 @@ const stagger = [
 </section>
 
 <script>
-  // Promo-gated checkout enhancement. Imports a shared module, so Astro emits
+  // Checkout enhancement: Operator (open) and the promo-gated plans. Imports a shared module, so Astro emits
   // it as an external /_astro/*.js file under script-src 'self' (no CSP hash).
   import "../scripts/checkout.ts";
 </script>
