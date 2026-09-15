@@ -39,7 +39,7 @@ import {
       <div class="absolute -top-48 left-1/2 h-[640px] w-[640px] -translate-x-1/2 rounded-full bg-[color:var(--color-cyan)]/25 blur-[120px]"></div>
       <div class="absolute top-1/3 -left-32 h-[420px] w-[420px] rounded-full bg-[color:var(--color-amber)]/12 blur-[110px]"></div>
       <div class="absolute -bottom-40 right-0 h-[480px] w-[480px] rounded-full bg-[color:var(--color-success)]/10 blur-[120px]"></div>
-      <svg class="absolute inset-0 h-full w-full opacity-[0.05]" xmlns="http://www.w3.org/2000/svg">
+      <svg class="absolute inset-0 h-full w-full opacity-[0.025]" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <pattern id="thanks-grid" width="44" height="44" patternUnits="userSpaceOnUse">
             <path d="M 44 0 L 0 0 0 44" fill="none" stroke="white" stroke-width="1"/>
@@ -49,53 +49,58 @@ import {
       </svg>
     </div>
 
-    <section class="relative mx-auto flex max-w-3xl flex-col items-center px-6 py-20 text-center">
+    <section class="welcome-content relative mx-auto flex max-w-3xl flex-col items-center px-6 text-center">
 
-      <div class="relative mb-10 reveal reveal-1">
-        <div class="absolute inset-0 rounded-full bg-[color:var(--color-cyan)]/40 blur-3xl"></div>
-        <div class="badge-pop relative flex h-28 w-28 items-center justify-center rounded-full bg-[color:var(--color-cyan)] shadow-[0_20px_60px_-15px_rgba(0,166,200,0.6)] ring-1 ring-white/20">
-          <svg viewBox="0 0 52 52" class="h-14 w-14" aria-hidden="true">
-            <circle class="check-circle" cx="26" cy="26" r="24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"/>
-            <path class="check-path" fill="none" stroke="white" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" d="M14 27 l8 8 l16 -18"/>
-          </svg>
+      <header class="welcome-hero">
+        <div class="welcome-emblem reveal reveal-1" aria-hidden="true">
+          <div class="welcome-orbit"></div>
+          <div class="welcome-seal badge-pop">
+            <svg viewBox="0 0 52 52" class="welcome-check">
+              <circle class="check-circle" cx="26" cy="26" r="23" fill="none" stroke="currentColor" stroke-width="1.5"/>
+              <path class="check-path" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" d="M15 27 l7 7 l15 -16"/>
+            </svg>
+          </div>
         </div>
-      </div>
 
-      <p class="reveal reveal-2 text-xs font-semibold uppercase tracking-[0.22em] text-[color:var(--color-amber)]">
-        Payment successful
-      </p>
+        <p class="welcome-eyebrow reveal reveal-2">Payment successful</p>
+        <h1 class="welcome-title reveal reveal-3">
+          Welcome to <span>Fleetlix<span class="welcome-period">.</span></span>
+        </h1>
+        <p class="welcome-intro reveal reveal-4">
+          A better working day starts here.
+        </p>
+        <p class="welcome-copy reveal reveal-4">
+          Thanks for choosing Fleetlix. Create your login next,
+          then make it yours.
+        </p>
 
-      <h1 class="reveal reveal-3 mt-5 font-[family-name:var(--font-display)] text-5xl font-extrabold leading-[1.05] tracking-tight md:text-6xl">
-        Welcome to<br/>
-        <span class="bg-gradient-to-r from-white via-white to-[color:var(--color-cyan)] bg-clip-text text-transparent">
-          Fleetlix.
-        </span>
-      </h1>
+        <ol class="welcome-progress reveal reveal-5" aria-label="Account setup progress">
+          <li class="is-complete">
+            <span class="progress-marker" aria-hidden="true">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m4 8 3 3 5-6"/></svg>
+            </span>
+            <span>Checkout<span class="sr-only"> complete</span></span>
+          </li>
+          <li aria-current="step">
+            <span class="progress-marker" aria-hidden="true">02</span>
+            <span>Create login</span>
+          </li>
+          <li>
+            <span class="progress-marker" aria-hidden="true">03</span>
+            <span>Get started</span>
+          </li>
+        </ol>
 
-      <p class="reveal reveal-4 mt-8 max-w-xl text-lg leading-relaxed text-white/70 md:text-xl">
-        Thank you for your business — we don't take it lightly. You've just
-        backed a UK-built platform that's out to change how fleets run, and
-        we'll do right by you. Here's what happens next.
-      </p>
-
-      <!-- Test-mode and preview strips. Both start hidden and are revealed by
-           src/scripts/thank-you.ts. A test-mode signup is otherwise pixel-
-           identical to a real one, which is how you end up believing you've
-           taken money you haven't. -->
-      <p
-        data-testmode
-        hidden
-        class="reveal reveal-4 mt-6 rounded-lg border border-[color:var(--color-amber)]/40 bg-[color:var(--color-amber)]/10 px-4 py-2.5 text-sm font-semibold text-[color:var(--color-amber)]"
-      >
-        Stripe test mode — no money changed hands.
-      </p>
-      <p
-        data-demo
-        hidden
-        class="reveal reveal-4 mt-6 rounded-lg border border-white/20 bg-white/5 px-4 py-2.5 text-sm font-semibold text-white/70"
-      >
-        Preview only — sample order, no checkout took place.
-      </p>
+        <!-- Preserve the script hooks and hidden semantics for demo/test states. -->
+        <p data-testmode hidden class="welcome-notice welcome-notice-test reveal reveal-5">
+          <span class="notice-label">Stripe test mode</span>
+          <span>No money changed hands.</span>
+        </p>
+        <p data-demo hidden class="welcome-notice reveal reveal-5">
+          <span class="notice-label">Preview only</span>
+          <span>Sample order. No checkout took place.</span>
+        </p>
+      </header>
 
       <!-- Order summary. Hidden until the script knows there is a session to
            describe, so someone who reaches this page without one sees a clean
@@ -146,7 +151,7 @@ import {
            this out to look substantial would just make the first one harder to
            find. -->
       <div class="reveal reveal-5 mt-14 w-full text-left">
-        <h2 class="text-center font-[family-name:var(--font-display)] text-2xl font-bold tracking-tight">
+        <h2 class="text-center font-[family-name:var(--font-display)] text-2xl font-bold tracking-tight text-white">
           What happens next
         </h2>
 
@@ -241,6 +246,33 @@ import {
   </script>
 
   <style>
+    .welcome-content { padding-top: clamp(3rem, 7vw, 5rem); padding-bottom: max(5rem, env(safe-area-inset-bottom)); }
+    .welcome-hero { width: 100%; min-width: 0; display: flex; flex-direction: column; align-items: center; }
+    .welcome-emblem { position: relative; display: grid; place-items: center; width: 7.5rem; height: 7.5rem; margin-bottom: 1.75rem; }
+    .welcome-orbit { position: absolute; inset: 0; border: 1px solid color-mix(in srgb, var(--color-cyan) 25%, transparent); border-radius: 50%; }
+    .welcome-orbit::after { content: ""; position: absolute; inset: .6rem; border: 1px solid color-mix(in srgb, var(--color-cyan) 12%, transparent); border-radius: 50%; }
+    .welcome-seal { display: grid; place-items: center; width: 5.5rem; height: 5.5rem; border-radius: 50%; color: var(--color-offwhite); background: linear-gradient(145deg, color-mix(in srgb, var(--color-cyan) 42%, var(--color-graphite)), var(--color-graphite)); border: 1px solid color-mix(in srgb, var(--color-cyan) 65%, transparent); box-shadow: 0 0 3rem color-mix(in srgb, var(--color-cyan) 15%, transparent), inset 0 1px 0 color-mix(in srgb, var(--color-offwhite) 15%, transparent); }
+    .welcome-check { width: 3rem; height: 3rem; }
+    .welcome-eyebrow { color: color-mix(in srgb, var(--color-cyan) 48%, var(--color-offwhite)); font-size: .6875rem; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; }
+    .welcome-title { margin-top: 1.25rem; color: var(--color-offwhite); font-family: var(--font-display); font-size: clamp(2.875rem, 7.5vw, 5rem); font-weight: 700; line-height: 1.05; letter-spacing: -.055em; text-wrap: balance; }
+    .welcome-title > span { display: block; }
+    .welcome-period { color: var(--color-cyan); }
+    .welcome-intro { margin-top: 1.75rem; color: var(--color-offwhite); font-size: clamp(1.125rem, 2.4vw, 1.375rem); font-weight: 500; letter-spacing: -.025em; text-wrap: balance; }
+    .welcome-copy { max-width: 23rem; margin-top: .625rem; color: color-mix(in srgb, var(--color-offwhite) 70%, var(--color-graphite)); font-size: .9375rem; line-height: 1.7; text-wrap: pretty; }
+    .welcome-progress { width: min(100%, 27rem); display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin-top: 2.5rem; }
+    .welcome-progress li { position: relative; display: flex; flex-direction: column; align-items: center; gap: .625rem; color: color-mix(in srgb, var(--color-offwhite) 60%, var(--color-graphite)); font-size: .6875rem; font-weight: 500; }
+    .welcome-progress li + li::before { content: ""; position: absolute; top: .9375rem; right: calc(50% + 1.4rem); width: calc(100% - 2.8rem); height: 1px; background: color-mix(in srgb, var(--color-offwhite) 16%, transparent); }
+    .progress-marker { display: grid; place-items: center; width: 1.875rem; height: 1.875rem; border: 1px solid color-mix(in srgb, var(--color-offwhite) 22%, transparent); border-radius: 50%; font-size: .625rem; font-variant-numeric: tabular-nums; }
+    .progress-marker svg { width: 1rem; height: 1rem; }
+    .welcome-progress .is-complete { color: color-mix(in srgb, var(--color-cyan) 42%, var(--color-offwhite)); }
+    .is-complete .progress-marker { background: color-mix(in srgb, var(--color-cyan) 18%, transparent); border-color: color-mix(in srgb, var(--color-cyan) 50%, transparent); }
+    .welcome-progress [aria-current] { color: var(--color-offwhite); }
+    [aria-current] .progress-marker { border-color: var(--color-offwhite); box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-offwhite) 6%, transparent); }
+    .welcome-notice { display: flex; justify-content: center; flex-wrap: wrap; gap: .25rem .625rem; margin-top: 2rem; padding: .65rem 1rem; border: 1px solid color-mix(in srgb, var(--color-offwhite) 13%, transparent); border-radius: .5rem; color: color-mix(in srgb, var(--color-offwhite) 65%, var(--color-graphite)); background: color-mix(in srgb, var(--color-offwhite) 3%, transparent); font-size: .6875rem; line-height: 1.6; }
+    .notice-label { font-weight: 600; color: var(--color-offwhite); }
+    .welcome-notice-test { border-color: color-mix(in srgb, var(--color-amber) 40%, transparent); }
+    .welcome-notice-test .notice-label { color: var(--color-amber); }
+
     /* Rows in the order summary carry `flex`/`sm:flex` for their laid-out
        state and are revealed by src/scripts/thank-you.ts, so they are toggled
        with the [hidden] ATTRIBUTE — Tailwind's `hidden` CLASS is a plain
