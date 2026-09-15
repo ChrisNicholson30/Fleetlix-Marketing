@@ -2,6 +2,7 @@
 import Base from "../layouts/Base.astro";
 import SiteFooter from "../components/SiteFooter.astro";
 import { CARD_PROMO_CODE, PROMOS } from "../config/checkout";
+import { TIERS, gbp } from "../config/pricing";
 
 // One canonical physical-channel endpoint, named for the show it's handed out
 // at. The printed card QR (/fleetlix-rwm2026-qr.svg), an NFC chip, and a Wallet
@@ -17,7 +18,10 @@ import { CARD_PROMO_CODE, PROMOS } from "../config/checkout";
 // server-side counterpart is functions/api/checkout.ts; keep both in sync.
 const PROMO_CODE = CARD_PROMO_CODE;
 const PROMO_TRIAL_DAYS = PROMOS[PROMO_CODE].trialDays;
-const BASE_TRIAL_DAYS = 7;
+// There is no base trial to strike through: Operator is bought outright with no
+// trial, and the code applies to Workshop and above. The card used to show a
+// crossed-out "7 days" that checkout never offered.
+const OPERATOR = TIERS.find((t) => t.slug === "operator")!;
 // Checkout-first: land on the pricing section with the promo pre-applied, pick
 // a plan, pay on Stripe, then create the login on fleetlix.app. Query before
 // the hash so src/scripts/checkout.ts can read ?promo= from location.search.
@@ -86,13 +90,13 @@ const contactQr = "/fleetlix-contact-qr.svg";
                 class="font-[family-name:var(--font-display)] text-3xl font-extrabold tracking-tight text-white"
                 >{PROMO_TRIAL_DAYS} days free</span
               >
-              <span class="text-sm font-medium text-white/45 line-through"
-                >{BASE_TRIAL_DAYS} days</span
-              >
+
             </p>
             <p class="mt-2 text-[14px] leading-relaxed text-white/70">
-              Start Fleetlix on an extended free trial. Tap below and the code
-              is applied automatically when you choose your plan.
+              Start Workshop, Depot, Haulier or Network on a free trial. Tap
+              below and the code is applied automatically when you choose your
+              plan. Operator is £{gbp(OPERATOR.monthly)} a month + VAT with no
+              trial, and the code does not apply to it.
             </p>
 
             <div

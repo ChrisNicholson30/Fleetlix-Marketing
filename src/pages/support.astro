@@ -65,6 +65,8 @@ const mailto = `mailto:${SUPPORT.email}`;
 // reachable only from a printed card. Do not put {promo.code} back.
 const PROMO_CODE = CARD_PROMO_CODE;
 const promo = resolvePromo(PROMO_CODE);
+// Operator is bought outright with no code; its figures come from pricing.ts.
+const operator = TIERS.find((t) => t.slug === "operator")!;
 ---
 
 <Base
@@ -404,8 +406,9 @@ const promo = resolvePromo(PROMO_CODE);
                 <p>
                   A promotion code extends a free trial rather than discounting
                   the price. Our current card offer opens a
-                  {" "}<strong>{promo.trialDays}-day free trial</strong> on any
-                  operations plan. Earlier codes retain the trial length shown
+                  {" "}<strong>{promo.trialDays}-day free trial</strong> on
+                  Workshop, Depot, Haulier or Network. Codes do not apply to
+                  Operator, which has no trial. Earlier codes retain the trial length shown
                   with their offer. Codes are not case-sensitive and stray spaces
                   are ignored.
                 </p>
@@ -448,13 +451,19 @@ const promo = resolvePromo(PROMO_CODE);
               </li>
             </ul>
 
-            <PolicyCallout label="Operations plans are invitation-only right now" tone="amber">
+            <PolicyCallout label="Operator is open to everyone; larger plans are by invitation" tone="amber">
               <p>
-                Checkout for the five operations plans is currently open only to
-                people holding a promotion code. Without one, the buttons on the
-                pricing section stay as enquiry links rather than becoming buy
-                buttons — that is intended, not a fault. If you want in
-                and do not have a code, email us and ask.
+                <strong>Operator</strong> can be bought by anyone, without a code:
+                £{gbp(operator.monthly)} a month or £{gbp(operator.annual)} a year,
+                plus VAT. There is no free trial on Operator and promotion codes
+                do not apply to it, so the first payment is taken at checkout.
+              </p>
+              <p>
+                Checkout for Workshop, Depot, Haulier and Network is still open
+                only to people holding a promotion code. Without one, those
+                buttons stay as enquiry links rather than becoming buy buttons —
+                that is intended, not a fault. If you want one of those plans and
+                do not have a code, email us and ask.
               </p>
               <p>
                 The {" "}<a href="/brokers" class="policy-link">Broker Network</a>{" "}
@@ -475,12 +484,14 @@ const promo = resolvePromo(PROMO_CODE);
             </p>
             <ol class="policy-list">
               <li>
-                <strong>Open the link with your code in it</strong> and choose
-                monthly or annual on the pricing section.
+                <strong>Go to the pricing section</strong> and choose monthly or
+                annual. For a plan above Operator, open the link with your code
+                in it instead, so the code comes with you.
               </li>
               <li>
-                <strong>Pick a plan.</strong> The button will offer the free
-                trial if your code is recognised.
+                <strong>Pick a plan.</strong> Operator's button starts checkout
+                straight away. On the other plans the button offers the free
+                trial once your code is recognised.
               </li>
               <li>
                 <strong>Enter your details on the payment page.</strong> This is
