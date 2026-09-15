@@ -46,6 +46,7 @@ import {
   appIssues,
 } from "../config/support";
 import { TIERS, gbp, formatCap } from "../config/pricing";
+import { COMPLIANCE } from "../config/compliance";
 import { CARD_PROMO_CODE, resolvePromo } from "../config/checkout";
 
 const mailto = `mailto:${SUPPORT.email}`;
@@ -358,6 +359,17 @@ const promo = resolvePromo(PROMO_CODE);
               each tier unlocks, is on the
               {" "}<a href="/#pricing" class="policy-link">pricing section</a>,
               which is the authoritative published version of this table.
+            </p>
+            <p>
+              <strong>{COMPLIANCE.name}</strong>, the standalone DWTS portal,
+              is priced separately at <strong>£{gbp(COMPLIANCE.monthly)} a month
+              plus VAT</strong> with {COMPLIANCE.users} users. It is billed
+              monthly only, there is no free trial, and promotion codes do not
+              apply to it. It is not bought through checkout: send your details
+              from the {" "}<a href="/#register-compliance" class="policy-link">Compliance
+              card on the pricing section</a> and we set the account up with you,
+              replying within one working day. Billing starts when the account
+              is ready.
             </p>
             <p>
               Seat limits are enforced in the database, not only in the

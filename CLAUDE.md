@@ -372,6 +372,16 @@ from. `CARRIER_COUNTS` and `JOB_VOLUMES` are duplicated in
 `src/components/InterestForm.tsx` and `functions/api/register-interest.ts`;
 **change both together**, as with the checkout promo config.
 
+The homepage (operator) variant also carries an **Operations platform / Fleetlix
+Compliance** choice. Picking Compliance swaps fleet size for **waste movements per
+month** (`MOVEMENT_VOLUMES`, duplicated the same way), stamps
+`enquiry_type: "compliance"`, and sends a `Fleetlix COMPLIANCE` subject line. So does
+arriving via `#register-compliance`, which is where the Compliance pricing card's CTA
+links. **That form is Compliance signup for now.** Accounts are set up by hand, because
+the app's `/onboarding` provisioner only recognises the five carrier plans and would 422
+a Compliance checkout after taking the card. Read `Resources/compliance-launch.md`
+before giving the tier a checkout slug.
+
 ```
 visitor submits InterestForm (React island)
   → POST /api/register-interest          (Cloudflare Pages Function)

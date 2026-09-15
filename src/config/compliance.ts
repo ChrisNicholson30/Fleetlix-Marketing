@@ -1,8 +1,10 @@
 // Owner clarification supersedes the handover's introductory pricing:
 // standalone portal at £49/month + VAT, with no step-up to Operator.
-// This is an upcoming DWTS-only
-// product, not a checkout PlanSlug or an operations Tier. Keep it out of
-// purchasable offers until the launch gates in Resources/compliance-launch.md pass.
+// Open for ASSISTED signup since 15 Sep 2026: the card's CTA goes to the
+// Compliance enquiry on the homepage form and accounts are set up by hand.
+// This is a DWTS-only product, not a checkout PlanSlug or an operations Tier —
+// the app's provisioner cannot create a Compliance tenant from a website
+// checkout yet. Read Resources/compliance-launch.md before adding checkout hooks.
 export const COMPLIANCE = {
   name: "Fleetlix Compliance",
   monthly: 49,

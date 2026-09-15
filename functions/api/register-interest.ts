@@ -28,13 +28,25 @@ const ROLES = [
 // than reusing fleet_size: Broker Free eligibility is explicitly "no owned
 // fleet", so asking a broker their fleet size contradicts the offer on the page
 // they just came from. `enquiry_type` is what tells the two apart in the inbox.
-const ENQUIRY_TYPES = ["operator", "broker"] as const;
+//
+// Fleetlix Compliance enquiries are signup requests for the £49 DWTS portal,
+// which is set up by hand rather than sold through checkout. They ask for waste
+// movements a month instead of fleet size: a receiving site may run no vehicles.
+const ENQUIRY_TYPES = ["operator", "broker", "compliance"] as const;
 const CARRIER_COUNTS = ["1-5", "6-15", "16-40", "40+", "Not sure"] as const;
 const JOB_VOLUMES = [
   "Under 50",
   "50-150",
   "150-500",
   "500+",
+  "Not sure",
+] as const;
+// Mirrors MOVEMENT_VOLUMES in src/components/InterestForm.tsx.
+const MOVEMENT_VOLUMES = [
+  "Under 50",
+  "50-100",
+  "100-300",
+  "300+",
   "Not sure",
 ] as const;
 
@@ -47,6 +59,7 @@ const Payload = z.object({
   enquiry_type: z.enum(ENQUIRY_TYPES).optional(),
   carriers: z.enum(CARRIER_COUNTS).optional(),
   jobs_per_month: z.enum(JOB_VOLUMES).optional(),
+  movements_per_month: z.enum(MOVEMENT_VOLUMES).optional(),
   message: z.string().trim().max(1000).optional().or(z.literal("")),
   consent: z.literal(true, {
     errorMap: () => ({ message: "Consent is required" }),
@@ -98,7 +111,9 @@ function renderEmail(
   const textLines = [
     payload.enquiry_type === "broker"
       ? "FLEETLIX · New BROKER NETWORK registration"
-      : "FLEETLIX · New registration of interest",
+      : payload.enquiry_type === "compliance"
+        ? "FLEETLIX · New COMPLIANCE signup request — set up by hand"
+        : "FLEETLIX · New registration of interest",
     "",
     `Name:        ${payload.name}`,
     `Email:       ${payload.email}`,
@@ -107,6 +122,7 @@ function renderEmail(
     payload.role ? `Role:        ${payload.role}` : null,
     payload.carriers ? `Carriers:    ${payload.carriers}` : null,
     payload.jobs_per_month ? `Jobs/month:  ${payload.jobs_per_month}` : null,
+    payload.movements_per_month ? `Movements/month: ${payload.movements_per_month}` : null,
     payload.message ? `\nMessage:\n${payload.message}` : null,
     "",
     `Submitted:   ${submittedAt} (Europe/London)`,
@@ -140,6 +156,9 @@ function renderEmail(
   if (payload.jobs_per_month) {
     fields.push(["Jobs passed / month", escapeHtml(payload.jobs_per_month)]);
   }
+  if (payload.movements_per_month) {
+    fields.push(["Waste movements / month", escapeHtml(payload.movements_per_month)]);
+  }
 
   const fieldRows = fields
     .map(([label, value], i) => {
@@ -164,13 +183,18 @@ function renderEmail(
       </table>`
     : "";
 
+  const action =
+    payload.enquiry_type === "compliance"
+      ? "just asked to start Fleetlix Compliance. The account is set up by hand — reply within one working day."
+      : "just registered interest in Fleetlix.";
+
   const lead = payload.company
-    ? `<strong style="color:#1A1D21;font-weight:600;">${escapeHtml(payload.name)}</strong> from <strong style="color:#1A1D21;font-weight:600;">${escapeHtml(payload.company)}</strong> just registered interest in Fleetlix.`
-    : `<strong style="color:#1A1D21;font-weight:600;">${escapeHtml(payload.name)}</strong> just registered interest in Fleetlix.`;
+    ? `<strong style="color:#1A1D21;font-weight:600;">${escapeHtml(payload.name)}</strong> from <strong style="color:#1A1D21;font-weight:600;">${escapeHtml(payload.company)}</strong> ${action}`
+    : `<strong style="color:#1A1D21;font-weight:600;">${escapeHtml(payload.name)}</strong> ${action}`;
 
   const preheader = payload.company
-    ? `${payload.name} from ${payload.company} just registered interest in Fleetlix.`
-    : `${payload.name} just registered interest in Fleetlix.`;
+    ? `${payload.name} from ${payload.company} ${action}`
+    : `${payload.name} ${action}`;
 
   const html = `<!doctype html>
 <html lang="en">
@@ -237,7 +261,12 @@ async function sendEmail(env: Env, payload: ParsedPayload, meta: {
   timestamp: string;
 }) {
   const { text, html } = renderEmail(payload, meta);
-  const lead = payload.enquiry_type === "broker" ? "Fleetlix BROKER" : "Fleetlix interest";
+  const lead =
+    payload.enquiry_type === "broker"
+      ? "Fleetlix BROKER"
+      : payload.enquiry_type === "compliance"
+        ? "Fleetlix COMPLIANCE"
+        : "Fleetlix interest";
   const subject = `${lead} · ${payload.name}${payload.company ? ` · ${payload.company}` : ""}`;
 
   const res = await fetch("https://api.resend.com/emails", {
@@ -282,6 +311,22 @@ function renderConfirmation(payload: ParsedPayload) {
   if (payload.jobs_per_month) {
     summaryRows.push(["Jobs passed / month", escapeHtml(payload.jobs_per_month)]);
   }
+  if (payload.movements_per_month) {
+    summaryRows.push(["Waste movements / month", escapeHtml(payload.movements_per_month)]);
+  }
+  const isCompliance = payload.enquiry_type === "compliance";
+  const subject = isCompliance
+    ? "Your Fleetlix Compliance request"
+    : "Thanks for registering interest in Fleetlix";
+  const preheader = isCompliance
+    ? "We've got your Fleetlix Compliance request — we'll reply within one working day."
+    : "We've received your interest in Fleetlix — confirmation inside.";
+  const heading = isCompliance
+    ? `Thanks, ${escapeHtml(firstName)} — we've got your request.`
+    : `Thanks, ${escapeHtml(firstName)} — you're on the list.`;
+  const intro = isCompliance
+    ? "We set each Fleetlix Compliance account up with you directly, and we'll reply within one working day to get yours running."
+    : "Your details have landed safely. We'll be in touch the moment there's something real to show you — typically when the pilot programme opens to its first five operators.";
 
   const summaryHtml = summaryRows.length
     ? `<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-top:18px;border-top:1px solid #EDEAE3;">
@@ -299,7 +344,9 @@ function renderConfirmation(payload: ParsedPayload) {
   const textLines = [
     `Hi ${firstName},`,
     "",
-    "Thanks for registering interest in Fleetlix. Your details have landed safely and we'll be in touch the moment there's something real to show you — typically when we open the pilot programme.",
+    isCompliance
+      ? "Thanks for asking to start Fleetlix Compliance. Your details have landed safely. We set each account up with you directly, and we'll reply within one working day to get yours running."
+      : "Thanks for registering interest in Fleetlix. Your details have landed safely and we'll be in touch the moment there's something real to show you — typically when we open the pilot programme.",
     "",
     "What you sent us:",
     `  Name:  ${payload.name}`,
@@ -307,6 +354,7 @@ function renderConfirmation(payload: ParsedPayload) {
     payload.company ? `  Company: ${payload.company}` : null,
     payload.fleet_size ? `  Fleet size: ${payload.fleet_size}` : null,
     payload.role ? `  Role: ${payload.role}` : null,
+    payload.movements_per_month ? `  Waste movements / month: ${payload.movements_per_month}` : null,
     "",
     "If anything looks wrong, just reply to this email and we'll fix it.",
     "",
@@ -321,10 +369,10 @@ function renderConfirmation(payload: ParsedPayload) {
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="color-scheme" content="light">
-  <title>Thanks for registering interest in Fleetlix</title>
+  <title>${escapeHtml(subject)}</title>
 </head>
 <body style="margin:0;padding:0;background-color:#F7F5F0;-webkit-font-smoothing:antialiased;">
-  <div style="display:none;font-size:1px;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;mso-hide:all;color:#F7F5F0;">We've received your interest in Fleetlix — confirmation inside.</div>
+  <div style="display:none;font-size:1px;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;mso-hide:all;color:#F7F5F0;">${escapeHtml(preheader)}</div>
   <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color:#F7F5F0;">
     <tr>
       <td align="center" style="padding:32px 16px;">
@@ -342,8 +390,8 @@ function renderConfirmation(payload: ParsedPayload) {
           <tr><td style="height:3px;background-color:#FF8A00;line-height:3px;font-size:0;">&nbsp;</td></tr>
           <tr>
             <td style="padding:32px;">
-              <h1 style="margin:0 0 14px 0;font-family:'Space Grotesk','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:24px;line-height:1.2;letter-spacing:-0.01em;color:#1A1D21;font-weight:700;">Thanks, ${escapeHtml(firstName)} — you're on the list.</h1>
-              <p style="margin:0 0 16px 0;font-family:'Inter',Helvetica,Arial,sans-serif;font-size:15px;line-height:1.55;color:#3D434A;">Your details have landed safely. We'll be in touch the moment there's something real to show you — typically when the pilot programme opens to its first five operators.</p>
+              <h1 style="margin:0 0 14px 0;font-family:'Space Grotesk','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:24px;line-height:1.2;letter-spacing:-0.01em;color:#1A1D21;font-weight:700;">${heading}</h1>
+              <p style="margin:0 0 16px 0;font-family:'Inter',Helvetica,Arial,sans-serif;font-size:15px;line-height:1.55;color:#3D434A;">${escapeHtml(intro)}</p>
               <p style="margin:0;font-family:'Inter',Helvetica,Arial,sans-serif;font-size:15px;line-height:1.55;color:#3D434A;">No marketing lists, no third parties, no chasing — that's a promise.</p>
               ${summaryHtml}
               <p style="margin:28px 0 0 0;font-family:'Inter',Helvetica,Arial,sans-serif;font-size:13px;line-height:1.5;color:#3D434A;">If anything above looks wrong, just hit Reply and we'll fix it.</p>
@@ -363,7 +411,7 @@ function renderConfirmation(payload: ParsedPayload) {
 </html>`;
 
   return {
-    subject: "Thanks for registering interest in Fleetlix",
+    subject,
     text: textLines.join("\n"),
     html,
   };
