@@ -43,12 +43,18 @@ import { OPERATOR_SLUG } from "../config/checkout";
 // So the card was fixed instead of the code, and these read as what they are:
 // capability every plan gets. Don't promote them back onto a tier unless a real
 // `moduleAtLeast(...)` branch lands with them.
+//
+// The weighbridge went the other way: the app's Operator trim (15 Sep 2026)
+// moved the weighbridge SECTION (tickets, price book, invoices, reports) up to
+// Workshop, where that card names it. The weigh itself stayed core — weighing
+// from the job, the ticket each skip job starts with, and the net weight on the
+// job, the WTN and the DWTS filing — so that is all this line claims now.
 const core = [
   "DVSA walk-around checks, offline + replay",
   "Drag-and-drop dispatch board + live map",
   "Route optimisation with distance saved",
   "Multi-depot views once you run two sites",
-  "Weighbridge, tickets & waste capture",
+  "Weigh-in and waste capture on the job tile",
   "WTN PDFs with carrier sign-off",
   "Maintenance, VOR & compliance dates",
   "Online booking requests from your website",
@@ -143,8 +149,9 @@ const stagger = [
       </span>
       <span>
         <strong class="font-semibold text-[color:var(--color-graphite)]">Depot unlocks the commercial modules. Haulier unlocks their <em>power</em> versions.</strong>{" "}
-        Workshop covers the customer-facing basics — branding, portal, CRM and
-        BI. Nothing is ever taken away as you move up; the modules simply get deeper.
+        Workshop adds the weighbridge section and the customer-facing basics —
+        branding, portal, CRM and BI. Nothing is ever taken away as you move up;
+        the modules simply get deeper.
       </span>
     </p>
 

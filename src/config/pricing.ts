@@ -88,9 +88,16 @@ export const TIERS: Tier[] = [
     // cards where a scanning buyer never reaches it. "Register-interest
     // bookings" was removed: it described a cap on the `cart` module that has no
     // gate, so it undersold Operator with a restriction that isn't real.
+    //
+    // Weigh-in is named for the opposite reason. The app's Operator trim
+    // (15 Sep 2026) moved the weighbridge section up to Workshop, and what
+    // Operator keeps is the weigh on the job tile — which still puts the net
+    // weight on the job, the WTN and the DWTS filing. Stating that limit on the
+    // card is cheaper than a buyer meeting it after paying.
     features: [
       "Full operations core",
       "Drag-and-drop dispatch board",
+      "Weigh-in on the job tile",
       "DWTS compliance submission",
       "Basic invoicing",
     ],
@@ -106,10 +113,21 @@ export const TIERS: Tier[] = [
     seats: { drivers: 8, yard: 2, mechanics: 3, office: 3 },
     dwts: 2000,
     inherits: "Operator",
-    // Four bullets, four gates — this tier is exactly `billing: branded`,
-    // `portal: read_only`, `crm: contacts`, `bi: counts`. "Basic online cart"
-    // was removed: no basic-vs-paid distinction exists anywhere in the code.
+    // Each bullet names an enforced gate: `weighbridge: console`,
+    // `billing: branded`, `portal: read_only`, `crm: contacts`, `bi: counts`.
+    // "Basic online cart" was removed: no basic-vs-paid distinction exists
+    // anywhere in the code.
+    //
+    // The weighbridge line is the app's own PLAN_HIGHLIGHTS label, word for
+    // word. It arrived with the Operator trim (app, 15 Sep 2026) and leads the
+    // list because it is the reason a firm with its own bridge steps up. The
+    // module is the Weighbridge SECTION — tickets, the bridge's price book,
+    // weighbridge invoices, reports and locations. It is deliberately NOT the
+    // weigh: weighing from the job, the ticket each skip job is created with
+    // and the net weight on the job and WTN stay core on every tier. So never
+    // write "weigh-in/out" here; Operator still weighs.
     features: [
+      "Weighbridge section: tickets, pricing & invoices",
       "Branded invoice PDFs",
       "Read-only customer portal",
       "CRM contacts",
