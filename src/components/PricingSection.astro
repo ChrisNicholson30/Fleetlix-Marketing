@@ -31,8 +31,10 @@
 // data-plan / data-checkout-label are shared hooks.
 
 import { TIERS, COMING_LABEL, annualSaving, formatCap, gbp } from "../config/pricing";
+import { SHOW_TERM_CONTRACTS } from "../config/featureFlags";
 import ComplianceTier from "./ComplianceTier.astro";
-import { OPEN_PLAN_SLUGS, SALES_PAUSED } from "../config/checkout";
+import TermPicker from "./TermPicker.astro";
+import { OPEN_PLAN_SLUGS, OPERATOR_SLUG, SALES_PAUSED } from "../config/checkout";
 
 // The operations core — identical in every plan, because none of it is gated.
 //
@@ -347,6 +349,8 @@ const stagger = [
         </article>
       ))}
     </div>
+
+    {SHOW_TERM_CONTRACTS && <TermPicker />}
 
     <p class="mt-6 text-sm text-[color:var(--color-slate)]/80" data-reveal>
       Seat limits are enforced in the database, not just the UI. Admin is a

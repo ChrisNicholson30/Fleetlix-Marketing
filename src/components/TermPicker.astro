@@ -1,0 +1,86 @@
+---
+// Fixed-term contracts: the five operations plans on a 24, 36, 48 or 60-month
+// term (STK-021). Rendered by PricingSection when SHOW_TERM_CONTRACTS is on.
+//
+// Same no-JavaScript mechanism as the billing toggle: one radio per term, ALL
+// twenty prices in the DOM, :has() in global.css ("term picker") showing the
+// chosen term's row. No hydration, no inline script, no CSP hash, and every
+// price stays crawlable. Each "Order" is a plain link to the app's order form
+// with the plan and term preselected.
+//
+// Prices come from ./config/contractTerms.ts, which applies the discount to the
+// list prices in ./config/pricing.ts — never a typed figure.
+
+import { TIERS, gbp } from "../config/pricing";
+import {
+  CONTRACT_TERMS,
+  DEFAULT_TERM,
+  pounds,
+  subscribeHref,
+  termContractValuePence,
+  termDiscountPercent,
+  termMonthlyPence,
+} from "../config/contractTerms";
+---
+
+<div id="terms" class="mt-14 rounded-2xl border border-[color:var(--color-mist)] bg-white p-6 md:p-8" data-reveal>
+  <div class="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+    <div class="max-w-2xl">
+      <h3 class="font-[family-name:var(--font-display)] text-2xl font-bold text-[color:var(--color-graphite)]">
+        Fix your price for longer
+      </h3>
+      <p class="mt-2 text-[color:var(--color-slate)]">
+        Any plan on a 24, 36, 48 or 60-month contract, billed monthly by bank transfer and signed online.
+        The longer the term, the lower the monthly price. All prices exclude VAT.
+      </p>
+    </div>
+
+    <fieldset class="shrink-0">
+      <legend class="mb-2 text-xs font-semibold text-[color:var(--color-slate)]">Contract term</legend>
+      <div class="inline-flex flex-wrap rounded-xl border border-[color:var(--color-mist)] bg-white p-1 shadow-sm">
+        {CONTRACT_TERMS.map((term) => (
+          <label class="cursor-pointer rounded-lg px-3.5 py-2.5 text-sm font-semibold text-[color:var(--color-slate)] transition has-[:checked]:bg-[color:var(--color-graphite)] has-[:checked]:text-white has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-[color:var(--color-cyan)]">
+            <input type="radio" name="term" id={`term-${term}`} class="sr-only" checked={term === DEFAULT_TERM} />
+            {term} months
+            <span class="ml-1 text-[11px] font-bold opacity-80">−{termDiscountPercent(term)}%</span>
+          </label>
+        ))}
+      </div>
+    </fieldset>
+  </div>
+
+  {CONTRACT_TERMS.map((term) => (
+    <div data-term={term} class="mt-6">
+      <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
+        {TIERS.map((tier) => {
+          const monthly = termMonthlyPence(tier.monthly, term);
+          return (
+            <div class={`flex flex-col rounded-xl border p-4 ${tier.featured ? "border-[color:var(--color-amber)]" : "border-[color:var(--color-mist)]"}`}>
+              <p class="font-[family-name:var(--font-display)] font-bold text-[color:var(--color-graphite)]">{tier.name}</p>
+              <p class="mt-2">
+                <span class="font-[family-name:var(--font-display)] text-2xl font-extrabold tabular-nums text-[color:var(--color-graphite)]">{pounds(monthly)}</span>
+                <span class="text-sm text-[color:var(--color-slate)]">/mo</span>
+                <span class="ml-1 text-xs font-semibold text-[color:var(--color-slate)]/70">+VAT</span>
+              </p>
+              <p class="mt-1 text-xs text-[color:var(--color-slate)]/80">
+                was £{gbp(tier.monthly)} · {term} payments, {pounds(termContractValuePence(tier.monthly, term))} in all
+              </p>
+              <a
+                href={subscribeHref(tier.slug, term)}
+                class="mt-4 block rounded-xl border border-[color:var(--color-graphite)]/25 px-3 py-2 text-center text-sm font-semibold text-[color:var(--color-graphite)] transition hover:bg-[color:var(--color-graphite)] hover:text-white"
+              >
+                Order {tier.name}, {term} months
+              </a>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  ))}
+
+  <p class="mt-5 text-xs text-[color:var(--color-slate)]/80">
+    A contract runs for its full term, with the first month paid before your account goes live. Limited companies
+    are checked with Companies House. Contracts are under the law of England and Wales, or Scots law for a
+    business in Scotland. We cannot yet offer a contract to a business in Northern Ireland.
+  </p>
+</div>
