@@ -1,6 +1,6 @@
 /** @jsxImportSource react */
 import { useEffect, useId, useRef, useState } from "react";
-import { COMPLIANCE_SLUG, OPEN_PLAN_SLUGS } from "../config/checkout";
+import { BROKER_PRO_SLUG, COMPLIANCE_SLUG, OPEN_PLAN_SLUGS } from "../config/checkout";
 
 const FLEET_SIZES = ["1-5", "6-20", "21-80", "81+", "Not sure"] as const;
 const ROLES = [
@@ -28,6 +28,8 @@ const MOVEMENT_VOLUMES = ["Under 50", "50-100", "100-300", "300+", "Not sure"] a
 // Whether the Compliance card's button is a checkout right now. While sales are
 // paused it is not, and this form is the only way in, so the hint says so.
 const COMPLIANCE_OPEN = OPEN_PLAN_SLUGS.includes(COMPLIANCE_SLUG);
+// Same question for Broker Pro, which the broker variant's intro mentions.
+const BROKER_PRO_OPEN = OPEN_PLAN_SLUGS.includes(BROKER_PRO_SLUG);
 
 // The Compliance pricing card links here. An anchor rather than a query string,
 // so the jump needs no reload and no JS; the form only reads it to preselect.
@@ -109,7 +111,9 @@ const COPY = {
     id: "broker-interest",
     eyebrow: "Broker Network",
     heading: "Questions before you join?",
-    body: "Broker accounts are open — start free or buy Pro from the plans above. If you would rather talk it through first, or want a hand bringing a large carrier panel across, leave your details and we'll reply within one working day.",
+    body: BROKER_PRO_OPEN
+      ? "Broker accounts are open — start free or buy Pro from the plans above. If you would rather talk it through first, or want a hand bringing a large carrier panel across, leave your details and we'll reply within one working day."
+      : "Broker Free is open — start free from the plans above, and earn Pro by introducing carriers. If you would rather talk it through first, or want a hand bringing a large carrier panel across, leave your details and we'll reply within one working day.",
     footnote: "No obligation · Broker Free is free forever · UK GDPR",
     success:
       "within one working day. We've also sent you a quick confirmation just so you know it landed.",

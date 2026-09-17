@@ -18,6 +18,10 @@
 // which is now for questions rather than a waitlist. See the header comment in
 // src/config/brokers.ts, and functions/api/checkout.ts for the price checks.
 //
+// While Broker Pro is earn-only (BROKER_PRO_OPEN in src/config/brokers.ts) no
+// button here sells it: both Pro CTAs link to #earn-pro, the section that
+// explains the referral reward, and the meta description drops the price.
+//
 // No date is typed on this page. The Phase 2 mandate comes from
 // src/config/dwts.ts, caveat included.
 import Base from "../layouts/Base.astro";
@@ -27,6 +31,7 @@ import PolicyCallout from "../components/PolicyCallout.astro";
 import InterestForm from "../components/InterestForm";
 import {
   BROKER_TIERS,
+  BROKER_PRO_OPEN,
   BROKER_LIMITS,
   BROKER_RAIL,
   BROKER_PRO_FEATURES,
@@ -40,12 +45,15 @@ import {
 } from "../config/brokers";
 
 const tick = `<path d="M20 6 9 17l-5-5"/>`;
+const description = BROKER_PRO_OPEN
+  ? "Pass jobs to your carriers, get live status and waste transfer notes back, and file digital waste tracking — free for up to five carriers. Broker Pro is £249/month + VAT, or earned."
+  : "Pass jobs to your carriers, get live status and waste transfer notes back, and file digital waste tracking — free for up to five carriers. Broker Pro is earned by introducing carriers.";
 const cross = `<path d="M18 6 6 18M6 6l12 12"/>`;
 ---
 
 <Base
   title="Broker Network — free tier for UK waste brokers | Fleetlix"
-  description="Pass jobs to your carriers, get live status and waste transfer notes back, and file digital waste tracking — free for up to five carriers. Broker Pro is £249/month + VAT, or earned."
+  description={description}
 >
   <Header />
 
@@ -116,7 +124,7 @@ const cross = `<path d="M18 6 6 18M6 6l12 12"/>`;
                 </div>
                 {tier.featured && (
                   <span class="inline-flex items-center rounded-full bg-[color:var(--color-amber)]/12 px-2.5 py-0.5 text-[11px] font-semibold text-[color:var(--color-amber)] ring-1 ring-[color:var(--color-amber)]/25">
-                    Earn it, or buy it
+                    {tier.badge}
                   </span>
                 )}
               </div>
@@ -252,8 +260,9 @@ const cross = `<path d="M18 6 6 18M6 6l12 12"/>`;
         </div>
       </section>
 
-      <!-- Earning Pro -->
-      <section class="mt-14">
+      <!-- Earning Pro. #earn-pro is where the Pro CTAs point while Pro is
+           earn-only, so keep the id. -->
+      <section id="earn-pro" class="mt-14 scroll-mt-24">
         <h2 class="font-[family-name:var(--font-display)] text-2xl font-bold text-[color:var(--color-graphite)]">
           Earning Broker Pro
         </h2>
@@ -361,7 +370,7 @@ const cross = `<path d="M18 6 6 18M6 6l12 12"/>`;
         </a>
         <a
           href={BROKER_TIERS[1].cta.href}
-          data-broker-checkout
+          {...(BROKER_TIERS[1].cta.checkout ? { "data-broker-checkout": "" } : {})}
           class="inline-flex min-h-11 items-center justify-center rounded-xl bg-[color:var(--color-graphite)] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[color:var(--color-graphite)]/90"
         >
           <span data-checkout-label>{BROKER_TIERS[1].cta.label}</span>

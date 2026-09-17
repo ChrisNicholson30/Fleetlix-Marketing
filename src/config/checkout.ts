@@ -8,15 +8,25 @@
 
 // ── The sales pause (17 Sep 2026) ──────────────────────────────────────────
 // New subscriptions are closed while the payment system is being changed. The
-// broker rungs stay open: Broker Free signs up on the app and never touches
-// checkout, and Broker Pro is still sold. Operator, Fleetlix Compliance and the
-// four promo-gated plans take no new subscriptions: their buttons render as
-// enquiry links, no promo code is honoured, and the pages say why.
+// broker rungs are not closed by the pause: Broker Free signs up on the app and
+// never touches checkout, and Broker Pro has its own switch (below). Operator,
+// Fleetlix Compliance and the four promo-gated plans take no new subscriptions:
+// their buttons render as enquiry links, no promo code is honoured, and the
+// pages say why.
 //
 // This copy only decides what the pages offer. SALES_PAUSED in
 // functions/api/checkout.ts is the one that refuses a payment. To reopen, set
 // BOTH to false in the same commit.
 export const SALES_PAUSED: boolean = true;
+
+// ── Broker Pro is earned, not bought (17 Sep 2026) ─────────────────────────
+// While this is on, Broker Pro is not sold anywhere: its buttons point at how to
+// earn it through carrier referrals instead of starting a checkout. Separate
+// from SALES_PAUSED on purpose, so reopening the other plans leaves Pro
+// earn-only until this is switched off too. BROKER_PRO_EARN_ONLY in
+// functions/api/checkout.ts is the copy that refuses the payment; move both
+// together.
+export const BROKER_PRO_EARN_ONLY: boolean = true;
 
 export type PlanSlug =
   | "operator"
@@ -42,8 +52,8 @@ export const PROMOS: Record<string, { trialDays: number }> = {
 
 export const CARD_PROMO_CODE = "fleet30";
 
-// Broker Pro is the one plan anyone can buy without a code: £249/month + VAT,
-// monthly only, no trial. The server copy (functions/api/checkout.ts) finds the
+// Broker Pro, when BROKER_PRO_EARN_ONLY is off, is bought without a code:
+// £249/month + VAT, monthly only, no trial. The server copy (functions/api/checkout.ts) finds the
 // price by lookup key and checks it before selling. Broker Free is never sold —
 // it signs up on the app with no card (BROKER_FREE_SIGNUP_URL).
 export const BROKER_PRO_SLUG = "broker_pro";
@@ -56,12 +66,13 @@ export const COMPLIANCE_SLUG = "compliance";
 export const OPERATOR_SLUG = "operator";
 /**
  * Plans bought outright with no code, as things stand. Mirrors OPEN_PLANS in
- * functions/api/checkout.ts, less whatever the sales pause has closed. Pages
- * ask this, not SALES_PAUSED, whether a plan's button is a checkout.
+ * functions/api/checkout.ts, less whatever the two switches above have closed.
+ * Pages ask this, not the switches, whether a plan's button is a checkout.
  */
-export const OPEN_PLAN_SLUGS: readonly string[] = SALES_PAUSED
-  ? [BROKER_PRO_SLUG]
-  : [OPERATOR_SLUG, BROKER_PRO_SLUG, COMPLIANCE_SLUG];
+export const OPEN_PLAN_SLUGS: readonly string[] = [
+  ...(SALES_PAUSED ? [] : [OPERATOR_SLUG, COMPLIANCE_SLUG]),
+  ...(BROKER_PRO_EARN_ONLY ? [] : [BROKER_PRO_SLUG]),
+];
 /** £, ex VAT. The server refuses to sell a price that is not exactly this. */
 export const BROKER_PRO_MONTHLY = 249;
 export const BROKER_FREE_SIGNUP_URL = "https://fleetlix.app/broker/sign-up";
