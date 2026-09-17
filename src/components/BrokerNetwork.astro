@@ -15,7 +15,9 @@
 // Each card's CTA comes from BROKER_TIERS: Broker Free links to the app's no-card
 // signup, Broker Pro is a [data-broker-checkout] button that
 // src/scripts/checkout.ts turns into a Stripe Checkout (no promo needed). With
-// JS off it falls back to /brokers#broker-interest.
+// JS off it falls back to /brokers#broker-interest. While Pro is earn-only
+// (BROKER_PRO_OPEN in src/config/brokers.ts) its CTA is a plain link to
+// /brokers#earn-pro instead, and the badge and price line say so.
 //
 // The October 2027 date is read from src/config/dwts.ts, not typed.
 import {
@@ -84,7 +86,7 @@ const stagger = ["[--stagger:0ms]", "[--stagger:120ms]"];
             </div>
             {tier.featured && (
               <span class="inline-flex items-center rounded-full bg-[color:var(--color-amber)]/12 px-2.5 py-0.5 text-[11px] font-semibold text-[color:var(--color-amber)] ring-1 ring-[color:var(--color-amber)]/25">
-                Earn it, or buy it
+                {tier.badge}
               </span>
             )}
           </div>

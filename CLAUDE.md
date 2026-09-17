@@ -106,7 +106,7 @@ fleetlix-marketing/
 | `/walkthrough` | The 10:39 product recording, behind a **click-to-load facade**. The page ships zero video weight — the 54 MB MP4 in Supabase Storage is not requested until the visitor presses play, and a native `<video>` plays it, so no third-party script runs. The 16 chapters in `src/config/walkthrough.ts` are both the visible copy and the seek targets. See _Walkthrough video_ below before changing anything here. |
 | `/install`   | PWA install guide for iPhone, iPad, Android, Windows and Mac, from `src/config/install.ts`. Platform tabs are **CSS-only** (radios + `:has()`), so all five platforms are in the DOM and crawlable and the page works with JS off; `src/scripts/install.ts` only pre-selects the tab matching the visitor's device. Device-support lists sit in `<details>`. Content describes **fleetlix.app** (the app repo) — its Settings paths can go stale without anything here failing, so re-check before a rollout. |
 | `/rwm2026`   | The physical-channel landing page — what the printed card QR, an NFC chip or a Wallet pass resolves to. Presents the `letsrecycle` promo (14-day trial vs the 7-day base, links into `/?promo=…#pricing`) and hands over our contact details as a **QR that encodes a vCard inline**, so the scan resolves on the other person's phone with no download. `noindex`, and excluded from the sitemap in `astro.config.mjs`. Renamed from `/card` on 12 Aug 2026; `public/_redirects` 301s the old path permanently because cards encoding it are already printed. Print asset: `public/fleetlix-rwm2026-qr.svg`. **While `SALES_PAUSED` is on** the promo block is replaced by a "Sign-up paused" block with no code and no trial button (see _Sales pause_). |
-| `/brokers`   | **Broker Network** — the second price ladder, for intermediaries. Two rungs from `src/config/brokers.ts`: **Broker Free** (£0, no card, 5 carriers / 2 users / 150 jobs a month) and **Broker Pro** (Unlimited, £249/mo + VAT bought outright, or *earned* by introducing carriers). Carries the referral mechanics, the margin-visibility table and the eligibility rule; `BrokerNetwork.astro` on the homepage is the teaser that links here. Ends with `<InterestForm variant="broker" />`, now a "questions first?" enquiry rather than a launch waitlist. **Signup is open:** Broker Free CTAs link to `fleetlix.app/broker/sign-up`, and Broker Pro CTAs start a £249/month checkout, found by lookup key and never via `STRIPE_PRICE_MAP`. See _Broker Network_ below. Source: `Resources/Fleetlix-Broker-Offer.pdf`, whose "review draft / not yet published" markings are deliberately **not** carried across. |
+| `/brokers`   | **Broker Network** — the second price ladder, for intermediaries. Two rungs from `src/config/brokers.ts`: **Broker Free** (£0, no card, 5 carriers / 2 users / 150 jobs a month) and **Broker Pro** (Unlimited, £249/mo + VAT bought outright, or *earned* by introducing carriers). Carries the referral mechanics, the margin-visibility table and the eligibility rule; `BrokerNetwork.astro` on the homepage is the teaser that links here. Ends with `<InterestForm variant="broker" />`, now a "questions first?" enquiry rather than a launch waitlist. **Signup is open:** Broker Free CTAs link to `fleetlix.app/broker/sign-up`, and Broker Pro CTAs start a £249/month checkout, found by lookup key and never via `STRIPE_PRICE_MAP`. **While `BROKER_PRO_EARN_ONLY` is on, Broker Pro is earn-only:** its card reads "Earned", and its CTAs link to `#earn-pro` instead (see _Sales pause_). See _Broker Network_ below. Source: `Resources/Fleetlix-Broker-Offer.pdf`, whose "review draft / not yet published" markings are deliberately **not** carried across. |
 | `/security`  | **App & Data Security** — the trust document a buyer's IT person is sent, replacing the PDF of the same name. Twenty sections from `src/config/security.ts` (tabular content) plus prose in the page, rendered through `PolicySection` / `PolicyCallout`. Section numbers derive from the `contents` array, so the sticky rail and the on-page numbering renumber together. Bump `DOC.version` and `DOC.issued` when the substance changes. **Section 19, "What we do not claim", is load-bearing** — it is what makes the other nineteen survive a technical review, so items leave it only when they stop being true. The masthead offers the typeset PDF at `DOC.pdf` (see _Security PDF_ below). Print styles in `global.css` still make Cmd-P produce something filable; no `data-reveal` on this page, because anything never scrolled into view would print blank. |
 | `/support`   | **Customer support** — the help hub, and the page Stripe reads. Fifteen sections from `src/config/support.ts` plus prose in the page, rendered through `PolicySection` / `PolicyCallout`, numbered off the `contents` array exactly as `/security` is. It exists to do two jobs at once: help a paying operator through checkout, the setup period and daily use, **and** satisfy [Stripe's website checklist](https://docs.stripe.com/get-started/checklist/website) (customer service contact, refund policy, cancellation policy, promotion terms, purchase currency, business address, payment security). `https://fleetlix.com/support` is registered as the account's **Support site URL**, so it is printed on every Stripe receipt — it must never be gated behind `SHOW_CONTACT`, renamed, or 404. **No figure is typed on this page**: prices come from `src/config/pricing.ts` and the trial length from `src/config/checkout.ts` via `resolvePromo`. **The promo code string is never rendered here either** — only its trial length. Paid signup is invitation-only and codes go to named customers, so a working code in the body copy of an indexed page hands the offer to everyone; `PROMO_CODE` stays in the frontmatter purely as the `resolvePromo` lookup key, and `/rwm2026` (noindex, reachable only from a printed card) is the one surface that prints a code. Sections 8–10 (billing, plan changes, cancellation and refunds) are the commercial terms in force — they are not marketing copy, and trimming one removes evidence Stripe holds. Bump `SUPPORT.lastUpdated` when the substance changes. No `data-reveal`, same print reasoning as `/security`. |
 | `/terms-of-service` | **Terms of Service** — the contract for the subscription, and the first contractual language this site has ever carried. Twenty-four sections numbered off `contents` in `src/config/terms.ts`, same machinery as `/security` and `/support`. Four commercial decisions are baked in and recorded in that config: **liability capped at 12 months' fees**, **England and Wales**, **business customers only** (which is what lets the cap and exclusions stand under UCTA 1977 — admitting consumers makes sections 17–18 unsafe as written), and **acceptance by required tick box at Stripe Checkout**. **Section 7, "Regulatory compliance stays yours", is the load-bearing one** — Fleetlix records and submits DWTS, DVSA walk-arounds and waste transfer notes, and an operator who thinks the software makes them compliant will be fined and then look for someone to blame. Don't trim it. Cross-references in the prose ("see section 18") are hand-written and do **not** renumber with the array — grep `section ` after any reorder. `/terms` and `/terms/` 301 here via `_redirects`. Bump `TERMS.version` **and** `effective` together; section 21 promises changes take effect at next renewal, which only means something if the version moves. |
@@ -340,7 +340,9 @@ whole offer. Both read the one config.
 - **£249 carries "+ VAT".** FLEETLIX LTD is VAT registered; an unqualified figure
   is a misquote to a business buyer.
 
-**Signup is open, through two different doors (15 Sep 2026).**
+**Signup is open, through two different doors (15 Sep 2026).** Broker Pro's door
+is shut while `BROKER_PRO_EARN_ONLY` is on (17 Sep 2026): Pro is earned only, and
+nothing on the site sells it. See _Sales pause_.
 
 - **Broker Free** links to `fleetlix.app/broker/sign-up` (`BROKER_FREE_SIGNUP_URL`).
   That app page creates the login and the broker tenant and signs the broker
@@ -434,17 +436,23 @@ visitor submits InterestForm (React island)
 ## Sales pause
 
 **New subscriptions are paused (17 Sep 2026) while the payment system is being
-changed. Only the broker plans are open:** Broker Free (the app's no-card signup,
-which never touches checkout) and Broker Pro (still sold by
-`functions/api/checkout.ts`). Operator, Fleetlix Compliance, Workshop, Depot,
-Haulier and Network take no new subscriptions, and no promo code is honoured.
+changed. Only Broker Free is open:** the app's no-card signup, which never
+touches checkout. Operator, Fleetlix Compliance, Workshop, Depot, Haulier and
+Network take no new subscriptions, and no promo code is honoured. **Broker Pro is
+earn-only:** it is not sold at all, only earned through carrier referrals.
+**Nothing is sold through `/api/checkout` right now.**
 
-It is one switch with two copies, and they must move together:
+There are two switches, each with two copies that must move together:
 
 | Copy | What it does |
 | --- | --- |
-| `SALES_PAUSED` in `functions/api/checkout.ts` | **The one that stops a payment.** Refuses every plan outside `SOLD_WHILE_PAUSED` (`broker_pro`) with a 409 `"New subscriptions are paused for now."` before any Stripe call, whatever the client sends. |
-| `SALES_PAUSED` in `src/config/checkout.ts` | Decides what the pages offer. `OPEN_PLAN_SLUGS` shrinks to Broker Pro and `resolvePromo` returns null, so no button is wired except Broker Pro's. |
+| `SALES_PAUSED` in `functions/api/checkout.ts` | **Stops the payment.** Refuses every plan outside `SOLD_WHILE_PAUSED` (`broker_pro`) with a 409 `"New subscriptions are paused for now."` before any Stripe call, whatever the client sends. |
+| `SALES_PAUSED` in `src/config/checkout.ts` | Decides what the pages offer. Drops Operator and Compliance from `OPEN_PLAN_SLUGS` and makes `resolvePromo` return null. |
+| `BROKER_PRO_EARN_ONLY` in `functions/api/checkout.ts` | **Stops the payment.** Refuses `broker_pro` with a 409 `"Broker Pro can only be earned right now."`, checked before the pause. |
+| `BROKER_PRO_EARN_ONLY` in `src/config/checkout.ts` | Drops Broker Pro from `OPEN_PLAN_SLUGS`. Pages read it as `BROKER_PRO_OPEN` from `src/config/brokers.ts`. |
+
+The two are separate on purpose: reopening the other plans does not reopen
+Broker Pro.
 
 While it is on:
 
@@ -459,14 +467,30 @@ While it is on:
 - **`/rwm2026`** replaces the promo with a "Sign-up paused" block and hides the code.
 - **`InterestForm`**'s Compliance hint says new subscriptions are paused.
 
+While Broker Pro is earn-only:
+
+- **The Pro card** (both `BrokerNetwork` and `/brokers`) leads with "Earned",
+  keeps "Worth £249 a month + VAT" underneath, and its badge reads "Earned,
+  not bought". Every Pro CTA is a plain link to `/brokers#earn-pro`, the
+  "Earning Broker Pro" section.
+- **`/support`** sections 5, 6 and 11 say Pro is earned, not sold, and
+  `checkoutIssues` lists the earn-only error verbatim.
+- **`InterestForm`**'s broker intro says to earn Pro rather than buy it.
+- **Earning is not live in the app yet** (checked 17 Sep 2026): its broker
+  screens say "Referral codes are coming shortly", and nothing writes
+  `tenants.broker_pro_until`, so no broker can currently get Pro. The app's
+  upsell also still quotes "Pro is £249/month" as the interim route.
+
 Two surfaces were rewritten to be true in **both** states rather than switched,
 so reopening does not touch them: the homepage FAQ's pricing answer (it is in the
 homepage JSON-LD, so switching it would move CSP hash 4 again) and the Compliance
 confirmation email in `functions/api/register-interest.ts` (no copy of the switch
 there). Neither offers to sell anything any more.
 
-**To reopen:** set both `SALES_PAUSED` to `false` in one commit, then check the
-Stripe side still passes the lookup-key price checks. Nothing else needs to change.
+**To reopen the other plans:** set both `SALES_PAUSED` to `false` in one commit,
+then check the Stripe side still passes the lookup-key price checks. **To sell
+Broker Pro again:** set both `BROKER_PRO_EARN_ONLY` to `false`, the same way.
+Nothing else needs to change for either.
 
 **Not covered:** the app (`fleetlix.app`) has its own Stripe checkout routes for
 signed-in tenants (`functions/api/billing/checkout.ts` and the Compliance
@@ -474,7 +498,8 @@ checkout). This switch does not reach them.
 
 ## Promo checkout pipeline
 
-**Suspended by the _Sales pause_ above** for everything except Broker Pro.
+**Suspended by the _Sales pause_ above.** With Broker Pro earn-only as well, it
+sells nothing right now.
 
 The paid-signup entry point. **Checkout-first:** the customer pays on Stripe on the marketing site, _then_ creates their login on the app (`fleetlix.app`). Gated to promo-code holders **for Workshop, Depot, Haulier and Network only**. Operator, Fleetlix Compliance and Broker Pro are `OPEN_PLANS` in `functions/api/checkout.ts`: no code, no trial, each price found by lookup key and checked (amount, currency, tax-exclusive, cadence, exactly one active price) before a session is created.
 

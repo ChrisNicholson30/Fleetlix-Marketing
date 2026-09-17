@@ -11,8 +11,9 @@
 //
 // SALES ARE PAUSED (17 Sep 2026) while the payment system is being changed.
 // SALES_PAUSED below refuses every plan except Broker Pro before Stripe is
-// called, whatever the client sends. The two gates underneath are left intact
-// for when sales reopen: set SALES_PAUSED to false here AND in
+// called, whatever the client sends, and BROKER_PRO_EARN_ONLY refuses Broker Pro
+// as well, so right now this function sells nothing. The two gates underneath
+// are left intact for when sales reopen: flip each switch here AND in
 // src/config/checkout.ts, in the same commit.
 //
 // TWO GATES:
@@ -117,6 +118,13 @@ const SALES_PAUSED: boolean = true;
 const SOLD_WHILE_PAUSED: ReadonlySet<string> = new Set(["broker_pro"]);
 // Quoted verbatim in src/config/support.ts (checkoutIssues) — change both.
 const PAUSED_ERROR = "New subscriptions are paused for now.";
+
+// Broker Pro is earned through carrier referrals, never bought, while this is on
+// (17 Sep 2026). Separate from the pause on purpose: reopening the other plans
+// does not reopen Pro. Mirrors BROKER_PRO_EARN_ONLY in src/config/checkout.ts.
+const BROKER_PRO_EARN_ONLY: boolean = true;
+// Quoted verbatim in src/config/support.ts (checkoutIssues) — change both.
+const EARN_ONLY_ERROR = "Broker Pro can only be earned right now.";
 
 const OPEN_CURRENCY = "gbp";
 
@@ -291,6 +299,9 @@ const handleCheckout = async ({ request, env }: Ctx): Promise<Response> => {
   // Ahead of both gates, so a page opened before the pause, a hand-built
   // request and a valid promo code all get the same answer. 409, not 5xx, for
   // the reason given at createSession: Cloudflare would swallow the message.
+  if (BROKER_PRO_EARN_ONLY && plan === "broker_pro") {
+    return json(409, { error: EARN_ONLY_ERROR });
+  }
   if (SALES_PAUSED && !(typeof plan === "string" && SOLD_WHILE_PAUSED.has(plan))) {
     return json(409, { error: PAUSED_ERROR });
   }

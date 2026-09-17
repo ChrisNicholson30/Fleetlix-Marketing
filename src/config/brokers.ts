@@ -38,9 +38,25 @@
 //     LOOKUP KEY, not through `STRIPE_PRICE_MAP`, so the stale v1 map
 //     (Resources/stripe-pricing-id.md) is not in its path. Earning Pro through
 //     referral is unchanged and still the headline.
+//
+// BROKER PRO IS EARN-ONLY (17 Sep 2026) while BROKER_PRO_EARN_ONLY in ./checkout
+// is on. Nothing sells it: the card leads with "Earned", keeps £249 + VAT as
+// what it is worth, and its button explains how to earn it. Broker Free is
+// unchanged.
 
 import { DWTS_MILESTONES } from "./dwts";
-import { BROKER_FREE_SIGNUP_URL, BROKER_PRO_MONTHLY } from "./checkout";
+import {
+  BROKER_FREE_SIGNUP_URL,
+  BROKER_PRO_MONTHLY,
+  BROKER_PRO_SLUG,
+  OPEN_PLAN_SLUGS,
+} from "./checkout";
+
+/**
+ * Whether Broker Pro can be bought right now. False while BROKER_PRO_EARN_ONLY
+ * (./checkout) is on, and every Pro surface reads this rather than the switch.
+ */
+export const BROKER_PRO_OPEN = OPEN_PLAN_SLUGS.includes(BROKER_PRO_SLUG);
 
 /**
  * When broker accounts opened. Kept because <time datetime> reads it; the copy
@@ -71,6 +87,8 @@ export interface BrokerTier {
   blurb: string;
   accent: "cyan" | "amber";
   featured?: boolean;
+  /** The pill on the featured card. */
+  badge?: string;
   limits: { carriers: string; users: string; jobs: string };
   icon: string;
   /**
@@ -101,22 +119,35 @@ export const BROKER_TIERS: BrokerTier[] = [
   {
     slug: "broker-pro",
     name: "Broker Pro",
-    price: `£${BROKER_PRO_MONTHLY}`,
-    priceNote: "a month + VAT — or earn it by introducing carriers",
+    // While Pro is earn-only the headline is how you get it, not a price
+    // nobody can pay. The £249 stays, with its + VAT, as what it is worth.
+    price: BROKER_PRO_OPEN ? `£${BROKER_PRO_MONTHLY}` : "Earned",
+    priceNote: BROKER_PRO_OPEN
+      ? "a month + VAT — or earn it by introducing carriers"
+      : `Worth £${BROKER_PRO_MONTHLY} a month + VAT. Not sold: you earn it by introducing carriers.`,
     blurb: "Grows and defends the panel you want.",
     accent: "amber",
     featured: true,
+    badge: BROKER_PRO_OPEN ? "Earn it, or buy it" : "Earned, not bought",
     limits: { carriers: "Unlimited", users: "10", jobs: "Unlimited" },
-    cta: {
-      label: "Buy Broker Pro",
-      // No-JS fallback: the enquiry form at the foot of /brokers.
-      href: "#broker-interest",
-      // The second sentence is load-bearing until the app has an in-app upgrade:
-      // a Free broker buying here would be charged, then refused at onboarding
-      // because their email already has an account.
-      note: "Billed monthly, no trial, cancel any time. Already on Broker Free? Email us to upgrade.",
-      checkout: true,
-    },
+    cta: BROKER_PRO_OPEN
+      ? {
+          label: "Buy Broker Pro",
+          // No-JS fallback: the enquiry form at the foot of /brokers.
+          href: "#broker-interest",
+          // The second sentence is load-bearing until the app has an in-app
+          // upgrade: a Free broker buying here would be charged, then refused at
+          // onboarding because their email already has an account.
+          note: "Billed monthly, no trial, cancel any time. Already on Broker Free? Email us to upgrade.",
+          checkout: true,
+        }
+      : {
+          label: "How to earn Pro",
+          // #earn-pro is the "Earning Broker Pro" section on /brokers. Written
+          // with the path so the homepage teaser can use it as it stands.
+          href: "/brokers#earn-pro",
+          note: "Start on Broker Free and introduce carriers. No card, and no cash changes hands.",
+        },
     icon: `<path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/>`,
   },
 ];

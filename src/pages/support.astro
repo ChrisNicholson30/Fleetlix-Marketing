@@ -33,7 +33,9 @@
 //
 // While SALES_PAUSED (src/config/checkout.ts) is on, sections 3, 5, 6 and 11
 // carry the paused wording instead of the buying instructions. Both versions
-// live here, so reopening is the flag and nothing else.
+// live here, so reopening is the flag and nothing else. Broker Pro has its own
+// switch (BROKER_PRO_EARN_ONLY, read here as BROKER_PRO_OPEN), which sections 5,
+// 6 and 11 follow separately.
 //
 // Bump SUPPORT.lastUpdated in src/config/support.ts when the substance changes.
 import Base from "../layouts/Base.astro";
@@ -51,6 +53,7 @@ import {
 } from "../config/support";
 import { TIERS, gbp, formatCap } from "../config/pricing";
 import { COMPLIANCE } from "../config/compliance";
+import { BROKER_PRO_OPEN } from "../config/brokers";
 import { BROKER_PRO_MONTHLY, CARD_PROMO_CODE, SALES_PAUSED, resolvePromo } from "../config/checkout";
 
 const mailto = `mailto:${SUPPORT.email}`;
@@ -72,6 +75,11 @@ const PROMO_CODE = CARD_PROMO_CODE;
 const promo = resolvePromo(PROMO_CODE);
 // Operator is bought outright with no code; its figures come from pricing.ts.
 const operator = TIERS.find((t) => t.slug === "operator")!;
+// How Broker Pro is had, as things stand. Both versions of the section 5
+// callout use it, so the pause and the earn-only switch cannot disagree.
+const brokerProLine = BROKER_PRO_OPEN
+  ? `Broker Pro can be bought outright at £${BROKER_PRO_MONTHLY} a month plus VAT, billed monthly with no free trial and no promotion code, or earned by introducing carriers.`
+  : "Broker Pro is not sold: it is earned by introducing carriers.";
 ---
 
 <Base
@@ -470,7 +478,7 @@ const operator = TIERS.find((t) => t.slug === "operator")!;
             </ul>
 
             {SALES_PAUSED ? (
-            <PolicyCallout label="Only broker accounts are open right now" tone="amber">
+            <PolicyCallout label={BROKER_PRO_OPEN ? "Only broker accounts are open right now" : "Only Broker Free is open right now"} tone="amber">
               <p>
                 New subscriptions to Operator, {COMPLIANCE.name}, Workshop, Depot,
                 Haulier and Network are paused while we change how we take
@@ -479,9 +487,7 @@ const operator = TIERS.find((t) => t.slug === "operator")!;
               <p>
                 The {" "}<a href="/brokers" class="policy-link">Broker Network</a>{" "}
                 is still open to any intermediary. Broker Free needs no card and no
-                code. Broker Pro can be bought outright at £{BROKER_PRO_MONTHLY} a
-                month plus VAT, billed monthly with no free trial and no promotion
-                code, or earned by introducing carriers.
+                code. {brokerProLine}
               </p>
             </PolicyCallout>
             ) : (
@@ -502,9 +508,7 @@ const operator = TIERS.find((t) => t.slug === "operator")!;
               <p>
                 The {" "}<a href="/brokers" class="policy-link">Broker Network</a>{" "}
                 is open to any intermediary. Broker Free needs no card and no
-                code. Broker Pro can be bought outright at £249 a month plus VAT,
-                billed monthly with no free trial and no promotion code — or
-                earned by introducing carriers.
+                code. {brokerProLine}
               </p>
             </PolicyCallout>
             )}
@@ -512,7 +516,7 @@ const operator = TIERS.find((t) => t.slug === "operator")!;
 
           <PolicySection id="signing-up" title="Signing up, step by step" contents={contents}>
             {SALES_PAUSED && (
-              <PolicyCallout label="Sign-up is paused, except for broker accounts" tone="amber">
+              <PolicyCallout label={BROKER_PRO_OPEN ? "Sign-up is paused, except for broker accounts" : "Sign-up is paused, except for Broker Free"} tone="amber">
                 <p>
                   We are changing how we take payments, so Operator,
                   {" "}{COMPLIANCE.name} and the larger operations plans cannot be
@@ -523,10 +527,21 @@ const operator = TIERS.find((t) => t.slug === "operator")!;
                   <strong>To hear when it reopens</strong>, register your interest
                   on the {" "}<a href="/#register-interest" class="policy-link">homepage form</a>{" "}
                   or email {" "}<a href={mailto} class="policy-link">{SUPPORT.email}</a>.
-                  Broker accounts are unaffected: start from the
-                  {" "}<a href="/brokers" class="policy-link">Broker Network</a>.
-                  The steps below describe paid sign-up when it is open, and
-                  Broker Pro follows the same order today.
+                  {BROKER_PRO_OPEN ? (
+                    <>
+                      Broker accounts are unaffected: start from the
+                      {" "}<a href="/brokers" class="policy-link">Broker Network</a>.
+                      The steps below describe paid sign-up when it is open, and
+                      Broker Pro follows the same order today.
+                    </>
+                  ) : (
+                    <>
+                      Broker Free is unaffected: start from the
+                      {" "}<a href="/brokers" class="policy-link">Broker Network</a>,
+                      where Broker Pro is earned rather than bought. The steps
+                      below describe paid sign-up for when it reopens.
+                    </>
+                  )}
                 </p>
               </PolicyCallout>
             )}

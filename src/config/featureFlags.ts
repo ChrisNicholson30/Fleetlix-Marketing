@@ -23,8 +23,9 @@
 // the operator pricing cards) and the footer link to /brokers are rendered. The
 // /brokers PAGE itself always builds and is always reachable — the flag governs
 // discovery, not existence, so a link already shared cannot 404. Broker accounts
-// are open: both surfaces link Broker Free to the app's no-card signup and start
-// a Broker Pro checkout directly.
+// are open: both surfaces link Broker Free to the app's no-card signup. Broker
+// Pro starts a checkout directly, except while it is earn-only
+// (BROKER_PRO_EARN_ONLY in ./checkout), when its button explains how to earn it.
 export const SHOW_BROKERS = true
 
 // Pausing new subscriptions is NOT a flag here. It is SALES_PAUSED in

@@ -23,6 +23,7 @@
 // the same split /security and /digital-waste-tracking use.
 
 import { SALES_PAUSED } from "./checkout";
+import { BROKER_PRO_OPEN } from "./brokers";
 
 export const SUPPORT = {
   /**
@@ -215,7 +216,9 @@ export const checkoutIssues: CheckoutIssue[] = [
         symptom: "Every button says Register interest, apart from the broker plans",
         meaning:
           "New subscriptions are paused while we change how we take payments, so Operator, Fleetlix Compliance and the larger operations plans cannot be bought for the moment, with or without a promotion code. That is intended, not a fault.",
-        fix: "Register your interest on the homepage form and we will let you know when sign-up reopens. Broker Free and Broker Pro are still open on the Broker Network page.",
+        fix: BROKER_PRO_OPEN
+          ? "Register your interest on the homepage form and we will let you know when sign-up reopens. Broker Free and Broker Pro are still open on the Broker Network page."
+          : "Register your interest on the homepage form and we will let you know when sign-up reopens. Broker Free is still open on the Broker Network page, and Broker Pro is earned from there by introducing carriers.",
       }
     : {
         kind: "behaviour",
@@ -236,6 +239,18 @@ export const checkoutIssues: CheckoutIssue[] = [
         } satisfies CheckoutIssue,
       ]
     : []),
+  // EARN_ONLY_ERROR in functions/api/checkout.ts, verbatim.
+  ...(BROKER_PRO_OPEN
+    ? []
+    : [
+        {
+          kind: "message",
+          symptom: "Broker Pro can only be earned right now.",
+          meaning:
+            "You pressed Buy Broker Pro on a page that was opened before Broker Pro stopped being sold. Nothing was charged: the payment page never opened.",
+          fix: "Start on Broker Free instead. Broker Pro is earned by introducing carriers, and the Broker Network page explains how.",
+        } satisfies CheckoutIssue,
+      ]),
   {
     kind: "message",
     symptom: "This checkout requires a valid promo code.",
