@@ -20,7 +20,9 @@
 // interval it sends to Stripe.
 //
 // CTAs server-render as #register-interest links, which is also the no-JS
-// fallback. src/scripts/checkout.ts enhances them two ways:
+// fallback. While SALES_PAUSED (src/config/checkout.ts) is on they stay exactly
+// that, with no checkout hook at all, and a notice above the Compliance card
+// says why. Otherwise src/scripts/checkout.ts enhances them two ways:
 //   - OPERATOR is an open checkout ([data-open-checkout] data-follows-billing):
 //     anyone can buy it at the price the toggle shows, with no trial, and a
 //     ?promo= never changes it;
@@ -30,7 +32,7 @@
 
 import { TIERS, COMING_LABEL, annualSaving, formatCap, gbp } from "../config/pricing";
 import ComplianceTier from "./ComplianceTier.astro";
-import { OPERATOR_SLUG } from "../config/checkout";
+import { OPEN_PLAN_SLUGS, SALES_PAUSED } from "../config/checkout";
 
 // The operations core — identical in every plan, because none of it is gated.
 //
@@ -74,6 +76,18 @@ const trust: { icon: string; label: string }[] = [
   { icon: `<ellipse cx="12" cy="5.5" rx="7" ry="2.5"/><path d="M5 5.5v13c0 1.4 3.1 2.5 7 2.5s7-1.1 7-2.5v-13"/><path d="M5 12c0 1.4 3.1 2.5 7 2.5s7-1.1 7-2.5"/>`, label: "EU data residency" },
 ];
 
+// What each card's button is, as things stand. An open plan (Operator, while
+// sales are open) is a checkout that follows the billing toggle. A promo-gated
+// plan carries the hook checkout.ts upgrades when a valid code is in the URL.
+// While sales are paused, neither: every card is the plain enquiry link.
+const isOpen = (slug: string) => OPEN_PLAN_SLUGS.includes(slug);
+const ctaHooks = (slug: string): Record<string, string> =>
+  isOpen(slug)
+    ? { "data-open-checkout": "", "data-follows-billing": "" }
+    : SALES_PAUSED
+      ? {}
+      : { "data-checkout-cta": "" };
+
 // Literal stagger classes so Tailwind's JIT emits them.
 const stagger = [
   "[--stagger:0ms]",
@@ -101,6 +115,30 @@ const stagger = [
       </div>
 
     </div>
+
+    {/* The sales pause. One notice above both closed product lines, so nobody
+        meets a missing buy button without the reason. No data-reveal: this has
+        to be readable the moment the section is. The broker plans are
+        deliberately not mentioned here. Pointing operators at a free tier is
+        the way out of this price ladder that the broker eligibility line exists
+        to block. A template comment rather than an HTML one, so the reasoning
+        stays out of the page source. */}
+    {SALES_PAUSED && (
+      <p class="mt-8 flex items-start gap-3 rounded-xl border border-[color:var(--color-amber)]/45 bg-[color:var(--color-amber)]/10 px-4 py-3.5 text-sm text-[color:var(--color-graphite)] md:text-base">
+        <span class="mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[color:var(--color-amber)]/30">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
+            <path d="M9 6v12" /><path d="M15 6v12" />
+          </svg>
+        </span>
+        <span>
+          <strong class="font-semibold">New subscriptions are paused.</strong>{" "}
+          We're changing how we take payments, so Fleetlix Compliance and the
+          operations plans can't be bought for the moment.{" "}
+          <a href="#register-interest" class="font-semibold underline decoration-[color:var(--color-amber)] decoration-2 underline-offset-2 hover:decoration-[color:var(--color-graphite)]">Register your interest</a>{" "}
+          and we'll let you know when they reopen.
+        </span>
+      </p>
+    )}
 
     <ComplianceTier />
 
@@ -294,9 +332,7 @@ const stagger = [
 
           <a
             href="#register-interest"
-            {...(p.slug === OPERATOR_SLUG
-              ? { "data-open-checkout": "", "data-follows-billing": "" }
-              : { "data-checkout-cta": "" })}
+            {...ctaHooks(p.slug)}
             data-plan={p.slug}
             class={`mt-auto pt-5 block`}
           >
@@ -305,7 +341,7 @@ const stagger = [
                 ? "bg-[color:var(--color-amber)] text-[color:var(--color-graphite)] hover:brightness-105 ring-1 ring-[color:var(--color-amber)]/40"
                 : "border border-[color:var(--color-graphite)]/25 text-[color:var(--color-graphite)] hover:bg-[color:var(--color-graphite)] hover:text-white"
             }`}>
-              <span data-checkout-label>{p.slug === OPERATOR_SLUG ? "Start Operator" : "Register interest"}</span>
+              <span data-checkout-label>{isOpen(p.slug) ? `Start ${p.name}` : "Register interest"}</span>
             </span>
           </a>
         </article>
@@ -374,7 +410,9 @@ const stagger = [
 </section>
 
 <script>
-  // Checkout enhancement: Operator (open) and the promo-gated plans. Imports a shared module, so Astro emits
+  // Checkout enhancement: Operator (open) and the promo-gated plans, when sales
+  // are open; the Compliance card's button too. Harmless while they are paused,
+  // because no card carries a hook. Imports a shared module, so Astro emits
   // it as an external /_astro/*.js file under script-src 'self' (no CSP hash).
   import "../scripts/checkout.ts";
 </script>

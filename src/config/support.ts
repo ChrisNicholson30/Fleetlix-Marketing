@@ -22,6 +22,8 @@
 // The tabular content lives here; the prose lives in src/pages/support.astro,
 // the same split /security and /digital-waste-tracking use.
 
+import { SALES_PAUSED } from "./checkout";
+
 export const SUPPORT = {
   /**
    * The published support address. Rendered everywhere /support and
@@ -54,8 +56,8 @@ export const SUPPORT = {
    * says plainly that there isn't one yet, which is the honest version.
    */
   phone: null as string | null,
-  lastUpdated: "15 September 2026",
-  lastUpdatedIso: "2026-09-15",
+  lastUpdated: "17 September 2026",
+  lastUpdatedIso: "2026-09-17",
 } as const;
 
 /* ------------------------------------------------------------------ *
@@ -206,13 +208,34 @@ export interface CheckoutIssue {
 }
 
 export const checkoutIssues: CheckoutIssue[] = [
-  {
-    kind: "behaviour",
-    symptom: "The button still says Register interest and never offers a trial",
-    meaning:
-      "You are looking at Workshop, Depot, Haulier or Network with no promo code in the address bar. Those plans are open to code holders only, so without one their buttons stay as enquiry links rather than becoming buy buttons. Operator does not need a code: its button starts checkout on its own, with no trial.",
-    fix: "Use the full link you were given, including the ?promo= part, rather than typing fleetlix.com by hand. If you have a code but no link, email us and we will send you one.",
-  },
+  // The first two follow the sales pause (SALES_PAUSED in ./checkout).
+  SALES_PAUSED
+    ? {
+        kind: "behaviour",
+        symptom: "Every button says Register interest, apart from the broker plans",
+        meaning:
+          "New subscriptions are paused while we change how we take payments, so Operator, Fleetlix Compliance and the larger operations plans cannot be bought for the moment, with or without a promotion code. That is intended, not a fault.",
+        fix: "Register your interest on the homepage form and we will let you know when sign-up reopens. Broker Free and Broker Pro are still open on the Broker Network page.",
+      }
+    : {
+        kind: "behaviour",
+        symptom: "The button still says Register interest and never offers a trial",
+        meaning:
+          "You are looking at Workshop, Depot, Haulier or Network with no promo code in the address bar. Those plans are open to code holders only, so without one their buttons stay as enquiry links rather than becoming buy buttons. Operator does not need a code: its button starts checkout on its own, with no trial.",
+        fix: "Use the full link you were given, including the ?promo= part, rather than typing fleetlix.com by hand. If you have a code but no link, email us and we will send you one.",
+      },
+  // PAUSED_ERROR in functions/api/checkout.ts, verbatim.
+  ...(SALES_PAUSED
+    ? [
+        {
+          kind: "message",
+          symptom: "New subscriptions are paused for now.",
+          meaning:
+            "You pressed a buy button on a page that was opened before sign-up was paused. Nothing was charged: the payment page never opened.",
+          fix: "Reload the page. The button becomes an enquiry link, and registering your interest is how to hear when sign-up reopens.",
+        } satisfies CheckoutIssue,
+      ]
+    : []),
   {
     kind: "message",
     symptom: "This checkout requires a valid promo code.",

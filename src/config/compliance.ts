@@ -1,5 +1,7 @@
 // Owner clarification supersedes the handover's introductory pricing:
 // standalone portal at £49/month + VAT, with no step-up to Operator.
+// PAUSED since 17 Sep 2026 (SALES_PAUSED in ./checkout): the card's CTA is an
+// enquiry link until sales reopen. Otherwise:
 // SELF-SERVE since 15 Sep 2026: the card's CTA is an open checkout
 // (plan slug `compliance`, no promo, no trial, monthly) → /thank-you →
 // fleetlix.app/onboarding, which provisions a `compliance` tenant. It is not an

@@ -9,6 +9,12 @@
 //
 //   pricing card → Stripe Checkout → /thank-you → fleetlix.app/onboarding
 //
+// SALES ARE PAUSED (17 Sep 2026) while the payment system is being changed.
+// SALES_PAUSED below refuses every plan except Broker Pro before Stripe is
+// called, whatever the client sends. The two gates underneath are left intact
+// for when sales reopen: set SALES_PAUSED to false here AND in
+// src/config/checkout.ts, in the same commit.
+//
 // TWO GATES:
 //
 //   - OPEN_PLANS — Operator (£99/month or £990/year), Fleetlix Compliance (£49)
@@ -101,6 +107,16 @@ const OPEN_PLANS: Record<string, { tenantType: string; cancelUrl: string; prices
 };
 const isOpenPlan = (v: unknown): v is string =>
   typeof v === "string" && Object.prototype.hasOwnProperty.call(OPEN_PLANS, v);
+
+// The sales pause. While it is on, Broker Pro is the only plan sold here (Broker
+// Free never comes through this function at all), and every other request is
+// refused with PAUSED_ERROR before a price is looked up. Mirrors SALES_PAUSED in
+// src/config/checkout.ts, which only decides what the pages offer. This copy is
+// the one that actually stops a payment, so it is never the one to leave behind.
+const SALES_PAUSED: boolean = true;
+const SOLD_WHILE_PAUSED: ReadonlySet<string> = new Set(["broker_pro"]);
+// Quoted verbatim in src/config/support.ts (checkoutIssues) — change both.
+const PAUSED_ERROR = "New subscriptions are paused for now.";
 
 const OPEN_CURRENCY = "gbp";
 
@@ -271,6 +287,13 @@ const handleCheckout = async ({ request, env }: Ctx): Promise<Response> => {
     promo?: unknown;
     interval?: unknown;
   };
+
+  // Ahead of both gates, so a page opened before the pause, a hand-built
+  // request and a valid promo code all get the same answer. 409, not 5xx, for
+  // the reason given at createSession: Cloudflare would swallow the message.
+  if (SALES_PAUSED && !(typeof plan === "string" && SOLD_WHILE_PAUSED.has(plan))) {
+    return json(409, { error: PAUSED_ERROR });
+  }
 
   const taxEnabled = env.STRIPE_AUTOMATIC_TAX?.trim().toLowerCase() !== "off";
   // Terms-of-service acceptance. Stripe renders a required tick box and records

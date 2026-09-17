@@ -105,7 +105,7 @@ fleetlix-marketing/
 | `/digital-waste-tracking` | The DWTS pillar page — a full operator's guide to the Digital Waste Tracking Service, and the site's main organic-search asset. Renders `DwtsTimeline` with `variant="guide"`, then scope, the record contents, the two-working-day rule, fees, penalties, sector specifics, Fleetlix's own status, a DWTS-specific FAQ and the GOV.UK sources. Every date and figure comes from `src/config/dwts.ts`. Update its `lastUpdated` const when the substance changes. |
 | `/walkthrough` | The 10:39 product recording, behind a **click-to-load facade**. The page ships zero video weight — the 54 MB MP4 in Supabase Storage is not requested until the visitor presses play, and a native `<video>` plays it, so no third-party script runs. The 16 chapters in `src/config/walkthrough.ts` are both the visible copy and the seek targets. See _Walkthrough video_ below before changing anything here. |
 | `/install`   | PWA install guide for iPhone, iPad, Android, Windows and Mac, from `src/config/install.ts`. Platform tabs are **CSS-only** (radios + `:has()`), so all five platforms are in the DOM and crawlable and the page works with JS off; `src/scripts/install.ts` only pre-selects the tab matching the visitor's device. Device-support lists sit in `<details>`. Content describes **fleetlix.app** (the app repo) — its Settings paths can go stale without anything here failing, so re-check before a rollout. |
-| `/rwm2026`   | The physical-channel landing page — what the printed card QR, an NFC chip or a Wallet pass resolves to. Presents the `letsrecycle` promo (14-day trial vs the 7-day base, links into `/?promo=…#pricing`) and hands over our contact details as a **QR that encodes a vCard inline**, so the scan resolves on the other person's phone with no download. `noindex`, and excluded from the sitemap in `astro.config.mjs`. Renamed from `/card` on 12 Aug 2026; `public/_redirects` 301s the old path permanently because cards encoding it are already printed. Print asset: `public/fleetlix-rwm2026-qr.svg`. |
+| `/rwm2026`   | The physical-channel landing page — what the printed card QR, an NFC chip or a Wallet pass resolves to. Presents the `letsrecycle` promo (14-day trial vs the 7-day base, links into `/?promo=…#pricing`) and hands over our contact details as a **QR that encodes a vCard inline**, so the scan resolves on the other person's phone with no download. `noindex`, and excluded from the sitemap in `astro.config.mjs`. Renamed from `/card` on 12 Aug 2026; `public/_redirects` 301s the old path permanently because cards encoding it are already printed. Print asset: `public/fleetlix-rwm2026-qr.svg`. **While `SALES_PAUSED` is on** the promo block is replaced by a "Sign-up paused" block with no code and no trial button (see _Sales pause_). |
 | `/brokers`   | **Broker Network** — the second price ladder, for intermediaries. Two rungs from `src/config/brokers.ts`: **Broker Free** (£0, no card, 5 carriers / 2 users / 150 jobs a month) and **Broker Pro** (Unlimited, £249/mo + VAT bought outright, or *earned* by introducing carriers). Carries the referral mechanics, the margin-visibility table and the eligibility rule; `BrokerNetwork.astro` on the homepage is the teaser that links here. Ends with `<InterestForm variant="broker" />`, now a "questions first?" enquiry rather than a launch waitlist. **Signup is open:** Broker Free CTAs link to `fleetlix.app/broker/sign-up`, and Broker Pro CTAs start a £249/month checkout, found by lookup key and never via `STRIPE_PRICE_MAP`. See _Broker Network_ below. Source: `Resources/Fleetlix-Broker-Offer.pdf`, whose "review draft / not yet published" markings are deliberately **not** carried across. |
 | `/security`  | **App & Data Security** — the trust document a buyer's IT person is sent, replacing the PDF of the same name. Twenty sections from `src/config/security.ts` (tabular content) plus prose in the page, rendered through `PolicySection` / `PolicyCallout`. Section numbers derive from the `contents` array, so the sticky rail and the on-page numbering renumber together. Bump `DOC.version` and `DOC.issued` when the substance changes. **Section 19, "What we do not claim", is load-bearing** — it is what makes the other nineteen survive a technical review, so items leave it only when they stop being true. The masthead offers the typeset PDF at `DOC.pdf` (see _Security PDF_ below). Print styles in `global.css` still make Cmd-P produce something filable; no `data-reveal` on this page, because anything never scrolled into view would print blank. |
 | `/support`   | **Customer support** — the help hub, and the page Stripe reads. Fifteen sections from `src/config/support.ts` plus prose in the page, rendered through `PolicySection` / `PolicyCallout`, numbered off the `contents` array exactly as `/security` is. It exists to do two jobs at once: help a paying operator through checkout, the setup period and daily use, **and** satisfy [Stripe's website checklist](https://docs.stripe.com/get-started/checklist/website) (customer service contact, refund policy, cancellation policy, promotion terms, purchase currency, business address, payment security). `https://fleetlix.com/support` is registered as the account's **Support site URL**, so it is printed on every Stripe receipt — it must never be gated behind `SHOW_CONTACT`, renamed, or 404. **No figure is typed on this page**: prices come from `src/config/pricing.ts` and the trial length from `src/config/checkout.ts` via `resolvePromo`. **The promo code string is never rendered here either** — only its trial length. Paid signup is invitation-only and codes go to named customers, so a working code in the body copy of an indexed page hands the offer to everyone; `PROMO_CODE` stays in the frontmatter purely as the `resolvePromo` lookup key, and `/rwm2026` (noindex, reachable only from a printed card) is the one surface that prints a code. Sections 8–10 (billing, plan changes, cancellation and refunds) are the commercial terms in force — they are not marketing copy, and trimming one removes evidence Stripe holds. Bump `SUPPORT.lastUpdated` when the substance changes. No `data-reveal`, same print reasoning as `/security`. |
@@ -144,7 +144,7 @@ Always test at **375px (iPhone SE)** before merge — that's the narrowest targe
 
 ## Feature flags — `src/config/featureFlags.ts`
 
-- **`SHOW_PRICING`** (currently `true`) — when on: the Pricing nav link, `PricingSection` (five fixed plans mirroring `Resources/Pricing.md`: Operator £79 / Workshop £189 / Depot £350 / Haulier £550 / Network £899), and the hero "Prices from £79/month" CTA (→ `#pricing`) are rendered. `InterestForm` renders regardless of this flag. **Operator's CTA is an open checkout** (`[data-open-checkout] data-follows-billing`): anyone can buy it at £99/month or £990/year + VAT, with no trial, promo codes ignored, and prices found by lookup key (`fleetlix_operator_monthly_gbp` / `fleetlix_operator_annual_gbp`), never the stale marketing `STRIPE_PRICE_MAP`. The other four per-plan CTAs anchor to `#register-interest`; `src/scripts/checkout.ts` progressively enhances them into Stripe checkout **only when a valid `?promo=` is in the URL** (see _Promo checkout_ below). If `Resources/Pricing.md` and the app repo's `shared/plans/index.ts` disagree, the code wins.
+- **`SHOW_PRICING`** (currently `true`) — when on: the Pricing nav link, `PricingSection` (five fixed plans mirroring `Resources/Pricing.md`: Operator £79 / Workshop £189 / Depot £350 / Haulier £550 / Network £899), and the hero "Prices from £79/month" CTA (→ `#pricing`) are rendered. `InterestForm` renders regardless of this flag. **While `SALES_PAUSED` is on, every operations CTA is a plain `#register-interest` link with no checkout hook, and a notice above the Compliance card says why** (see _Sales pause_). Otherwise: **Operator's CTA is an open checkout** (`[data-open-checkout] data-follows-billing`): anyone can buy it at £99/month or £990/year + VAT, with no trial, promo codes ignored, and prices found by lookup key (`fleetlix_operator_monthly_gbp` / `fleetlix_operator_annual_gbp`), never the stale marketing `STRIPE_PRICE_MAP`. The other four per-plan CTAs anchor to `#register-interest`; `src/scripts/checkout.ts` progressively enhances them into Stripe checkout **only when a valid `?promo=` is in the URL** (see _Promo checkout_ below). If `Resources/Pricing.md` and the app repo's `shared/plans/index.ts` disagree, the code wins.
 - **`SHOW_BROKERS`** (currently `true`) — when on: the `BrokerNetwork` section on the homepage (directly below `PricingSection`) and the footer link to `/brokers`. **The `/brokers` page itself always builds and is always reachable** — the flag governs discovery, not existence, so a link already handed to a broker cannot 404.
 - **`SHOW_CONTACT`** (currently `false`) — when off: "Book a demo" CTAs in Header + Hero, the Contact nav link, the `CtaFooter` section, and the footer email are all hidden. Legal pages keep their statutory data-protection contact regardless.
 
@@ -393,7 +393,9 @@ Compliance** choice. Picking Compliance swaps fleet size for **waste movements p
 month** (`MOVEMENT_VOLUMES`, duplicated the same way), stamps
 `enquiry_type: "compliance"`, and sends a `Fleetlix COMPLIANCE` subject line. So does
 arriving via `#register-compliance`, which is where the Compliance pricing card's CTA
-links **only with JS off**. With JS, that CTA is an open checkout (`[data-open-checkout]
+links **only with JS off**, and always while `SALES_PAUSED` is on (the card then reads
+"New subscriptions paused" and the form's Compliance hint says so). With JS and sales
+open, that CTA is an open checkout (`[data-open-checkout]
 data-plan="compliance"`): £49/month + VAT, no promo, no trial, monthly only, price found by
 lookup key `fleetlix_compliance_monthly_gbp`. Stripe → `/thank-you?…&plan=compliance`
 (Compliance next steps) → `fleetlix.app/onboarding`, where the app's `provision.ts`
@@ -429,7 +431,50 @@ visitor submits InterestForm (React island)
 2. **Browser shows 502** with JSON `{"error":"Couldn't deliver…"}` → function ran, Resend rejected. Check Resend → Logs for the exact rejection.
 3. **Resend Logs shows 200 / Delivered, no email arrives** → Cloudflare Email Routing dropped it, OR the destination silently spam-binned it. Check Email Routing → Overview activity, then the destination's spam folder. Same-domain auto-mail to a brand-new sending domain commonly hits spam for the first ~10 sends; mark "Not spam" 2–3 times and reputation builds.
 
+## Sales pause
+
+**New subscriptions are paused (17 Sep 2026) while the payment system is being
+changed. Only the broker plans are open:** Broker Free (the app's no-card signup,
+which never touches checkout) and Broker Pro (still sold by
+`functions/api/checkout.ts`). Operator, Fleetlix Compliance, Workshop, Depot,
+Haulier and Network take no new subscriptions, and no promo code is honoured.
+
+It is one switch with two copies, and they must move together:
+
+| Copy | What it does |
+| --- | --- |
+| `SALES_PAUSED` in `functions/api/checkout.ts` | **The one that stops a payment.** Refuses every plan outside `SOLD_WHILE_PAUSED` (`broker_pro`) with a 409 `"New subscriptions are paused for now."` before any Stripe call, whatever the client sends. |
+| `SALES_PAUSED` in `src/config/checkout.ts` | Decides what the pages offer. `OPEN_PLAN_SLUGS` shrinks to Broker Pro and `resolvePromo` returns null, so no button is wired except Broker Pro's. |
+
+While it is on:
+
+- **`PricingSection`** shows a "New subscriptions are paused" notice above the
+  Compliance card, and every operations CTA renders as a hook-free
+  `#register-interest` link. **`ComplianceTier`** swaps its badge, button label
+  and note. The notice deliberately does not mention the broker plans: pointing
+  operators at a free tier is the way out of the price ladder that the broker
+  eligibility line exists to block.
+- **`/support`** swaps sections 3, 5, 6 and 11 to the paused wording, and
+  `checkoutIssues` lists the paused error verbatim.
+- **`/rwm2026`** replaces the promo with a "Sign-up paused" block and hides the code.
+- **`InterestForm`**'s Compliance hint says new subscriptions are paused.
+
+Two surfaces were rewritten to be true in **both** states rather than switched,
+so reopening does not touch them: the homepage FAQ's pricing answer (it is in the
+homepage JSON-LD, so switching it would move CSP hash 4 again) and the Compliance
+confirmation email in `functions/api/register-interest.ts` (no copy of the switch
+there). Neither offers to sell anything any more.
+
+**To reopen:** set both `SALES_PAUSED` to `false` in one commit, then check the
+Stripe side still passes the lookup-key price checks. Nothing else needs to change.
+
+**Not covered:** the app (`fleetlix.app`) has its own Stripe checkout routes for
+signed-in tenants (`functions/api/billing/checkout.ts` and the Compliance
+checkout). This switch does not reach them.
+
 ## Promo checkout pipeline
+
+**Suspended by the _Sales pause_ above** for everything except Broker Pro.
 
 The paid-signup entry point. **Checkout-first:** the customer pays on Stripe on the marketing site, _then_ creates their login on the app (`fleetlix.app`). Gated to promo-code holders **for Workshop, Depot, Haulier and Network only**. Operator, Fleetlix Compliance and Broker Pro are `OPEN_PLANS` in `functions/api/checkout.ts`: no code, no trial, each price found by lookup key and checked (amount, currency, tax-exclusive, cadence, exactly one active price) before a session is created.
 
