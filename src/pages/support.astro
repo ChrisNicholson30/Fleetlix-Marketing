@@ -31,6 +31,10 @@
 //      claim"). Section 13 below restates those limits rather than going quiet
 //      on them.
 //
+// While SALES_PAUSED (src/config/checkout.ts) is on, sections 3, 5, 6 and 11
+// carry the paused wording instead of the buying instructions. Both versions
+// live here, so reopening is the flag and nothing else.
+//
 // Bump SUPPORT.lastUpdated in src/config/support.ts when the substance changes.
 import Base from "../layouts/Base.astro";
 import Header from "../components/Header.astro";
@@ -47,14 +51,15 @@ import {
 } from "../config/support";
 import { TIERS, gbp, formatCap } from "../config/pricing";
 import { COMPLIANCE } from "../config/compliance";
-import { CARD_PROMO_CODE, resolvePromo } from "../config/checkout";
+import { BROKER_PRO_MONTHLY, CARD_PROMO_CODE, SALES_PAUSED, resolvePromo } from "../config/checkout";
 
 const mailto = `mailto:${SUPPORT.email}`;
 
 // The promo trial, resolved through the same helper the checkout script uses
 // rather than restated. If the code is ever renamed this returns null and the
 // trial paragraph disappears, which is the correct failure: better to say
-// nothing than to advertise a trial the checkout will refuse to grant.
+// nothing than to advertise a trial the checkout will refuse to grant. It is
+// also null while sales are paused, for the same reason.
 //
 // Only `promo.trialDays` is rendered. The code string itself is deliberately
 // NOT on the page: paid signup is invitation-only and codes are handed to
@@ -367,11 +372,18 @@ const operator = TIERS.find((t) => t.slug === "operator")!;
               is priced separately at <strong>£{gbp(COMPLIANCE.monthly)} a month
               plus VAT</strong> with {COMPLIANCE.users} users. It is billed
               monthly only, there is no free trial, and promotion codes do not
-              apply to it. Buy it from the {" "}<a href="/#compliance-tier" class="policy-link">Compliance
-              card on the pricing section</a>: pay on our payment provider's
-              page, then create your login and you are taken straight to your
-              records. The first month is charged at checkout, and each month
-              after that on the same date.
+              apply to it.{" "}
+              {SALES_PAUSED ? (
+                <>New subscriptions to it are paused for the moment; section 6 explains.</>
+              ) : (
+                <>
+                  Buy it from the {" "}<a href="/#compliance-tier" class="policy-link">Compliance
+                  card on the pricing section</a>: pay on our payment provider's
+                  page, then create your login and you are taken straight to your
+                  records. The first month is charged at checkout, and each month
+                  after that on the same date.
+                </>
+              )}
             </p>
             <p>
               Seat limits are enforced in the database, not only in the
@@ -420,6 +432,12 @@ const operator = TIERS.find((t) => t.slug === "operator")!;
                   card or sent an email, use that link as it stands.
                 </p>
               </>
+            ) : SALES_PAUSED ? (
+              <p>
+                Promotion codes cannot be used while new subscriptions are paused
+                (see section 6). If you were given one, keep it, and ask us
+                whether it will still apply when sign-up reopens.
+              </p>
             ) : (
               <p>
                 There is no promotion running at the moment. If you were given a
@@ -451,6 +469,22 @@ const operator = TIERS.find((t) => t.slug === "operator")!;
               </li>
             </ul>
 
+            {SALES_PAUSED ? (
+            <PolicyCallout label="Only broker accounts are open right now" tone="amber">
+              <p>
+                New subscriptions to Operator, {COMPLIANCE.name}, Workshop, Depot,
+                Haulier and Network are paused while we change how we take
+                payments. Section 6 explains what to do in the meantime.
+              </p>
+              <p>
+                The {" "}<a href="/brokers" class="policy-link">Broker Network</a>{" "}
+                is still open to any intermediary. Broker Free needs no card and no
+                code. Broker Pro can be bought outright at £{BROKER_PRO_MONTHLY} a
+                month plus VAT, billed monthly with no free trial and no promotion
+                code, or earned by introducing carriers.
+              </p>
+            </PolicyCallout>
+            ) : (
             <PolicyCallout label="Operator is open to everyone; larger plans are by invitation" tone="amber">
               <p>
                 <strong>Operator</strong> can be bought by anyone, without a code:
@@ -473,9 +507,29 @@ const operator = TIERS.find((t) => t.slug === "operator")!;
                 earned by introducing carriers.
               </p>
             </PolicyCallout>
+            )}
           </PolicySection>
 
           <PolicySection id="signing-up" title="Signing up, step by step" contents={contents}>
+            {SALES_PAUSED && (
+              <PolicyCallout label="Sign-up is paused, except for broker accounts" tone="amber">
+                <p>
+                  We are changing how we take payments, so Operator,
+                  {" "}{COMPLIANCE.name} and the larger operations plans cannot be
+                  bought for the moment. Their buttons on the pricing section are
+                  enquiry links until sign-up reopens.
+                </p>
+                <p>
+                  <strong>To hear when it reopens</strong>, register your interest
+                  on the {" "}<a href="/#register-interest" class="policy-link">homepage form</a>{" "}
+                  or email {" "}<a href={mailto} class="policy-link">{SUPPORT.email}</a>.
+                  Broker accounts are unaffected: start from the
+                  {" "}<a href="/brokers" class="policy-link">Broker Network</a>.
+                  The steps below describe paid sign-up when it is open, and
+                  Broker Pro follows the same order today.
+                </p>
+              </PolicyCallout>
+            )}
             <p>
               One thing about this order surprises nearly everyone, so it is
               worth stating plainly: <strong>you pay before your login exists</strong>.

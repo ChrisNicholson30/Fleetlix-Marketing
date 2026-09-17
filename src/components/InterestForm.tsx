@@ -1,5 +1,6 @@
 /** @jsxImportSource react */
 import { useEffect, useId, useRef, useState } from "react";
+import { COMPLIANCE_SLUG, OPEN_PLAN_SLUGS } from "../config/checkout";
 
 const FLEET_SIZES = ["1-5", "6-20", "21-80", "81+", "Not sure"] as const;
 const ROLES = [
@@ -23,6 +24,10 @@ const JOB_VOLUMES = ["Under 50", "50-150", "150-500", "500+", "Not sure"] as con
 // tier's allowance is counted in submissions. Mirrors
 // functions/api/register-interest.ts — change both together.
 const MOVEMENT_VOLUMES = ["Under 50", "50-100", "100-300", "300+", "Not sure"] as const;
+
+// Whether the Compliance card's button is a checkout right now. While sales are
+// paused it is not, and this form is the only way in, so the hint says so.
+const COMPLIANCE_OPEN = OPEN_PLAN_SLUGS.includes(COMPLIANCE_SLUG);
 
 // The Compliance pricing card links here. An anchor rather than a query string,
 // so the jump needs no reload and no JS; the form only reads it to preselect.
@@ -344,7 +349,9 @@ export default function InterestForm({
                       </div>
                       {isCompliance && (
                         <p className="mt-2 text-xs text-white/75">
-                          Ready to start? Use Start Fleetlix Compliance on the pricing card to pay and create your login. Questions first? Ask here and we reply within one working day.
+                          {COMPLIANCE_OPEN
+                            ? "Ready to start? Use Start Fleetlix Compliance on the pricing card to pay and create your login. Questions first? Ask here and we reply within one working day."
+                            : "New Compliance subscriptions are paused for the moment. Leave your details and we'll let you know when they reopen. We answer questions within one working day."}
                         </p>
                       )}
                     </fieldset>

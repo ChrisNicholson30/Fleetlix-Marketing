@@ -1,7 +1,7 @@
 ---
 import Base from "../layouts/Base.astro";
 import SiteFooter from "../components/SiteFooter.astro";
-import { CARD_PROMO_CODE, PROMOS } from "../config/checkout";
+import { CARD_PROMO_CODE, PROMOS, SALES_PAUSED } from "../config/checkout";
 import { TIERS, gbp } from "../config/pricing";
 
 // One canonical physical-channel endpoint, named for the show it's handed out
@@ -9,6 +9,10 @@ import { TIERS, gbp } from "../config/pricing";
 // pass all resolve here. The page does two jobs:
 //   1. presents the trial promo and links to signup with the code pre-applied
 //   2. hands over our contact details as a QR the other person scans
+// While sales are paused (SALES_PAUSED in src/config/checkout.ts), job 1 becomes
+// a "sign-up paused" block with no code and no trial button. The code cannot be
+// redeemed, and showing it here would read as a live offer to whoever is
+// holding the card. Job 2 is unaffected.
 // Renamed from /card on 12 Aug 2026 — public/_redirects 301s the old path so
 // anything already printed still lands here.
 // noindex: this is a card/QR entry point, not an SEO page (excluded from the
@@ -26,6 +30,13 @@ const OPERATOR = TIERS.find((t) => t.slug === "operator")!;
 // a plan, pay on Stripe, then create the login on fleetlix.app. Query before
 // the hash so src/scripts/checkout.ts can read ?promo= from location.search.
 const CHECKOUT_URL = `/?promo=${PROMO_CODE}#pricing`;
+
+const title = SALES_PAUSED
+  ? "Fleetlix — Fleet & waste management software"
+  : `Fleetlix — Your ${PROMO_TRIAL_DAYS}-day free trial`;
+const description = SALES_PAUSED
+  ? "Fleet & waste management software for UK skip hire and waste carriers — plus our contact card."
+  : `An extended ${PROMO_TRIAL_DAYS}-day Fleetlix free trial with code ${PROMO_CODE} — plus our contact card. Fleet & waste management software for UK skip hire and waste carriers.`;
 
 // The contact QR encodes a vCard 3.0 record *inline* rather than linking to
 // one, so the scan resolves entirely on the other person's device: iOS Camera
@@ -46,8 +57,8 @@ const contactQr = "/fleetlix-contact-qr.svg";
 ---
 
 <Base
-  title={`Fleetlix — Your ${PROMO_TRIAL_DAYS}-day free trial`}
-  description={`An extended ${PROMO_TRIAL_DAYS}-day Fleetlix free trial with code ${PROMO_CODE} — plus our contact card. Fleet & waste management software for UK skip hire and waste carriers.`}
+  title={title}
+  description={description}
   noindex={true}
 >
   <main
@@ -76,7 +87,42 @@ const contactQr = "/fleetlix-contact-qr.svg";
             hire and waste carriers. DWTS-ready as standard.
           </p>
 
-          <!-- Promo -->
+          <!-- Promo, or the sales pause in its place -->
+          {SALES_PAUSED ? (
+          <div
+            class="mt-7 rounded-2xl border border-[color:var(--color-amber)]/30 bg-[color:var(--color-amber)]/[0.08] p-5"
+          >
+            <p
+              class="text-[0.7rem] font-semibold uppercase tracking-[0.22em] text-[color:var(--color-amber)]"
+            >
+              Sign-up paused
+            </p>
+            <p class="mt-2 text-[14px] leading-relaxed text-white/70">
+              We're changing how we take payments, so new subscriptions are
+              paused for the moment. Register your interest and we'll let you
+              know as soon as sign-up reopens.
+            </p>
+            <a
+              href="/#register-interest"
+              class="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-[color:var(--color-amber)] px-6 py-3.5 text-base font-semibold text-[color:var(--color-graphite)] shadow transition hover:brightness-105"
+            >
+              Register your interest
+              <svg
+                aria-hidden="true"
+                viewBox="0 0 24 24"
+                class="h-4 w-4"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M5 12h14" />
+                <path d="m13 6 6 6-6 6" />
+              </svg>
+            </a>
+          </div>
+          ) : (
           <div
             class="mt-7 rounded-2xl border border-[color:var(--color-amber)]/30 bg-[color:var(--color-amber)]/[0.08] p-5"
           >
@@ -132,6 +178,7 @@ const contactQr = "/fleetlix-contact-qr.svg";
               </svg>
             </a>
           </div>
+          )}
 
           <!-- Save contact (secondary). This page is usually held up on one
                phone and scanned by another, so the QR is the handover: white

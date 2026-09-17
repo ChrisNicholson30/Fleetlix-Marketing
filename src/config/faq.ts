@@ -31,7 +31,7 @@ export const faqItems: FaqItem[] = [
   {
     question: "How much does Fleetlix cost?",
     answer:
-      `Fleetlix Compliance is our standalone DWTS portal at £${COMPLIANCE.monthly}/month plus VAT, billed monthly with no free trial. It is available now: buy it from the pricing section, create your login straight after paying, and start recording. The separate operations platform has five plans from £${ENTRY_MONTHLY} to £${TOP_MONTHLY} per month plus VAT: Operator, Workshop, Depot, Haulier, and Network. Each operations plan includes the full operations core, with different team capacities and commercial modules. Annual billing on operations plans costs ten months rather than twelve.`,
+      `Fleetlix Compliance is our standalone DWTS portal at £${COMPLIANCE.monthly}/month plus VAT, billed monthly with no free trial. The separate operations platform has five plans from £${ENTRY_MONTHLY} to £${TOP_MONTHLY} per month plus VAT: Operator, Workshop, Depot, Haulier, and Network. Each operations plan includes the full operations core, with different team capacities and commercial modules. Annual billing on operations plans costs ten months rather than twelve.`,
   },
   {
     question: "Do the prices include VAT?",

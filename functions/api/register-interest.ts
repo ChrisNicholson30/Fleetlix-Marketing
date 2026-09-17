@@ -29,9 +29,11 @@ const ROLES = [
 // fleet", so asking a broker their fleet size contradicts the offer on the page
 // they just came from. `enquiry_type` is what tells the two apart in the inbox.
 //
-// Fleetlix Compliance enquiries are questions about the £49 DWTS portal from
-// people not ready to buy it through checkout yet. They ask for waste
-// movements a month instead of fleet size: a receiving site may run no vehicles.
+// Fleetlix Compliance enquiries are questions about the £49 DWTS portal. They
+// ask for waste movements a month instead of fleet size: a receiving site may
+// run no vehicles. The confirmation below makes no offer to buy, because it has
+// to stay true while new subscriptions are paused (src/config/checkout.ts), and
+// this function has no copy of that switch.
 const ENQUIRY_TYPES = ["operator", "broker", "compliance"] as const;
 const CARRIER_COUNTS = ["1-5", "6-15", "16-40", "40+", "Not sure"] as const;
 const JOB_VOLUMES = [
@@ -325,7 +327,7 @@ function renderConfirmation(payload: ParsedPayload) {
     ? `Thanks, ${escapeHtml(firstName)} — we've got your question.`
     : `Thanks, ${escapeHtml(firstName)} — you're on the list.`;
   const intro = isCompliance
-    ? "We'll reply within one working day. If you are ready to start sooner, you can buy Fleetlix Compliance from the pricing section and create your login straight after paying."
+    ? "Your details have landed safely, and we'll reply within one working day."
     : "Your details have landed safely. We'll be in touch the moment there's something real to show you — typically when the pilot programme opens to its first five operators.";
 
   const summaryHtml = summaryRows.length
@@ -345,7 +347,7 @@ function renderConfirmation(payload: ParsedPayload) {
     `Hi ${firstName},`,
     "",
     isCompliance
-      ? "Thanks for asking about Fleetlix Compliance. Your details have landed safely and we'll reply within one working day. If you are ready to start sooner, you can buy it from the pricing section at fleetlix.com and create your login straight after paying."
+      ? "Thanks for asking about Fleetlix Compliance. Your details have landed safely and we'll reply within one working day."
       : "Thanks for registering interest in Fleetlix. Your details have landed safely and we'll be in touch the moment there's something real to show you — typically when we open the pilot programme.",
     "",
     "What you sent us:",

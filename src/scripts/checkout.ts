@@ -14,6 +14,11 @@
 //
 // All of them POST /api/checkout and redirect to Stripe.
 //
+// While SALES_PAUSED is on (src/config/checkout.ts) only Broker Pro is wired:
+// OPEN_PLAN_SLUGS drops Operator and Compliance, and resolvePromo answers null
+// for every code, so each other CTA stays the enquiry link it was
+// server-rendered as. Nothing here needs to change to pause or reopen.
+//
 // Imports ./lib/env (the shared chunk) so Astro emits this as an external
 // /_astro/*.js file under script-src 'self' — no CSP hash. See public/_headers.
 import { BROKER_PRO_SLUG, OPEN_PLAN_SLUGS, resolvePromo } from "../config/checkout";

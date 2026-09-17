@@ -6,6 +6,18 @@
 // OWN copy of these values so the payment path has no cross-repo/-boundary
 // import. If you add or change a promo or plan slug, update BOTH files.
 
+// ── The sales pause (17 Sep 2026) ──────────────────────────────────────────
+// New subscriptions are closed while the payment system is being changed. The
+// broker rungs stay open: Broker Free signs up on the app and never touches
+// checkout, and Broker Pro is still sold. Operator, Fleetlix Compliance and the
+// four promo-gated plans take no new subscriptions: their buttons render as
+// enquiry links, no promo code is honoured, and the pages say why.
+//
+// This copy only decides what the pages offer. SALES_PAUSED in
+// functions/api/checkout.ts is the one that refuses a payment. To reopen, set
+// BOTH to false in the same commit.
+export const SALES_PAUSED: boolean = true;
+
 export type PlanSlug =
   | "operator"
   | "workshop"
@@ -38,19 +50,28 @@ export const BROKER_PRO_SLUG = "broker_pro";
 // Fleetlix Compliance is the other open plan: £49/month + VAT (COMPLIANCE.monthly
 // in ./compliance), monthly only, no trial, no code.
 export const COMPLIANCE_SLUG = "compliance";
-// Operator is the one operations plan anyone can buy: £99/month or £990/year +
-// VAT (TIERS in ./pricing), no trial, and promo codes do not apply to it. The
-// other four operations plans stay promo-gated.
+// Operator is the one operations plan anyone can buy while sales are open:
+// £99/month or £990/year + VAT (TIERS in ./pricing), no trial, and promo codes
+// do not apply to it. The other four operations plans stay promo-gated.
 export const OPERATOR_SLUG = "operator";
-/** Plans bought outright with no code. Mirrors OPEN_PLANS in functions/api/checkout.ts. */
-export const OPEN_PLAN_SLUGS: readonly string[] = [OPERATOR_SLUG, BROKER_PRO_SLUG, COMPLIANCE_SLUG];
+/**
+ * Plans bought outright with no code, as things stand. Mirrors OPEN_PLANS in
+ * functions/api/checkout.ts, less whatever the sales pause has closed. Pages
+ * ask this, not SALES_PAUSED, whether a plan's button is a checkout.
+ */
+export const OPEN_PLAN_SLUGS: readonly string[] = SALES_PAUSED
+  ? [BROKER_PRO_SLUG]
+  : [OPERATOR_SLUG, BROKER_PRO_SLUG, COMPLIANCE_SLUG];
 /** £, ex VAT. The server refuses to sell a price that is not exactly this. */
 export const BROKER_PRO_MONTHLY = 249;
 export const BROKER_FREE_SIGNUP_URL = "https://fleetlix.app/broker/sign-up";
 
+// Null for every code while sales are paused: each plan a code applies to is
+// closed, so no page may offer a trial and no button may become a trial button.
 export const resolvePromo = (
   raw: string | null | undefined,
 ): { code: string; trialDays: number } | null => {
+  if (SALES_PAUSED) return null;
   const code = (raw ?? "").trim().toLowerCase();
   const promo = PROMOS[code];
   return promo ? { code, ...promo } : null;

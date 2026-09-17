@@ -27,5 +27,9 @@
 // a Broker Pro checkout directly.
 export const SHOW_BROKERS = true
 
+// Pausing new subscriptions is NOT a flag here. It is SALES_PAUSED in
+// ./checkout, because it has a server twin in functions/api/checkout.ts that
+// must move with it.
+
 export const SHOW_PRICING = true
 export const SHOW_CONTACT = false
