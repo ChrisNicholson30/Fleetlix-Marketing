@@ -332,6 +332,18 @@
   #pricing:has(#billing-annual:checked) [data-billing="monthly"] { display: none; }
 }
 
+/* ---- Term picker ----
+ * Same mechanism and the same reasoning as the billing toggle above: one radio
+ * per contract term, all twenty prices in the DOM, :has() showing the chosen
+ * term's row (TermPicker.astro). Without :has(), every term simply shows. */
+@supports selector(:has(*)) {
+  #terms [data-term] { display: none; }
+  #terms:has(#term-24:checked) [data-term="24"],
+  #terms:has(#term-36:checked) [data-term="36"],
+  #terms:has(#term-48:checked) [data-term="48"],
+  #terms:has(#term-60:checked) [data-term="60"] { display: block; }
+}
+
 /* ---- Install-guide platform tabs ----
  * Same mechanism and the same reasoning as the billing toggle above: one radio
  * per platform, every platform's instructions rendered into the DOM, :has()

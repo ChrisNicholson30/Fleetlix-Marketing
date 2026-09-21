@@ -34,3 +34,12 @@ export const SHOW_BROKERS = true
 
 export const SHOW_PRICING = true
 export const SHOW_CONTACT = false
+
+// While SHOW_TERM_CONTRACTS is true: the fixed-term picker (TermPicker.astro)
+// renders under the plan cards, with every plan on a 24/36/48/60-month term and
+// an "Order" link to fleetlix.app/subscribe. OFF until the app side is live —
+// migrations 242–246 applied, the solicitor-approved agreement uploaded and the
+// billing series switched to live — because the link lands on the app's order
+// form. Turning it on does not remove the monthly cards or their checkout; that
+// is Open Decision 1 (retiring Stripe subscriptions).
+export const SHOW_TERM_CONTRACTS = false
