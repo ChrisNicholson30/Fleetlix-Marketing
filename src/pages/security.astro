@@ -696,6 +696,33 @@ const jsonLd = {
                 platform.
               </li>
               <li>
+                <strong>A second, independent backup runs nightly to AWS S3</strong>{" "}
+                in London (eu-west-2), separate from the database platform's own
+                backups above — so a fault or account-level problem with one
+                provider does not also take out the other's copy. Each run{" "}
+                <code>pg_dump</code>s the database in custom format, including the
+                application, authentication, storage and private schemas, plus
+                the role, schema and data files needed to restore into a fresh
+                database project from nothing. It does not capture cron job
+                definitions, realtime publication membership, the extension
+                list, or the names of vault secrets — those are configuration,
+                restored by hand alongside the data, not by this job. Every
+                photograph and signature is copied from the primary object
+                store, decrypted and re-encrypted under a separate key managed
+                in AWS KMS, so the backup copy does not depend on the primary
+                platform's key to be read back.
+                A manifest recording per-table row counts and a SHA-256 of every
+                artifact lets a monthly restore drill compare the restored copy
+                against the original like for like, rather than merely
+                confirming the job ran. Each backup is locked against deletion
+                or modification for a set retention period from the moment it
+                is written — 35 days on an ordinary weekday, 400 days for the
+                Sunday backup, and 7 years for the backup taken on the first of
+                the month — so a compromised account cannot erase its own
+                history, and a daily heartbeat check pages us if a night's run
+                does not complete.
+              </li>
+              <li>
                 <strong>Fleetlix is designed to keep working when the network
                 does not.</strong> Drivers can complete a walk-around check, sign
                 off a job and capture photographs with no signal; the work is

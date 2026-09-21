@@ -20,9 +20,9 @@
 // the same split digital-waste-tracking.astro uses.
 
 export const DOC = {
-  version: "1.0",
-  issued: "7 August 2026",
-  issuedIso: "2026-08-07",
+  version: "1.1",
+  issued: "21 September 2026",
+  issuedIso: "2026-09-21",
   classification: "Public",
   /** Everything on this page routes here — reports, DPAs, sub-processor notices. */
   contact: "security@fleetlix.com",
@@ -197,6 +197,12 @@ export const subProcessors: SubProcessor[] = [
     purpose: "Statutory waste movement reporting",
     data: "Waste movement records, as required by law",
     region: "UK",
+  },
+  {
+    provider: "AWS",
+    purpose: "Off-platform backup of the database and object storage (§10)",
+    data: "Nightly encrypted copy of all operational records, photographs and signatures",
+    region: "UK (eu-west-2, London)",
   },
   {
     provider: "OpenStreetMap",
