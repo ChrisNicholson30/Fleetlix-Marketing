@@ -18,12 +18,17 @@ import type { PlanSlug } from "./checkout";
 export const CONTRACT_TERMS = [24, 36, 48, 60] as const;
 export type ContractTerm = (typeof CONTRACT_TERMS)[number];
 
-/** Discount off the monthly list price, in basis points (Open Decision 7). */
+/**
+ * Discount off the monthly list price, in basis points (Open Decision 7).
+ * 2026-09-27: none on 24 months; 5% on 36, 7.5% on 48, 10% on 60 (was
+ * 5 / 10 / 12.5 / 15), matching the app's #394. 24 months is the list price,
+ * so nothing on the page may render it as "0% off" or "was £…".
+ */
 export const TERM_DISCOUNT_BPS: Record<ContractTerm, number> = {
-  24: 500,
-  36: 1000,
-  48: 1250,
-  60: 1500,
+  24: 0,
+  36: 500,
+  48: 750,
+  60: 1000,
 };
 
 /** The term preselected on the page. */
