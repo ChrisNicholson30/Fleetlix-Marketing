@@ -37,10 +37,13 @@ export const SHOW_CONTACT = false
 
 // While SHOW_TERM_CONTRACTS is true: the fixed-term picker (TermPicker.astro)
 // renders under the plan cards, with every plan on a 24/36/48/60-month term and
-// an "Order" link to fleetlix.app/subscribe. OFF until the app side is live.
-// Measured 2026-09-27: migrations 284–292 applied, an approved agreement for all
-// three legal systems, the billing series LIVE — but no bank feed connected, so
-// a customer's transfer would not create their account. Turn this on once the
-// feed is connected (the app's Resources/term-contracts-go-live.md, step 7). Turning it on does not remove the monthly cards or their checkout; that
-// is Open Decision 1 (retiring Stripe subscriptions).
-export const SHOW_TERM_CONTRACTS = false
+// an "Order" link to fleetlix.app/subscribe, which owns the rest of the order.
+// ON since 2026-09-27, once the app side was measured live end to end: the
+// billing series LIVE, Confirmation of Payee recorded, an approved agreement for
+// all three legal systems, and the TrueLayer feed reading the Monzo account the
+// invoices name (first sync 12:22 UTC), so a customer's transfer creates their
+// account. Turn it OFF again if the app's billing is ever switched back to TEST
+// or the feed is disconnected (the app's Resources/term-contracts-go-live.md).
+// Turning it on does not remove the monthly cards or their checkout; that is
+// Open Decision 1 (retiring Stripe subscriptions).
+export const SHOW_TERM_CONTRACTS = true
