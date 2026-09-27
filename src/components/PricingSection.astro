@@ -32,8 +32,16 @@
 
 import { TIERS, COMING_LABEL, annualSaving, formatCap, gbp } from "../config/pricing";
 import { SHOW_TERM_CONTRACTS } from "../config/featureFlags";
+import {
+  CONTRACT_TERMS,
+  DEFAULT_TERM,
+  pounds,
+  subscribeHref,
+  termContractValuePence,
+  termDiscountPercent,
+  termMonthlyPence,
+} from "../config/contractTerms";
 import ComplianceTier from "./ComplianceTier.astro";
-import TermPicker from "./TermPicker.astro";
 import { OPEN_PLAN_SLUGS, OPERATOR_SLUG, SALES_PAUSED } from "../config/checkout";
 
 // The operations core — identical in every plan, because none of it is gated.
@@ -67,9 +75,14 @@ const core = [
   "Installable, offline-capable PWA",
 ];
 
+// While the cards sell term contracts, "Cancel anytime" would be untrue: a
+// contract runs for its full term (the app's order page says there is no
+// cancellation for convenience). Moving UP a tier mid-term is allowed.
 const trust: { icon: string; label: string }[] = [
-  { icon: `<path d="M16 3l4 4-4 4"/><path d="M4 7h16"/><path d="M8 21l-4-4 4-4"/><path d="M20 17H4"/>`, label: "Change plan anytime" },
-  { icon: `<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>`, label: "Cancel anytime" },
+  { icon: `<path d="M16 3l4 4-4 4"/><path d="M4 7h16"/><path d="M8 21l-4-4 4-4"/><path d="M20 17H4"/>`, label: SHOW_TERM_CONTRACTS ? "Upgrade anytime" : "Change plan anytime" },
+  SHOW_TERM_CONTRACTS
+    ? { icon: `<rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/>`, label: "Price fixed for the term" }
+    : { icon: `<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>`, label: "Cancel anytime" },
   // True on every tier since the Network onboarding fee was scrapped in favour
   // of a self-serve migration tool in the app. If a paid onboarding line ever
   // comes back, this chip has to go with it.
@@ -153,14 +166,37 @@ const stagger = [
 
     <ComplianceTier />
 
+    <!-- #terms wraps the term picker AND the cards: global.css ("term picker")
+         shows each card's chosen-term price and Order link with :has() on it.
+         It is also where the banner's "See the contract prices" lands. -->
+    <div id="terms" class="scroll-mt-24">
     <div class="mt-12 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
       <div class="max-w-2xl">
         <h3 class="font-[family-name:var(--font-display)] text-2xl font-bold text-[color:var(--color-graphite)]">The full operations platform</h3>
-        <p class="mt-2 text-[color:var(--color-slate)]">From Operator upwards: dispatch, fleet and team workflows, with DWTS included.</p>
+        <p class="mt-2 text-[color:var(--color-slate)]">
+          From Operator upwards: dispatch, fleet and team workflows, with DWTS included.
+          {SHOW_TERM_CONTRACTS && " On a 24, 36, 48 or 60-month contract, billed monthly by bank transfer and signed online: the longer the term, the lower the monthly price."}
+        </p>
       </div>
 
-      <!-- Billing toggle. Two radios; global.css swaps the price blocks with
-           :has(). Labels wrap their input so has-[:checked] styles the pill. -->
+      {/* Contract term: one radio per term; global.css shows each card's price
+          and Order link for the checked one. The labels wrap their input and
+          are py-3, so each is a 44px target. Otherwise the billing toggle: two
+          radios, global.css swaps the price blocks with :has(). */}
+      {SHOW_TERM_CONTRACTS ? (
+        <fieldset class="shrink-0 [--stagger:200ms]" data-reveal>
+          <legend class="mb-2 text-xs font-semibold text-[color:var(--color-slate)]">Contract term</legend>
+          <div class="inline-flex flex-wrap rounded-xl border border-[color:var(--color-mist)] bg-white p-1 shadow-sm">
+            {CONTRACT_TERMS.map((term) => (
+              <label class="cursor-pointer rounded-lg px-3.5 py-3 text-sm font-semibold text-[color:var(--color-slate)] transition has-[:checked]:bg-[color:var(--color-graphite)] has-[:checked]:text-white has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-[color:var(--color-cyan)]">
+                <input type="radio" name="term" id={`term-${term}`} class="sr-only" checked={term === DEFAULT_TERM} />
+                {term} months
+                <span class="ml-1 text-[11px] font-bold opacity-80">−{termDiscountPercent(term)}%</span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
+      ) : (
       <fieldset class="shrink-0 [--stagger:200ms]" data-reveal>
         <legend class="mb-2 text-xs font-semibold text-[color:var(--color-slate)]">Operations plan billing</legend>
         <div class="inline-flex rounded-xl border border-[color:var(--color-mist)] bg-white p-1 shadow-sm">
@@ -180,6 +216,7 @@ const stagger = [
           </label>
         </div>
       </fieldset>
+      )}
     </div>
 
     <!-- The rule that explains the whole ladder. Promoted from the footnote it
@@ -242,6 +279,25 @@ const stagger = [
                every seat panel starts on the same line. There is no one-time
                fee on any tier — don't add a conditional line here without
                reserving its height, or one card's seats fall out of step. -->
+          {/* The chosen term's price: every term renders, CSS shows one. Same
+              shape on every card (figure + a two-line sub-line reserved), so
+              the seat panels stay level whichever term is picked. */}
+          {SHOW_TERM_CONTRACTS ? (
+          <div class="mt-4">
+            {CONTRACT_TERMS.map((term) => (
+              <div data-term={term}>
+                <span class={`font-[family-name:var(--font-display)] font-extrabold text-4xl tracking-tight ${p.featured ? "text-white" : "text-[color:var(--color-graphite)]"}`}>
+                  {pounds(termMonthlyPence(p.monthly, term))}
+                </span>
+                <span class={`text-sm ml-1 ${p.featured ? "text-white/60" : "text-[color:var(--color-slate)]"}`}>/mo</span>
+                <span class={`ml-1 text-xs font-semibold ${p.featured ? "text-white/45" : "text-[color:var(--color-slate)]/70"}`}>+VAT</span>
+                <p class={`mt-1 min-h-[2rem] text-xs ${p.featured ? "text-white/55" : "text-[color:var(--color-slate)]/80"}`}>
+                  was £{gbp(p.monthly)} · {term} payments, {pounds(termContractValuePence(p.monthly, term))} in all
+                </p>
+              </div>
+            ))}
+          </div>
+          ) : (
           <div class="mt-4">
             <div data-billing="monthly">
               <span class={`font-[family-name:var(--font-display)] font-extrabold text-4xl tracking-tight ${p.featured ? "text-white" : "text-[color:var(--color-graphite)]"}`}>
@@ -264,6 +320,7 @@ const stagger = [
               </p>
             </div>
           </div>
+          )}
 
           <!-- Capacity. Drivers leads and is set larger: it's the number a yard
                owner can answer without checking, and every step lands on a
@@ -341,6 +398,27 @@ const stagger = [
             </div>
           )}
 
+          {/* One Order link per term, CSS shows the chosen one: a plain link to
+              the app's order form with plan and term preselected. No checkout
+              hook, nothing for the CSP to allow. */}
+          {SHOW_TERM_CONTRACTS ? (
+            CONTRACT_TERMS.map((term) => (
+              <a
+                href={subscribeHref(p.slug, term)}
+                data-term={term}
+                aria-label={`Order ${p.name} on a ${term}-month contract`}
+                class="mt-auto pt-5 block"
+              >
+                <span class={`btn-sheen block rounded-xl px-4 py-3 text-center text-sm font-semibold transition ${
+                  p.featured
+                    ? "bg-[color:var(--color-amber)] text-[color:var(--color-graphite)] hover:brightness-105 ring-1 ring-[color:var(--color-amber)]/40"
+                    : "border border-[color:var(--color-graphite)]/25 text-[color:var(--color-graphite)] hover:bg-[color:var(--color-graphite)] hover:text-white"
+                }`}>
+                  Order for {term} months
+                </span>
+              </a>
+            ))
+          ) : (
           <a
             href="#register-interest"
             {...ctaHooks(p.slug)}
@@ -355,16 +433,18 @@ const stagger = [
               <span data-checkout-label>{isOpen(p.slug) ? `Start ${p.name}` : "Register interest"}</span>
             </span>
           </a>
+          )}
         </article>
       ))}
     </div>
-
-    {SHOW_TERM_CONTRACTS && <TermPicker />}
+    </div>
 
     <p class="mt-6 text-sm text-[color:var(--color-slate)]/80" data-reveal>
       Seat limits are enforced in the database, not just the UI. Admin is a
-      permission an Office or Yard user holds — it never costs a seat. Annual
-      plans are billed once, up front; VAT is added at checkout.
+      permission an Office or Yard user holds — it never costs a seat.
+      {SHOW_TERM_CONTRACTS
+        ? " A contract runs for its full term, with the first month paid before your account goes live, and VAT is added to each invoice. Limited companies are checked with Companies House. Contracts are under the law of England and Wales, Scots law for a business in Scotland, or Northern Irish law for a business in Northern Ireland."
+        : " Annual plans are billed once, up front; VAT is added at checkout."}
     </p>
 
     <!-- The operations core: identical in every plan -->

@@ -35,9 +35,13 @@ export const SHOW_BROKERS = true
 export const SHOW_PRICING = true
 export const SHOW_CONTACT = false
 
-// While SHOW_TERM_CONTRACTS is true: the fixed-term picker (TermPicker.astro)
-// renders under the plan cards, with every plan on a 24/36/48/60-month term and
-// an "Order" link to fleetlix.app/subscribe, which owns the rest of the order.
+// While SHOW_TERM_CONTRACTS is true the operations plan cards SELL TERM
+// CONTRACTS (since 2026-09-27): the Monthly/Annual toggle is replaced by a
+// 24/36/48/60-month term picker, each card shows the chosen term's price, and
+// its button is "Order for N months", a link to fleetlix.app/subscribe, which
+// owns the rest of the order. The separate TermPicker section is gone. The
+// Compliance card orders on contract too, at £49 on every term. Turned off,
+// the cards go back to the monthly/annual toggle and Register interest.
 // ON since 2026-09-27, once the app side was measured live end to end: the
 // billing series LIVE, Confirmation of Payee recorded, an approved agreement for
 // all three legal systems, and the TrueLayer feed reading the Monzo account the

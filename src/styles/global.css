@@ -334,8 +334,9 @@
 
 /* ---- Term picker ----
  * Same mechanism and the same reasoning as the billing toggle above: one radio
- * per contract term, all twenty prices in the DOM, :has() showing the chosen
- * term's row (TermPicker.astro). Without :has(), every term simply shows. */
+ * per contract term, every card's four prices and four Order links in the DOM,
+ * :has() on #terms (PricingSection.astro) showing the chosen term's. Without
+ * :has(), every term simply shows. */
 @supports selector(:has(*)) {
   #terms [data-term] { display: none; }
   #terms:has(#term-24:checked) [data-term="24"],
