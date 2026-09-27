@@ -132,13 +132,22 @@ const stagger = [
             <path d="M9 6v12" /><path d="M15 6v12" />
           </svg>
         </span>
-        <span>
-          <strong class="font-semibold">New subscriptions are paused.</strong>{" "}
-          We're changing how we take payments, so Fleetlix Compliance and the
-          operations plans can't be bought for the moment.{" "}
-          <a href="#register-interest" class="font-semibold underline decoration-[color:var(--color-amber)] decoration-2 underline-offset-2 hover:decoration-[color:var(--color-graphite)]">Register your interest</a>{" "}
-          and we'll let you know when they reopen.
-        </span>
+        {SHOW_TERM_CONTRACTS ? (
+          <span>
+            <strong class="font-semibold">Monthly card subscriptions are paused.</strong>{" "}
+            Every plan, Fleetlix Compliance included, can be ordered on a
+            fixed-term contract, signed online and paid by bank transfer.{" "}
+            <a href="#terms" class="font-semibold underline decoration-[color:var(--color-amber)] decoration-2 underline-offset-2 hover:decoration-[color:var(--color-graphite)]">See the contract prices</a>.
+          </span>
+        ) : (
+          <span>
+            <strong class="font-semibold">New subscriptions are paused.</strong>{" "}
+            We're changing how we take payments, so Fleetlix Compliance and the
+            operations plans can't be bought for the moment.{" "}
+            <a href="#register-interest" class="font-semibold underline decoration-[color:var(--color-amber)] decoration-2 underline-offset-2 hover:decoration-[color:var(--color-graphite)]">Register your interest</a>{" "}
+            and we'll let you know when they reopen.
+          </span>
+        )}
       </p>
     )}
 
