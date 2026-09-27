@@ -191,7 +191,9 @@ const stagger = [
               <label class="cursor-pointer rounded-lg px-3.5 py-3 text-sm font-semibold text-[color:var(--color-slate)] transition has-[:checked]:bg-[color:var(--color-graphite)] has-[:checked]:text-white has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-[color:var(--color-cyan)]">
                 <input type="radio" name="term" id={`term-${term}`} class="sr-only" checked={term === DEFAULT_TERM} />
                 {term} months
-                <span class="ml-1 text-[11px] font-bold opacity-80">−{termDiscountPercent(term)}%</span>
+                {termDiscountPercent(term) > 0 && (
+                  <span class="ml-1 text-[11px] font-bold opacity-80">−{termDiscountPercent(term)}%</span>
+                )}
               </label>
             ))}
           </div>
@@ -292,7 +294,7 @@ const stagger = [
                 <span class={`text-sm ml-1 ${p.featured ? "text-white/60" : "text-[color:var(--color-slate)]"}`}>/mo</span>
                 <span class={`ml-1 text-xs font-semibold ${p.featured ? "text-white/45" : "text-[color:var(--color-slate)]/70"}`}>+VAT</span>
                 <p class={`mt-1 min-h-[2rem] text-xs ${p.featured ? "text-white/55" : "text-[color:var(--color-slate)]/80"}`}>
-                  was £{gbp(p.monthly)} · {term} payments, {pounds(termContractValuePence(p.monthly, term))} in all
+                  {termDiscountPercent(term) > 0 ? `was £${gbp(p.monthly)}` : "List price"} · {term} payments, {pounds(termContractValuePence(p.monthly, term))} in all
                 </p>
               </div>
             ))}
