@@ -76,8 +76,9 @@ const core = [
 ];
 
 // While the cards sell term contracts, "Cancel anytime" would be untrue: a
-// contract runs for its full term (the app's order page says there is no
-// cancellation for convenience). Moving UP a tier mid-term is allowed.
+// contract runs for its term, and ending it early from the app costs six
+// months' fees (the Order Form's section 5; /support section 10). Moving UP a
+// tier mid-term is allowed.
 const trust: { icon: string; label: string }[] = [
   { icon: `<path d="M16 3l4 4-4 4"/><path d="M4 7h16"/><path d="M8 21l-4-4 4-4"/><path d="M20 17H4"/>`, label: SHOW_TERM_CONTRACTS ? "Upgrade anytime" : "Change plan anytime" },
   SHOW_TERM_CONTRACTS
