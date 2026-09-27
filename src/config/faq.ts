@@ -11,6 +11,8 @@
 
 import { COMPLIANCE } from "./compliance";
 import { ENTRY_MONTHLY, TOP_MONTHLY } from "./pricing";
+import { SHOW_TERM_CONTRACTS } from "./featureFlags";
+import { termDiscountPercent } from "./contractTerms";
 
 export interface FaqItem {
   question: string;
@@ -30,13 +32,17 @@ export const faqItems: FaqItem[] = [
   },
   {
     question: "How much does Fleetlix cost?",
-    answer:
-      `Fleetlix Compliance is our standalone DWTS portal at £${COMPLIANCE.monthly}/month plus VAT, billed monthly with no free trial. The separate operations platform has five plans from £${ENTRY_MONTHLY} to £${TOP_MONTHLY} per month plus VAT: Operator, Workshop, Depot, Haulier, and Network. Each operations plan includes the full operations core, with different team capacities and commercial modules. Annual billing on operations plans costs ten months rather than twelve.`,
+    // While the pricing cards sell term contracts, annual billing is not on
+    // offer and Compliance is never term-discounted (the app's migration 343).
+    answer: SHOW_TERM_CONTRACTS
+      ? `Fleetlix Compliance is our standalone DWTS portal at £${COMPLIANCE.monthly}/month plus VAT, on a 24, 36, 48 or 60-month contract at the same price on every term. The separate operations platform has five plans listed from £${ENTRY_MONTHLY} to £${TOP_MONTHLY} per month plus VAT: Operator, Workshop, Depot, Haulier, and Network. Each is sold on a 24, 36, 48 or 60-month contract, and the longer the term, the lower the monthly price: ${termDiscountPercent(24)}% off for 24 months, up to ${termDiscountPercent(60)}% off for 60. Contracts are signed online and billed monthly by bank transfer. Each operations plan includes the full operations core, with different team capacities and commercial modules.`
+      : `Fleetlix Compliance is our standalone DWTS portal at £${COMPLIANCE.monthly}/month plus VAT, billed monthly with no free trial. The separate operations platform has five plans from £${ENTRY_MONTHLY} to £${TOP_MONTHLY} per month plus VAT: Operator, Workshop, Depot, Haulier, and Network. Each operations plan includes the full operations core, with different team capacities and commercial modules. Annual billing on operations plans costs ten months rather than twelve.`,
   },
   {
     question: "Do the prices include VAT?",
-    answer:
-      "No. Every price shown on the site excludes VAT. FLEETLIX LTD is VAT registered, so a UK business pays the listed price plus VAT at 20%, which most can then reclaim on their own return. VAT is worked out and added at checkout. A business outside the UK can enter its VAT number at checkout and is handled under the reverse charge.",
+    answer: SHOW_TERM_CONTRACTS
+      ? "No. Every price shown on the site excludes VAT. FLEETLIX LTD is VAT registered, so a UK business pays the listed price plus VAT at 20%, which most can then reclaim on their own return. VAT is added to each invoice."
+      : "No. Every price shown on the site excludes VAT. FLEETLIX LTD is VAT registered, so a UK business pays the listed price plus VAT at 20%, which most can then reclaim on their own return. VAT is worked out and added at checkout. A business outside the UK can enter its VAT number at checkout and is handled under the reverse charge.",
   },
   {
     question: "How are user seats counted?",

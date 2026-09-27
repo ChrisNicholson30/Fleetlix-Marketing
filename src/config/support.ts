@@ -23,6 +23,7 @@
 // the same split /security and /digital-waste-tracking use.
 
 import { SALES_PAUSED } from "./checkout";
+import { SHOW_TERM_CONTRACTS } from "./featureFlags";
 import { BROKER_PRO_OPEN } from "./brokers";
 
 export const SUPPORT = {
@@ -209,8 +210,18 @@ export interface CheckoutIssue {
 }
 
 export const checkoutIssues: CheckoutIssue[] = [
-  // The first two follow the sales pause (SALES_PAUSED in ./checkout).
-  SALES_PAUSED
+  // The first two follow the sales pause (SALES_PAUSED in ./checkout). While
+  // term contracts are on (SHOW_TERM_CONTRACTS) the monthly cards are still
+  // enquiry links, but every plan CAN be bought, on contract.
+  SALES_PAUSED && SHOW_TERM_CONTRACTS
+    ? {
+        kind: "behaviour",
+        symptom: "The monthly plan buttons say Register interest",
+        meaning:
+          "Monthly card subscriptions are paused while we change how we take payments. Every plan, Fleetlix Compliance included, can still be ordered on a fixed-term contract of 24, 36, 48 or 60 months, signed online and paid monthly by bank transfer. That is intended, not a fault.",
+        fix: "Use \"Fix your price for longer\" on the pricing page, or \"Order Fleetlix Compliance\" on its card. You confirm your email, read and sign your Order Form online, and your account opens as soon as the first invoice is paid.",
+      }
+    : SALES_PAUSED
     ? {
         kind: "behaviour",
         symptom: "Every button says Register interest, apart from the broker plans",
