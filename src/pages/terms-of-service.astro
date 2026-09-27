@@ -9,9 +9,14 @@
 // Stripe Checkout.
 //
 // WHAT THIS PAGE MUST NOT CONTRADICT — checked when written, re-check on edit:
-//   - /support section 10: cancel any time, access to the end of the paid
-//     period, no pro-rata refund on monthly, discretionary on annual. Section
-//     14 below restates it; the two must move together.
+//   - /support section 10, which states BOTH policies: a fixed-term contract
+//     (ends with its term and does not renew; ended early from the app for six
+//     months' fees; no charge where the Agreement gives a right to end; its
+//     Order Form and the MSA govern it, in the app repo: migration 346 and
+//     shared/contracts/ending.ts), and a card subscription (cancel any time,
+//     access to the end of the paid period, no pro-rata refund on monthly,
+//     discretionary on annual). Sections 1, 13 and 14 below restate them; all
+//     of them move together.
 //   - /security: "you are the data controller and Fleetlix is your processor";
 //     a DPA is "a conversation, not a form"; on termination we export on
 //     request then delete, subject to any period you instruct us to hold.
@@ -186,6 +191,13 @@ const capMonths = TERMS.liabilityCapMonths;
               and states plainly which controls we do not have. That document is
               descriptive: it forms part of these terms only where a section
               below expressly says so.
+            </p>
+            <p>
+              <strong>A fixed-term contract is different.</strong> If your
+              business signs an Order Form online at fleetlix.app/subscribe, that
+              Order Form and the Master Subscription Agreement it names govern
+              the Service it buys, in place of these terms. Section 13 summarises
+              how such a contract ends.
             </p>
             <p>
               Practical questions about billing, cancellation and getting set up
@@ -535,7 +547,26 @@ const capMonths = TERMS.liabilityCapMonths;
             </p>
           </PolicySection>
 
-          <PolicySection id="term" title="Term, renewal and cancellation" contents={contents}>
+          <PolicySection id="term" title="Term, renewal and ending" contents={contents}>
+            <p>
+              <strong>Fixed-term contracts.</strong> A contract signed as an
+              Order Form runs for its term at a price fixed for the whole term,
+              and ends with the term: it does not renew automatically unless its
+              Order Form says it continues month to month. Its Order Form and the
+              Master Subscription Agreement are the binding terms. In summary,
+              you may end it early at any time from Admin → Plan &amp; billing in
+              the Service. It then ends at the end of the last month already
+              invoiced, and you pay an early termination charge of six months’
+              fees, or the fees for the months left if fewer, plus VAT, due 14
+              days after it is invoiced. No charge applies where the Agreement
+              gives you a right to end it, such as a material breach by us that
+              we fail to remedy. We may not end a fixed-term contract early for
+              convenience.
+            </p>
+            <p>
+              <strong>Card subscriptions.</strong> The rest of this section
+              applies to a monthly or annual subscription paid by card.
+            </p>
             <p>
               The agreement starts when it is formed under section 2 and
               continues for the billing period you selected. It then renews
@@ -543,8 +574,8 @@ const capMonths = TERMS.liabilityCapMonths;
               cancelled.
             </p>
             <p>
-              <strong>There is no minimum term, no notice period and no
-              cancellation fee.</strong> You may cancel at any time by emailing
+              <strong>A card subscription has no minimum term, no notice period
+              and no cancellation fee.</strong> You may cancel it at any time by emailing
               {" "}<a href={mailto} class="policy-link">{SUPPORT.email}</a> from
               an address on the account. We will confirm in writing and tell you
               the date your access ends.
@@ -564,9 +595,15 @@ const capMonths = TERMS.liabilityCapMonths;
 
           <PolicySection id="refunds" title="Refunds" contents={contents}>
             <p>
-              Because your access continues to the end of the period you have
-              paid for, we do not refund the unused remainder of a monthly
-              subscription. You keep the service you bought instead.
+              On a fixed-term contract, invoices already issued remain payable
+              when it ends, and an early termination charge is not refunded. If
+              you pay more than you owe, we refund the excess within 14 days.
+            </p>
+            <p>
+              On a card subscription, because your access continues to the end
+              of the period you have paid for, we do not refund the unused
+              remainder of a monthly subscription. You keep the service you
+              bought instead.
             </p>
             <p>
               <strong>Annual subscriptions are treated with more latitude.</strong>

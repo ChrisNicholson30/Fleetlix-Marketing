@@ -58,8 +58,8 @@ export const SUPPORT = {
    * says plainly that there isn't one yet, which is the honest version.
    */
   phone: null as string | null,
-  lastUpdated: "17 September 2026",
-  lastUpdatedIso: "2026-09-17",
+  lastUpdated: "27 September 2026",
+  lastUpdatedIso: "2026-09-27",
 } as const;
 
 /* ------------------------------------------------------------------ *
@@ -84,7 +84,7 @@ export const contents: TocEntry[] = [
   { id: "first-week", label: "Your first week" },
   { id: "billing", label: "Billing, invoices and receipts" },
   { id: "changing-plan", label: "Changing your plan" },
-  { id: "cancelling", label: "Cancelling and refunds" },
+  { id: "cancelling", label: SHOW_TERM_CONTRACTS ? "Ending your contract, and refunds" : "Cancelling and refunds" },
   { id: "checkout-problems", label: "If checkout goes wrong" },
   { id: "app-problems", label: "If the app goes wrong" },
   { id: "availability", label: "Availability and known limits" },
@@ -124,14 +124,28 @@ export const helpRoutes: HelpRoute[] = [
     accent: "cyan",
     icon: `<path d="M9 11l3 3 6-6"/><path d="M21 12a9 9 0 1 1-4.2-7.6"/>`,
   },
-  {
-    label: "Billing",
-    headline: "Cancel whenever",
-    body: "No minimum term and no cancellation fee. Your access runs to the end of the period you have paid for.",
-    href: "#cancelling",
-    accent: "amber",
-    icon: `<rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/>`,
-  },
+  // The app's term contracts (fleetlix.app/subscribe) end the way the Order
+  // Form and the Master Subscription Agreement say: at the end of the term, or
+  // early from the account for six months' fees (the app's migration 346 and
+  // shared/contracts/ending.ts). The old "Cancel whenever" card described only
+  // the paused monthly card plans, and contradicted the contract being sold.
+  SHOW_TERM_CONTRACTS
+    ? {
+        label: "Ending a contract",
+        headline: "Fixed term, clear exit",
+        body: "Your contract ends with its term and does not renew. End it early any time from your account for six months’ fees, or tell us about a problem.",
+        href: "#cancelling",
+        accent: "amber",
+        icon: `<rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/>`,
+      }
+    : {
+        label: "Billing",
+        headline: "Cancel whenever",
+        body: "No minimum term and no cancellation fee. Your access runs to the end of the period you have paid for.",
+        href: "#cancelling",
+        accent: "amber",
+        icon: `<rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/>`,
+      },
   {
     label: "Something broken",
     headline: "Read the message",

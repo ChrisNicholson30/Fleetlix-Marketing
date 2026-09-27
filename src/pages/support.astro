@@ -55,6 +55,7 @@ import { TIERS, gbp, formatCap } from "../config/pricing";
 import { COMPLIANCE } from "../config/compliance";
 import { BROKER_PRO_OPEN } from "../config/brokers";
 import { BROKER_PRO_MONTHLY, CARD_PROMO_CODE, SALES_PAUSED, resolvePromo } from "../config/checkout";
+import { SHOW_TERM_CONTRACTS } from "../config/featureFlags";
 
 const mailto = `mailto:${SUPPORT.email}`;
 
@@ -712,9 +713,67 @@ const brokerProLine = BROKER_PRO_OPEN
             </p>
           </PolicySection>
 
-          <PolicySection id="cancelling" title="Cancelling and refunds" contents={contents}>
+          <PolicySection id="cancelling" title={SHOW_TERM_CONTRACTS ? "Ending your contract, and refunds" : "Cancelling and refunds"} contents={contents}>
+            {/* The term contract's rules are the app's (migration 346,
+                shared/contracts/ending.ts): the Order Form's section 5 and
+                MSA 3.4–3.9. Change them there first, then here and in
+                /terms-of-service section 13, together. */}
+            {SHOW_TERM_CONTRACTS && (
+              <>
+                <p class="policy-subhead">Fixed-term contracts</p>
+                <p>
+                  A contract signed online at fleetlix.app/subscribe runs for its
+                  term (24, 36, 48 or 60 months) at a price fixed for the whole
+                  term. Its Order Form and our Master Subscription Agreement
+                  govern it, and in plain words they say:
+                </p>
+                <ul class="policy-list">
+                  <li>
+                    <strong>It ends with its term and does not renew
+                    automatically.</strong> There is nothing to do if you are
+                    leaving then. If you want it in writing, confirm it from
+                    Admin → Plan &amp; billing in the app.
+                  </li>
+                  <li>
+                    <strong>You can end it early at any time</strong>, from
+                    Admin → Plan &amp; billing (the account owner does this). It
+                    ends at the end of the last month already invoiced, and the
+                    page shows you that date and the exact charge before you
+                    confirm.
+                  </li>
+                  <li>
+                    <strong>Ending early costs six months’ fees</strong>, or the
+                    fees for the months left if fewer, plus VAT. It is invoiced
+                    when you give notice and due within 14 days. Invoices already
+                    issued still need paying; nothing after the end date is
+                    invoiced.
+                  </li>
+                  <li>
+                    <strong>If the problem is ours, there is no charge.</strong>
+                    {" "}Where the Agreement gives you a right to end the contract
+                    (a serious failure on our side that we do not put right, for
+                    example), use “Ask to end it for a reason” on the same page.
+                    We reply within 5 working days.
+                  </li>
+                  <li>
+                    <strong>We cannot end your contract early for
+                    convenience.</strong>
+                  </li>
+                  <li>
+                    <strong>You keep full access until the contract ends</strong>,
+                    then read access and your exports for 30 days.
+                  </li>
+                </ul>
+                <p>
+                  Every notice you give from the app is confirmed by email to the
+                  person who signed the contract. You can also give notice in
+                  writing to billing@fleetlix.com.
+                </p>
+                <p class="policy-subhead">Monthly and annual card subscriptions</p>
+              </>
+            )}
             <p>
-              There is no minimum term, no notice period and no cancellation
+              {SHOW_TERM_CONTRACTS ? "A card subscription has " : "There is "}no minimum term, no notice period and no cancellation
               fee. To cancel, email
               {" "}<a href={mailto} class="policy-link">{SUPPORT.email}</a> from
               the address on the account and say so. We will confirm in writing,
@@ -779,12 +838,12 @@ const brokerProLine = BROKER_PRO_OPEN
 
             <PolicyCallout label="This is the summary; the contract is the terms" tone="cyan">
               <p>
-                The binding version of everything in this section — cancellation,
-                renewal, refunds — is in our
-                {" "}<a href="/terms-of-service" class="policy-link">terms of service</a>,
-                which is what governs your subscription. This page is the plain
-                reading of it, and where the two differ on substance, the terms
-                govern.
+                The binding version of everything in this section is your
+                contract.{SHOW_TERM_CONTRACTS && " For a fixed-term contract that is your signed Order Form and the Master Subscription Agreement it names. For a card subscription it is"}
+                {!SHOW_TERM_CONTRACTS && " It is"} our
+                {" "}<a href="/terms-of-service" class="policy-link">terms of service</a>.
+                This page is the plain reading of it, and where the two differ on
+                substance, the contract governs.
               </p>
               <p>
                 Fleetlix is sold to businesses rather than to consumers, so the

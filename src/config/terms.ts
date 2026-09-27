@@ -29,9 +29,11 @@
 // pointing at it rather than pretending to be one.
 
 export const TERMS = {
-  version: "1.0",
-  effective: "28 August 2026",
-  effectiveIso: "2026-08-28",
+  // 1.1 (27 Sep 2026): fixed-term contracts are governed by their Order Form
+  // and the Master Subscription Agreement; section 13 summarises how they end.
+  version: "1.1",
+  effective: "27 September 2026",
+  effectiveIso: "2026-09-27",
   /**
    * Aggregate liability cap, in months of fees paid. Referenced from section 18
    * rather than typed into the prose, so the number and the heading cannot
@@ -72,7 +74,7 @@ export const contents: TocEntry[] = [
   { id: "ip", label: "Intellectual property" },
   { id: "fees", label: "Fees, VAT and payment" },
   { id: "trials", label: "Free trials and promotions" },
-  { id: "term", label: "Term, renewal and cancellation" },
+  { id: "term", label: "Term, renewal and ending" },
   { id: "refunds", label: "Refunds" },
   { id: "suspension", label: "Suspension" },
   { id: "third-parties", label: "Third-party services" },
