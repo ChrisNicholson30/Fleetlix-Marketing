@@ -284,13 +284,20 @@ const stagger = [
                reserving its height, or one card's seats fall out of step. -->
           {/* The chosen term's price: every term renders, CSS shows one. Same
               shape on every card (figure + a two-line sub-line reserved), so
-              the seat panels stay level whichever term is picked. */}
+              the seat panels stay level whichever term is picked. Five across
+              (xl) a card has ~182px for the price line, and "£949.00 /mo +VAT"
+              at full size overran it by 24px into the padding: the pence are
+              set small and the figure steps down to 2rem at xl, which leaves
+              14px+ spare on every plan and term. Re-measure if a price grows a
+              digit. */}
           {SHOW_TERM_CONTRACTS ? (
           <div class="mt-4">
-            {CONTRACT_TERMS.map((term) => (
+            {CONTRACT_TERMS.map((term) => {
+              const [whole, pence] = pounds(termMonthlyPence(p.monthly, term)).split(".");
+              return (
               <div data-term={term}>
-                <span class={`font-[family-name:var(--font-display)] font-extrabold text-4xl tracking-tight ${p.featured ? "text-white" : "text-[color:var(--color-graphite)]"}`}>
-                  {pounds(termMonthlyPence(p.monthly, term))}
+                <span class={`font-[family-name:var(--font-display)] font-extrabold text-4xl xl:text-[2rem] tracking-tight ${p.featured ? "text-white" : "text-[color:var(--color-graphite)]"}`}>
+                  {whole}<span class="text-[0.55em]">.{pence}</span>
                 </span>
                 <span class={`text-sm ml-1 ${p.featured ? "text-white/60" : "text-[color:var(--color-slate)]"}`}>/mo</span>
                 <span class={`ml-1 text-xs font-semibold ${p.featured ? "text-white/45" : "text-[color:var(--color-slate)]/70"}`}>+VAT</span>
@@ -298,7 +305,8 @@ const stagger = [
                   {termDiscountPercent(term) > 0 ? `was £${gbp(p.monthly)}` : "List price"} · {term} payments, {pounds(termContractValuePence(p.monthly, term))} in all
                 </p>
               </div>
-            ))}
+              );
+            })}
           </div>
           ) : (
           <div class="mt-4">

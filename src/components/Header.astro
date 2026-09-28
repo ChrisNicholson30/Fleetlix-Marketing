@@ -21,6 +21,16 @@ const nav: NavItem[] = [
   SHOW_PRICING ? { href: "#pricing", label: "Pricing" } : null,
   SHOW_CONTACT ? { href: "#contact", label: "Contact" } : null,
 ].filter((item): item is NavItem => item !== null);
+
+// The amber call to action. With pricing on it is "View plans", which
+// slides down to the plans (global.css sets scroll-behavior: smooth). On the
+// homepage it is a bare fragment so a ?promo= in the URL survives the jump:
+// checkout.ts reads it. No other page has a #pricing, so they link to the
+// homepage's. With pricing off it falls back to the interest form.
+const onHome = Astro.url.pathname === "/";
+const cta = SHOW_PRICING
+  ? { href: onHome ? "#pricing" : "/#pricing", label: "View plans" }
+  : { href: onHome ? "#register-interest" : "/#register-interest", label: "Register interest" };
 ---
 
 <header class="sticky top-0 z-40 backdrop-blur-md bg-[color:var(--color-offwhite)]/80 border-b border-[color:var(--color-mist)]">
@@ -56,10 +66,10 @@ const nav: NavItem[] = [
 
       {!SHOW_CONTACT && (
         <a
-          href="#register-interest"
+          href={cta.href}
           class="hidden sm:inline-flex items-center rounded-lg bg-[color:var(--color-amber)] px-4 py-2 text-sm font-semibold text-[color:var(--color-graphite)] shadow-sm hover:brightness-110 transition"
         >
-          Register interest
+          {cta.label}
         </a>
       )}
 
@@ -95,10 +105,10 @@ const nav: NavItem[] = [
           ))}
           {!SHOW_CONTACT && (
             <a
-              href="#register-interest"
+              href={cta.href}
               class="mt-1 block rounded-lg bg-[color:var(--color-amber)] px-3 py-2.5 text-sm font-semibold text-[color:var(--color-graphite)] text-center hover:brightness-105 transition"
             >
-              Register interest
+              {cta.label}
             </a>
           )}
         </div>

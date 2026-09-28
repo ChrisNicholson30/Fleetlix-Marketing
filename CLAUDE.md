@@ -101,7 +101,7 @@ fleetlix-marketing/
 
 | Route        | Purpose                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 | ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/`          | Homepage: Hero → BuiltForRoad → ProductShowcase → StatBand → FrontReveal → MotionProduct → FeatureGrid → WhyPwa → WhoFor → DwtsTimeline → (PricingSection when SHOW_PRICING) → (BrokerNetwork when SHOW_BROKERS) → Faq → InterestForm → (CtaFooter when SHOW_CONTACT) → SiteFooter. `ProductShowcase` (`#product-tour`) is a hand-built CSS/SVG mock of the app (no screenshots); `StatBand` shows count-up market figures. `InterestForm` always renders — it's the conversion action while pre-launch, and every pricing CTA anchors to it. |
+| `/`          | Homepage: Hero → BuiltForRoad → ProductShowcase → StatBand → FrontReveal → MotionProduct → FeatureGrid → WhyPwa → WhoFor → DwtsTimeline → (PricingSection when SHOW_PRICING) → (BrokerNetwork when SHOW_BROKERS) → Faq → InterestForm → (CtaFooter when SHOW_CONTACT) → SiteFooter. `ProductShowcase` (`#product-tour`) is a hand-built CSS/SVG mock of the app (no screenshots); `StatBand` shows count-up market figures. `InterestForm` always renders; on the homepage it is a plain contact form (still `#register-interest`, which a dozen links across the site point at). |
 | `/digital-waste-tracking` | The DWTS pillar page — a full operator's guide to the Digital Waste Tracking Service, and the site's main organic-search asset. Renders `DwtsTimeline` with `variant="guide"`, then scope, the record contents, the two-working-day rule, fees, penalties, sector specifics, Fleetlix's own status, a DWTS-specific FAQ and the GOV.UK sources. Every date and figure comes from `src/config/dwts.ts`. Update its `lastUpdated` const when the substance changes. |
 | `/walkthrough` | The 10:39 product recording, behind a **click-to-load facade**. The page ships zero video weight — the 54 MB MP4 in Supabase Storage is not requested until the visitor presses play, and a native `<video>` plays it, so no third-party script runs. The 16 chapters in `src/config/walkthrough.ts` are both the visible copy and the seek targets. See _Walkthrough video_ below before changing anything here. |
 | `/install`   | PWA install guide for iPhone, iPad, Android, Windows and Mac, from `src/config/install.ts`. Platform tabs are **CSS-only** (radios + `:has()`), so all five platforms are in the DOM and crawlable and the page works with JS off; `src/scripts/install.ts` only pre-selects the tab matching the visitor's device. Device-support lists sit in `<details>`. Content describes **fleetlix.app** (the app repo) — its Settings paths can go stale without anything here failing, so re-check before a rollout. |
@@ -117,9 +117,9 @@ fleetlix-marketing/
 
 ### Conversion path
 
-- **Header.** Desktop nav at `sm:` and up. On mobile (`<sm`), a `<details>`/`<summary>` hamburger opens a drop-down panel (no JS for the disclosure itself; a small inline script closes it on link tap or outside click). When `SHOW_CONTACT` is off, the header's right-side CTA defaults to "Register interest" (amber) → `#register-interest`.
+- **Header.** Desktop nav at `sm:` and up. On mobile (`<sm`), a `<details>`/`<summary>` hamburger opens a drop-down panel (no JS for the disclosure itself; a small inline script closes it on link tap or outside click). When `SHOW_CONTACT` is off, the header's right-side amber CTA (and the matching button at the foot of the mobile menu) is **"View plans"** → `#pricing`, a smooth scroll down to the plans. On the homepage it is the bare fragment, so a `?promo=` in the URL survives the jump (`checkout.ts` reads it). Every other page links to `/#pricing`, because none of them has a `#pricing` of its own. With `SHOW_PRICING` off it falls back to "Register interest" → `#register-interest`.
 - **Hero.** Primary amber "Register your interest" CTA → `#register-interest` is the load-bearing above-the-fold action. "See how it works" → `#product-tour` (the ProductShowcase mock) sits beside it as a tertiary outline button; the centred scroll-cue still points at `#built`.
-- **Interest form.** Always rendered inline (no modal, no trigger click). Below `lg:` the copy stacks above the form card; at `lg:` and up the copy sits to the left of the form. The submit button is the only action.
+- **Contact form** (`InterestForm`, `#register-interest`). Always rendered inline (no modal, no trigger click). Below `lg:` the copy stacks above the form card; at `lg:` and up the copy sits to the left of the form. The submit button is the only action.
 
 ## Responsive breakpoints
 
@@ -390,20 +390,24 @@ from. `CARRIER_COUNTS` and `JOB_VOLUMES` are duplicated in
 `src/components/InterestForm.tsx` and `functions/api/register-interest.ts`;
 **change both together**, as with the checkout promo config.
 
-The homepage (operator) variant also carries an **Operations platform / Fleetlix
-Compliance** choice. Picking Compliance swaps fleet size for **waste movements per
-month** (`MOVEMENT_VOLUMES`, duplicated the same way), stamps
-`enquiry_type: "compliance"`, and sends a `Fleetlix COMPLIANCE` subject line. So does
-arriving via `#register-compliance`, which is where the Compliance pricing card's CTA
-links **only with JS off**, and always while `SALES_PAUSED` is on (the card then reads
-"New subscriptions paused" and the form's Compliance hint says so). With JS and sales
+The homepage (operator) variant is a **plain contact form** (28 Sep 2026): "Get in
+touch", name, email, company, fleet size, role, message, "Send message", and a
+confirmation email promising a reply within one working day. It used to carry an
+**Operations platform / Fleetlix Compliance** choice that swapped fleet size for waste
+movements per month and stamped `enquiry_type: "compliance"`; that choice and the
+`#register-compliance` anchor are gone, and Compliance questions arrive as ordinary
+`operator` enquiries. `register-interest.ts` still **accepts** `compliance` and
+`movements_per_month`, so a visitor with the old form in a cached tab is not rejected.
+
+The Compliance pricing card orders on contract while `SHOW_TERM_CONTRACTS` is on. With
+contracts off it links to `#register-interest` **only with JS off**, and always while
+`SALES_PAUSED` is on (the card then reads "New subscriptions paused"). With JS and sales
 open, that CTA is an open checkout (`[data-open-checkout]
 data-plan="compliance"`): £49/month + VAT, no promo, no trial, monthly only, price found by
 lookup key `fleetlix_compliance_monthly_gbp`. Stripe → `/thank-you?…&plan=compliance`
 (Compliance next steps) → `fleetlix.app/onboarding`, where the app's `provision.ts`
 creates a `compliance` tenant (`business_type='compliance'`, entitlement columns from
-`complianceEntitlementPatch()`) and signs the buyer straight in to `/compliance`. The
-form's Compliance option is now for questions, not signup. **Needs the app PR deployed
+`complianceEntitlementPatch()`) and signs the buyer straight in to `/compliance`. **Needs the app PR deployed
 first**, or buyers pay and hit "no valid plan". See `Resources/compliance-launch.md`.
 
 ```
@@ -465,7 +469,6 @@ While it is on:
 - **`/support`** swaps sections 3, 5, 6 and 11 to the paused wording, and
   `checkoutIssues` lists the paused error verbatim.
 - **`/rwm2026`** replaces the promo with a "Sign-up paused" block and hides the code.
-- **`InterestForm`**'s Compliance hint says new subscriptions are paused.
 
 While Broker Pro is earn-only:
 

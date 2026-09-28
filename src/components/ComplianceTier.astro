@@ -51,12 +51,12 @@ const orderHref = `${SUBSCRIBE_URL}?plan=${COMPLIANCE_SLUG}&term=24`;
     <!-- Self-serve: pay on Stripe → /thank-you → create your login on
          fleetlix.app/onboarding → straight into /compliance. [data-open-checkout]
          is wired by src/scripts/checkout.ts (loaded by PricingSection). With JS
-         off the href falls back to the Compliance enquiry on the homepage form.
+         off the href falls back to the contact form at the foot of the homepage.
          No promo, no trial, monthly only — functions/api/checkout.ts checks the
          £49 price before selling it. While sales are paused the hook is left
          off, so this is only ever the enquiry link. -->
     <a
-      href={onContract ? orderHref : "#register-compliance"}
+      href={onContract ? orderHref : "#register-interest"}
       {...(open ? { "data-open-checkout": "" } : {})}
       data-plan={COMPLIANCE_SLUG}
       class="mt-6 inline-flex min-h-11 items-center justify-center rounded-xl bg-[color:var(--color-graphite)] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[color:var(--color-graphite)]/90 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[color:var(--color-cyan)]"
