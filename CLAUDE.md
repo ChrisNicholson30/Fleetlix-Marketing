@@ -117,7 +117,7 @@ fleetlix-marketing/
 
 ### Conversion path
 
-- **Header.** Desktop nav at `sm:` and up. On mobile (`<sm`), a `<details>`/`<summary>` hamburger opens a drop-down panel (no JS for the disclosure itself; a small inline script closes it on link tap or outside click). When `SHOW_CONTACT` is off, the header's right-side CTA defaults to "Register interest" (amber) → `#register-interest`.
+- **Header.** Desktop nav at `sm:` and up. On mobile (`<sm`), a `<details>`/`<summary>` hamburger opens a drop-down panel (no JS for the disclosure itself; a small inline script closes it on link tap or outside click). When `SHOW_CONTACT` is off, the header's right-side amber CTA (and the matching button at the foot of the mobile menu) is **"View plans"** → `#pricing`, a smooth scroll down to the plans. On the homepage it is the bare fragment, so a `?promo=` in the URL survives the jump (`checkout.ts` reads it). Every other page links to `/#pricing`, because none of them has a `#pricing` of its own. With `SHOW_PRICING` off it falls back to "Register interest" → `#register-interest`.
 - **Hero.** Primary amber "Register your interest" CTA → `#register-interest` is the load-bearing above-the-fold action. "See how it works" → `#product-tour` (the ProductShowcase mock) sits beside it as a tertiary outline button; the centred scroll-cue still points at `#built`.
 - **Interest form.** Always rendered inline (no modal, no trigger click). Below `lg:` the copy stacks above the form card; at `lg:` and up the copy sits to the left of the form. The submit button is the only action.
 
