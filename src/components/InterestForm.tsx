@@ -1,6 +1,6 @@
 /** @jsxImportSource react */
-import { useEffect, useId, useRef, useState } from "react";
-import { BROKER_PRO_SLUG, COMPLIANCE_SLUG, OPEN_PLAN_SLUGS } from "../config/checkout";
+import { useId, useRef, useState } from "react";
+import { BROKER_PRO_SLUG, OPEN_PLAN_SLUGS } from "../config/checkout";
 
 const FLEET_SIZES = ["1-5", "6-20", "21-80", "81+", "Not sure"] as const;
 const ROLES = [
@@ -18,24 +18,9 @@ const ROLES = [
 const CARRIER_COUNTS = ["1-5", "6-15", "16-40", "40+", "Not sure"] as const;
 const JOB_VOLUMES = ["Under 50", "50-150", "150-500", "500+", "Not sure"] as const;
 
-// Fleetlix Compliance enquiries, on the homepage form — questions before
-// buying; the tier itself is bought through checkout on its pricing card. Waste movements
-// rather than fleet size: a receiving site may run no vehicles at all, and the
-// tier's allowance is counted in submissions. Mirrors
-// functions/api/register-interest.ts — change both together.
-const MOVEMENT_VOLUMES = ["Under 50", "50-100", "100-300", "300+", "Not sure"] as const;
-
-// Whether the Compliance card's button is a checkout right now. While sales are
-// paused it is not, and this form is the only way in, so the hint says so.
-const COMPLIANCE_OPEN = OPEN_PLAN_SLUGS.includes(COMPLIANCE_SLUG);
-// Same question for Broker Pro, which the broker variant's intro mentions.
+// Whether Broker Pro can be bought right now, which the broker variant's intro
+// mentions.
 const BROKER_PRO_OPEN = OPEN_PLAN_SLUGS.includes(BROKER_PRO_SLUG);
-
-// The Compliance pricing card links here. An anchor rather than a query string,
-// so the jump needs no reload and no JS; the form only reads it to preselect.
-const COMPLIANCE_HASH = "#register-compliance";
-
-type Interest = "operations" | "compliance";
 
 type FieldErrors = Partial<Record<keyof FormState | "_", string>>;
 
@@ -43,12 +28,10 @@ type FormState = {
   name: string;
   email: string;
   company: string;
-  interest: Interest;
   fleet_size: (typeof FLEET_SIZES)[number] | "";
   role: (typeof ROLES)[number] | "";
   carriers: (typeof CARRIER_COUNTS)[number] | "";
   jobs_per_month: (typeof JOB_VOLUMES)[number] | "";
-  movements_per_month: (typeof MOVEMENT_VOLUMES)[number] | "";
   message: string;
   consent: boolean;
 };
@@ -57,12 +40,10 @@ const EMPTY: FormState = {
   name: "",
   email: "",
   company: "",
-  interest: "operations",
   fleet_size: "",
   role: "",
   carriers: "",
   jobs_per_month: "",
-  movements_per_month: "",
   message: "",
   consent: false,
 };
@@ -96,16 +77,27 @@ const selectChevron = {
 
 export type InterestVariant = "operator" | "broker";
 
-/** Copy that differs between the two audiences. Everything else is shared. */
+/** Copy that differs between the two audiences. Everything else is shared.
+ *
+ * The homepage (operator) form is a plain contact form. It keeps the id
+ * "register-interest" because a dozen links across the site point at it. It
+ * used to offer an Operations platform / Fleetlix Compliance choice; that went
+ * when both became orderable on contract, so Compliance questions come through
+ * here like any other. */
 const COPY = {
   operator: {
     id: "register-interest",
-    eyebrow: "Pre-launch",
-    heading: "Be first in line when Fleetlix opens.",
-    body: "The platform is being built right now in Central Scotland. We're inviting the first five operators in for pilot pricing — introductory rates in exchange for case-study rights. Leave your details and we'll be in touch the moment there's something real to show you.",
-    footnote: "No obligation · One email when we launch · UK GDPR",
+    eyebrow: "Contact",
+    heading: "Get in touch.",
+    body: "Questions about a plan, Fleetlix Compliance, a contract term or Digital Waste Tracking? Leave your details and we'll reply within one working day.",
+    footnote: "No obligation · Reply within one working day · UK GDPR",
+    successHeading: "Message received.",
     success:
-      "the moment Fleetlix is ready to demo. We've also sent you a quick confirmation just so you know it landed.",
+      "within one working day. We've also sent you a quick confirmation just so you know it landed.",
+    messageLabel: "Message",
+    placeholder: "How can we help?",
+    consent: "I'm happy for Fleetlix to email me about my enquiry.",
+    submit: "Send message",
   },
   broker: {
     id: "broker-interest",
@@ -115,8 +107,13 @@ const COPY = {
       ? "Broker accounts are open — start free or buy Pro from the plans above. If you would rather talk it through first, or want a hand bringing a large carrier panel across, leave your details and we'll reply within one working day."
       : "Broker Free is open — start free from the plans above, and earn Pro by introducing carriers. If you would rather talk it through first, or want a hand bringing a large carrier panel across, leave your details and we'll reply within one working day.",
     footnote: "No obligation · Broker Free is free forever · UK GDPR",
+    successHeading: "You're on the list.",
     success:
       "within one working day. We've also sent you a quick confirmation just so you know it landed.",
+    messageLabel: "Anything you want us to know",
+    placeholder: "What software (or paper) are you running today?",
+    consent: "I'm happy for Fleetlix to email me about the launch and pilot programme.",
+    submit: "Register your interest",
   },
 } as const;
 
@@ -126,22 +123,6 @@ export default function InterestForm({
   const isBroker = variant === "broker";
   const copy = COPY[variant];
   const [state, setState] = useState<FormState>(EMPTY);
-  const isCompliance = !isBroker && state.interest === "compliance";
-
-  // Preselect Compliance when the visitor arrived from its pricing card —
-  // on hydration (client:visible, so usually after the anchor jump) and on any
-  // later jump while the island is already live.
-  useEffect(() => {
-    if (isBroker) return;
-    const sync = () => {
-      if (window.location.hash === COMPLIANCE_HASH) {
-        setState((s) => ({ ...s, interest: "compliance" }));
-      }
-    };
-    sync();
-    window.addEventListener("hashchange", sync);
-    return () => window.removeEventListener("hashchange", sync);
-  }, [isBroker]);
   const [errors, setErrors] = useState<FieldErrors>({});
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">(
     "idle",
@@ -179,12 +160,11 @@ export default function InterestForm({
           name: state.name.trim(),
           email: state.email.trim(),
           company: state.company.trim() || undefined,
-          fleet_size: isBroker || isCompliance ? undefined : state.fleet_size || undefined,
+          fleet_size: isBroker ? undefined : state.fleet_size || undefined,
           role: isBroker ? undefined : state.role || undefined,
           carriers: isBroker ? state.carriers || undefined : undefined,
           jobs_per_month: isBroker ? state.jobs_per_month || undefined : undefined,
-          movements_per_month: isCompliance ? state.movements_per_month || undefined : undefined,
-          enquiry_type: isCompliance ? "compliance" : variant,
+          enquiry_type: variant,
           message: state.message.trim() || undefined,
           consent: state.consent,
         }),
@@ -212,9 +192,6 @@ export default function InterestForm({
 
   return (
     <section id={copy.id} className="relative overflow-hidden bg-[color:var(--color-graphite)] text-white">
-      {/* Server-rendered jump target for the Compliance pricing card, so the
-          scroll works before hydration and with JS off. */}
-      {!isBroker && <span id={COMPLIANCE_HASH.slice(1)} aria-hidden="true" className="absolute top-0" />}
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 opacity-[0.06] mix-blend-screen"
@@ -256,15 +233,13 @@ export default function InterestForm({
                     Confirmed
                   </p>
                   <h3 className="mt-2 font-[family-name:var(--font-display)] font-extrabold text-2xl sm:text-3xl tracking-tight text-white">
-                    {isCompliance ? "Request received." : "You're on the list."}
+                    {copy.successHeading}
                   </h3>
                   <div className="mt-5 rounded-xl border border-[color:var(--color-success)]/40 bg-[color:var(--color-success)]/10 p-4">
                     <p className="text-sm text-emerald-100">
                       Thanks — we've got your details. You'll hear from us at{" "}
                       <span className="font-semibold text-white">{state.email}</span>{" "}
-                      {isCompliance
-                        ? "within one working day. We've also sent you a quick confirmation just so you know it landed."
-                        : copy.success}
+                      {copy.success}
                     </p>
                   </div>
                   <button
@@ -325,42 +300,6 @@ export default function InterestForm({
                     />
                   </div>
 
-                  {!isBroker && (
-                    <fieldset>
-                      <legend className={labelBase}>Interested in</legend>
-                      <div className="mt-1.5 grid grid-cols-1 sm:grid-cols-2 gap-2">
-                        {(
-                          [
-                            ["operations", "Operations platform"],
-                            ["compliance", "Fleetlix Compliance"],
-                          ] as const
-                        ).map(([value, label]) => (
-                          <label
-                            key={value}
-                            className="flex min-h-11 cursor-pointer items-center gap-3 rounded-lg border border-white/15 bg-white/[0.05] px-3.5 py-2.5 text-sm text-white transition has-[:checked]:border-[color:var(--color-amber)] has-[:checked]:bg-white/[0.09] has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-[color:var(--color-amber)]"
-                          >
-                            <input
-                              type="radio"
-                              name={`${formId}-interest`}
-                              value={value}
-                              checked={state.interest === value}
-                              onChange={() => setState((s) => ({ ...s, interest: value }))}
-                              className="h-4 w-4 accent-[color:var(--color-amber)]"
-                            />
-                            {label}
-                          </label>
-                        ))}
-                      </div>
-                      {isCompliance && (
-                        <p className="mt-2 text-xs text-white/75">
-                          {COMPLIANCE_OPEN
-                            ? "Ready to start? Use Start Fleetlix Compliance on the pricing card to pay and create your login. Questions first? Ask here and we reply within one working day."
-                            : "New Compliance subscriptions are paused for the moment. Leave your details and we'll let you know when they reopen. We answer questions within one working day."}
-                        </p>
-                      )}
-                    </fieldset>
-                  )}
-
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {isBroker ? (
                       <>
@@ -413,53 +352,30 @@ export default function InterestForm({
                       </>
                     ) : (
                       <>
-                        {isCompliance ? (
-                          <div>
-                            <label htmlFor={`${formId}-movements`} className={labelBase}>
-                              Waste movements per month <span className="ml-1 text-[10px] font-bold tracking-wider text-[color:var(--color-amber)]">MOST USEFUL</span>
-                            </label>
-                            <select
-                              id={`${formId}-movements`}
-                              value={state.movements_per_month}
-                              onChange={(e) =>
-                                setState((s) => ({
-                                  ...s,
-                                  movements_per_month: e.target.value as FormState["movements_per_month"],
-                                }))
-                              }
-                              className={selectBase}
-                              style={selectChevron}
-                            >
-                              <option value="" className="bg-[#0c0a08]">Select…</option>
-                              {MOVEMENT_VOLUMES.map((m) => (
-                                <option key={m} value={m} className="bg-[#0c0a08]">{m}</option>
-                              ))}
-                            </select>
-                          </div>
-                        ) : (
-                          <div>
-                            <label htmlFor={`${formId}-fleet`} className={labelBase}>
-                              Fleet size <span className="ml-1 text-[10px] font-bold tracking-wider text-[color:var(--color-amber)]">MOST USEFUL</span>
-                            </label>
-                            <select
-                              id={`${formId}-fleet`}
-                              value={state.fleet_size}
-                              onChange={(e) =>
-                                setState((s) => ({
-                                  ...s,
-                                  fleet_size: e.target.value as FormState["fleet_size"],
-                                }))
-                              }
-                              className={selectBase}
-                              style={selectChevron}
-                            >
-                              <option value="" className="bg-[#0c0a08]">Select…</option>
-                              {FLEET_SIZES.map((size) => (
-                                <option key={size} value={size} className="bg-[#0c0a08]">{size} vehicles</option>
-                              ))}
-                            </select>
-                          </div>
-                        )}
+                        <div>
+                          <label htmlFor={`${formId}-fleet`} className={labelBase}>
+                            Fleet size <span className="ml-1 text-[10px] font-bold tracking-wider text-[color:var(--color-amber)]">MOST USEFUL</span>
+                          </label>
+                          <select
+                            id={`${formId}-fleet`}
+                            value={state.fleet_size}
+                            onChange={(e) =>
+                              setState((s) => ({
+                                ...s,
+                                fleet_size: e.target.value as FormState["fleet_size"],
+                              }))
+                            }
+                            className={selectBase}
+                            style={selectChevron}
+                          >
+                            <option value="" className="bg-[#0c0a08]">Select…</option>
+                            {FLEET_SIZES.map((size) => (
+                              <option key={size} value={size} className="bg-[#0c0a08]">
+                                {size === "Not sure" ? size : `${size} vehicles`}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
                         <div>
                           <label htmlFor={`${formId}-role`} className={labelBase}>Your role</label>
                           <select
@@ -483,7 +399,7 @@ export default function InterestForm({
 
                   <div>
                     <label htmlFor={`${formId}-message`} className={labelBase}>
-                      Anything you want us to know <span className="font-normal normal-case tracking-normal text-white/60">· optional</span>
+                      {copy.messageLabel} <span className="font-normal normal-case tracking-normal text-white/60">· optional</span>
                     </label>
                     <textarea
                       id={`${formId}-message`}
@@ -492,11 +408,7 @@ export default function InterestForm({
                       value={state.message}
                       onChange={(e) => setState((s) => ({ ...s, message: e.target.value }))}
                       className={`${fieldBase} mt-1.5 resize-none`}
-                      placeholder={
-                        isCompliance
-                          ? "What do you record waste movements in today?"
-                          : "What software (or paper) are you running today?"
-                      }
+                      placeholder={copy.placeholder}
                     />
                   </div>
 
@@ -510,10 +422,7 @@ export default function InterestForm({
                       aria-describedby={errors.consent ? `${formId}-consent-err` : undefined}
                     />
                     <span>
-                      {isCompliance
-                        ? "I'm happy for Fleetlix to email me about Fleetlix Compliance."
-                        : "I'm happy for Fleetlix to email me about the launch and pilot programme."}
-                      {" "}No marketing lists, no third parties.
+                      {copy.consent}{" "}No marketing lists, no third parties.
                     </span>
                   </label>
                   {errors.consent && <p id={`${formId}-consent-err`} className={errorText}>{errors.consent}</p>}
@@ -541,7 +450,7 @@ export default function InterestForm({
                         </>
                       ) : (
                         <>
-                          {isCompliance ? "Ask about Compliance" : "Register your interest"}
+                          {copy.submit}
                           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.25} strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4" aria-hidden="true">
                             <path d="M5 12h14" />
                             <path d="m13 5 7 7-7 7" />
