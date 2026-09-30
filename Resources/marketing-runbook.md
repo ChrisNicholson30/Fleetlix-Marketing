@@ -1,10 +1,10 @@
-# CLAUDE.md
+# Fleetlix marketing runbook
 
-Guidance for Claude Code when working in this repository.
+Detailed project history and operational notes for contributors and coding agents. Use the relevant section when a task touches that area; verify dated claims against the current code and service configuration. Repository-wide instructions live in `AGENTS.md`.
 
 ## What this is
 
-The **Fleetlix marketing site**, live at https://fleetlix.com. A static Astro build deployed to Cloudflare Pages, plus one Pages Function (`/api/register-interest`) that posts form submissions to Resend.
+The **Fleetlix marketing site**, live at https://fleetlix.com. A static Astro build deployed to Cloudflare Pages, with Pages Functions for enquiries and checkout. `/api/register-interest` posts form submissions to Resend.
 
 This repo is **only the marketing site**. The Fleetlix operations PWA is a separate repo — don't mix conventions across them.
 
@@ -12,7 +12,7 @@ This repo is **only the marketing site**. The Fleetlix operations PWA is a separ
 
 | | |
 |---|---|
-| Build | Astro 6, `inlineStylesheets: 'never'` |
+| Build | Astro 7, `inlineStylesheets: 'never'` |
 | Interactivity | React 19 islands via `@astrojs/react` — only `InterestForm` uses it (`PricingSection` is a static `.astro` component since the billing toggle was dropped) |
 | Styles | Tailwind 4 via `@tailwindcss/vite`; CSS custom properties for the colour palette live in `src/styles/global.css` |
 | Package manager | pnpm (lockfile committed); Node ≥ 22.12 |
@@ -223,6 +223,10 @@ nothing here will notice when it drifts from the page it sits beside.
 
 It is generated from `Resources/security/` in the **Fleetlix operations repo**,
 where `content.mjs` is the source of truth and `build.mjs` renders it:
+
+**Check the generator copy before rebuilding.** The marketing PDF and page were
+updated to OpenAI on 30 September 2026; the separate generator may still carry
+older provider wording. Bring its content and pagination up to date first.
 
 ```bash
 cd <app-repo>/Resources/security && npm install
@@ -737,10 +741,9 @@ iPhone is a first-class target. The bar is **the apple.com/uk pattern**: vertica
 - **Commit messages explain the _why_**, not the _what_. Match the existing tone — short subject, paragraph body when context is needed.
 - **Don't commit `dist/` or `node_modules/`.** Already gitignored — keep it that way.
 
-## Ask before doing
+## Changes needing a deliberate decision
 
-- Adding any third-party script or network request from the site (see _Privacy_).
-- Tightening or loosening the CSP.
-- Adding tests, linters, or formatters.
-- Changing the build / deploy pipeline.
-- Force-pushing, rebasing published history, or anything that rewrites `main`.
+When a task calls for these changes, follow the user's instruction and explain
+the impact in the result. For unsolicited changes, obtain the owner's decision
+before adding a third-party request, changing the CSP or privacy commitments,
+changing the build pipeline, or rewriting published `main` history.

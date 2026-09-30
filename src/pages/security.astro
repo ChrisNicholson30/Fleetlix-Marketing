@@ -838,17 +838,29 @@ const jsonLd = {
 
           <PolicySection id="ai" title="Use of artificial intelligence">
             <p>
-              AI has exactly one job in Fleetlix, and it is a narrow one. This
-              section exists because "do you use AI, and what do you send it?" is
-              now the second question on most security questionnaires.
+              Fleetlix uses OpenAI for optional assistance in defined workflows.
+              Each feature has an account-level switch, and new processing starts
+              only after the notice period described in the application.
             </p>
             <ul class="policy-list">
               <li>
-                <strong>One feature, one question.</strong> Where a load carries a
-                European Waste Catalogue code that could be hazardous or not
-                depending on content (a "mirror entry"), the system asks Claude
-                Haiku, from Anthropic, whether the operator's own notes indicate a
-                competent person should review it.
+                <strong>LIX is an in-app guide.</strong> It sends a user's question,
+                recent conversation and the section, screen, role and plan it was
+                asked from to OpenAI. LIX cannot read or change account records.
+              </li>
+              <li>
+                <strong>Additional assists start no earlier than 31 October
+                2026.</strong> Where enabled, OpenAI may read Scan photographs and
+                PDFs of paperwork, review mirror-entry waste notes, and suggest
+                spreadsheet import matches from headers and selected values. A
+                person reviews the results.
+              </li>
+              <li>
+                <strong>Hazardous-waste review asks one narrow question.</strong>
+                Where a load carries a European Waste Catalogue code that could
+                be hazardous or not depending on content (a "mirror entry"), the
+                system asks OpenAI's GPT-6 Sol model whether the operator's own
+                notes indicate a competent person should review it.
               </li>
               <li>
                 <strong>The model never picks the waste code.</strong>{" "}
@@ -872,8 +884,9 @@ const jsonLd = {
                 anywhere.
               </li>
               <li>
-                <strong>What is sent is the waste code, the reference description
-                and the operator's own notes for that load.</strong> No customer
+                <strong>For hazardous-waste review, what is sent is the waste
+                code, the reference description and the operator's own notes for
+                that load.</strong> No customer
                 contact details, no pricing, no photographs, no signatures, no
                 personal data about drivers.
               </li>
@@ -883,13 +896,16 @@ const jsonLd = {
                 the record shows what was and was not sent.
               </li>
               <li>
-                <strong>There is a per-tenant off switch.</strong> An operator can
-                disable the feature entirely without a code change; the review
-                flag then simply stays raised for a human.
+                <strong>There is a per-tenant off switch for hazardous-waste
+                review.</strong> An operator can disable the feature entirely
+                without a code change; the review flag then simply stays raised
+                for a human.
               </li>
               <li>
-                <strong>Data sent to the Anthropic API is not used to train
-                models</strong>, per Anthropic's commercial terms.
+                <strong>OpenAI does not use API data to train its models by
+                default</strong>, and Fleetlix has not opted in. OpenAI may retain
+                abuse-monitoring logs for up to 30 days, unless the law requires
+                longer.
               </li>
             </ul>
           </PolicySection>

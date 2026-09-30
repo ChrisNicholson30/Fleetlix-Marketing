@@ -1,7 +1,7 @@
 # Stripe price IDs
 
 Feeds `STRIPE_PRICE_MAP` (and `TEST_STRIPE_PRICE_MAP`) on Cloudflare Pages —
-see the checkout table in `CLAUDE.md`.
+see the checkout table in `Resources/marketing-runbook.md`.
 
 ## Status: the live map is STALE
 
@@ -108,5 +108,5 @@ request depends on, and none of it is on this site:
    `TEST_STRIPE_PRICE_MAP`, then remove both to go live. Check the welcome
    screen at the end of each: it should show the plan, the trial end and the
    first charge, carry the amber "Stripe test mode" strip, and put a
-   `session_id` on the "Create your login" button. Full runbook in `CLAUDE.md`
+   `session_id` on the "Create your login" button. Full runbook in `Resources/marketing-runbook.md`
    under _Testing the signup flow end to end_.
