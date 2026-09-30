@@ -20,9 +20,9 @@
 // the same split digital-waste-tracking.astro uses.
 
 export const DOC = {
-  version: "1.1",
-  issued: "21 September 2026",
-  issuedIso: "2026-09-21",
+  version: "1.2",
+  issued: "30 September 2026",
+  issuedIso: "2026-09-30",
   classification: "Public",
   /** Everything on this page routes here — reports, DPAs, sub-processor notices. */
   contact: "security@fleetlix.com",
@@ -175,9 +175,9 @@ export const subProcessors: SubProcessor[] = [
     region: "EU / US (Stripe DPF)",
   },
   {
-    provider: "Anthropic",
-    purpose: "Hazardous-waste review assistance (§13)",
-    data: "Waste code and operator notes only",
+    provider: "OpenAI",
+    purpose: "Optional LIX guide, document Scan, hazardous-waste review and spreadsheet import matching (§13)",
+    data: "Questions and recent chat; scanned paperwork; waste code and notes; spreadsheet headers and selected values",
     region: "US",
   },
   {
