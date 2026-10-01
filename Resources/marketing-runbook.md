@@ -23,7 +23,7 @@ Reference colours via `[color:var(--color-graphite)]` etc. — never hardcode he
 
 **No tests, linter, or formatter** are configured. Don't add any without asking — they'd need wiring into the Pages build pipeline too.
 
-**No analytics, no third-party scripts, no tracking pixels.** This is a hard rule. See _Privacy_ below.
+**No analytics or tracking pixels installed by Fleetlix.** Optional external content stays click-to-load; the explicitly requested Whereby training room runs its own service inside an iframe. See _Privacy_ below.
 
 ## Local commands
 
@@ -164,13 +164,13 @@ The limit that still matters: **approval covers Phase 1 only.** Defra has not pu
 
 ## Walkthrough video
 
-The `/walkthrough` video is the **only cross-origin request the site ever
-makes**, and it is the one exception to the "no third-party requests" rule
-below. Two things make it acceptable, and both are load-bearing:
+The `/walkthrough` video is one of two optional external services, alongside
+the Whereby training room below. Two things make its existing approach
+acceptable, and both are load-bearing:
 
 - **It is click-to-load.** No `<video>` element exists until the visitor presses
   play, so pressing play _is_ the consent. That is what keeps it lawful under
-  PECR without a consent banner, and what `/cookies` §4 and §5 say in writing.
+  PECR without a consent banner, and what `/cookies` §4 and §6 say in writing.
 - **It is a plain file, not an embed.** The MP4 lives in Supabase Storage and is
   played by a native `<video>`. **No third-party JavaScript runs on the page at
   all** — the only thing that crosses an origin is the media itself.
@@ -214,6 +214,39 @@ active source conflict; correcting `dwts.ts` corrects this page too.
 page claims captions — the chapter descriptions are the text alternative. Adding
 a `.vtt` would be a real accessibility win and needs a `<track>` element plus,
 if it is hosted off-origin, a CSP entry.
+
+## Live training room
+
+Added on 1 October 2026 at the owner's explicit request. `/training` embeds
+`https://whereby.com/fleetlixtraining`, using `src/config/training.ts` for the
+room URL and joining guidance. The page has a focused header and a sitewide
+footer link. It is a joining page, not a booking system or a claim that a trainer
+is currently online.
+
+- **Click-to-load:** the iframe ships without a `src`. Only pressing **Enter
+  training room**, beside a privacy/cookie notice, sets it. No SDK, preconnect,
+  prefetch, automatic retry or saved consent. **Close room** unloads the iframe
+  and returns to the notice; it does not delete third-party cookies.
+- **Mobile:** Safari on iPhone/iPad and Chrome on Android are the suggested
+  browsers, following [Whereby's supported-device guidance](https://support.whereby.com/en/articles/4369218).
+  The room has a portrait-friendly height, a permanent **Open room directly**
+  fallback, and a no-JavaScript path through that same link. Mobile attendees
+  can view screen shares; sharing their own screen requires a computer.
+- **Headers:** `frame-src` permits only the exact Whereby origin alongside
+  `'self'`. `Permissions-Policy` delegates camera, microphone and room
+  capabilities to `https://whereby.com`, with `self` allowed because the parent
+  must have permission to delegate to a child frame. No Fleetlix script accesses
+  the camera or microphone. Parent `script-src` and `connect-src` remain `'self'`.
+  `src/scripts/training.ts` imports `lib/env.ts` and emits an external module.
+- **Privacy:** `/cookies` section 5 and `/privacy` disclose the optional
+  external service. Whereby controls the content, cookies and privacy practices
+  inside its iframe. Do not claim that opening it makes no third-party requests,
+  sets no cookies or guarantees no analytics by Whereby.
+- **Validation:** build the site and check the facade and joining controls at
+  375px and desktop widths. Test under the production headers: Astro dev and
+  preview do not apply `public/_headers`. A real call still requires the room
+  owner to be present and the visitor to grant device permissions; iframe
+  `load` is not evidence that a call connected.
 
 ## Security PDF
 
@@ -673,10 +706,11 @@ Both JSON-LD scripts (the sitewide Organization and the homepage `@graph`) contr
 7. `/install` JSON-LD `@graph` — BreadcrumbList only
 8. `/security` JSON-LD `@graph` — BreadcrumbList only
 
-**`media-src 'self' https://loguyonztvejrfjcaxxb.supabase.co`** is the only
-cross-origin allowance in the policy, and it exists for the click-to-load
-walkthrough video. There is no `frame-src` entry — nothing on this site is
-framed. Read _Walkthrough video_ before touching either.
+**`media-src 'self' https://loguyonztvejrfjcaxxb.supabase.co`** permits the
+click-to-load walkthrough video. **`frame-src 'self' https://whereby.com`**
+permits the click-to-load training room. Device permissions are delegated only
+to Whereby's exact origin. Read _Walkthrough video_ and _Live training room_
+before changing these allowances.
 
 The mobile-menu handler (`src/scripts/header-menu.ts`), the homepage `cinematic.ts` bundle, `dwts-timeline.ts`, `walkthrough.ts` and `install.ts` are **no longer inline**: each imports a shared module (`src/scripts/lib/env.ts`, or `lib/motion.ts` which imports it), which Rollup code-splits into a shared chunk, so Astro emits them as **external `/_astro/*.js` files covered by `script-src 'self'`** — no hash. This is deliberate. **New client scripts must follow the same pattern** — import from `lib/env.ts` even if you only need one helper. On 13 Jul 2026 a Cloudflare build-image change altered how esbuild minified those two inline scripts, so their hashes drifted from `_headers` and both were CSP-blocked in prod (blank homepage). External `'self'` scripts can't drift. **Don't reinline them** (keep the shared `env.ts` import) and don't hardcode `/_astro` filenames anywhere.
 
@@ -690,19 +724,24 @@ The FAQ accordion (`Faq.astro`) is native `<details>` with no JS, so adding/edit
 
 ## Privacy
 
-Hard rule: **no analytics, no marketing tags, no advertising pixels, no behavioural tracking, no third-party widgets.** That's what `/cookies` promises in writing.
+Hard rule: **no analytics, no marketing tags, no advertising pixels or behavioural tracking installed by Fleetlix, and no third-party widgets that load automatically.** That's what `/cookies` promises in writing.
 
-**One documented exception:** the `/walkthrough` video, fetched from Supabase
+**Two documented exceptions:** the `/walkthrough` video, fetched from Supabase
 Storage **only when the visitor presses play**. Signed off on 10 Aug 2026 on that
 basis, disclosed in `/cookies` §4, and allowed in the CSP via `media-src`. It is
 a plain file played by a native `<video>` — no third-party script, no embed SDK.
 It is not a precedent for anything that loads on its own: the click *is* the
-consent, and that is the entire justification. See _Walkthrough video_ above.
+consent, and that is the entire justification. The second is the explicitly
+requested `/training` room, added on 1 October 2026 and blocked behind a local
+entry notice. It runs Whereby's external service and cookies within an iframe.
+See _Walkthrough video_ and _Live training room_ above.
 
 If you add **any** third-party script — GA, Plausible, a chat widget, a YouTube embed, anything that sets a cookie or makes a third-party network request — you must:
 
 1. Get sign-off from the project owner first.
-2. Add a UK GDPR / PECR consent banner that blocks the script until consent is given.
+2. Add a consent mechanism that blocks the service until consent is given. For
+   the optional training room, this is the local entry button and notice, with
+   the rest of the page usable without loading the room.
 3. Update `/cookies` to disclose what's now being set, by whom, why, and for how long.
 4. Audit the CSP — most third parties need `script-src`, `connect-src`, `frame-src`, or `img-src` additions.
 

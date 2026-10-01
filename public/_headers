@@ -36,7 +36,7 @@
 #   - src/pages/walkthrough.astro, src/pages/install.astro or
 #     src/pages/security.astro (their @graphs)
 #
-# media-src is the ONE cross-origin allowance on this site, and it exists for a
+# media-src allows the walkthrough's cross-origin media file, and it exists for a
 # single file: the walkthrough MP4 in Supabase Storage, played by a native
 # <video> on /walkthrough. Three things keep it honest and all three must stay
 # true —
@@ -53,10 +53,16 @@
 #      src/config/walkthrough.ts — change one and you must change the other or
 #      playback silently dies. Any other media host is blocked outright: that is
 #      intended, not a bug. Disclose in /cookies before you widen it.
-# There is no frame-src entry: nothing on this site is framed. It falls back to
-# default-src 'self'. (An earlier plan used a Cloudflare Stream iframe and
-# needed one; the direct-file approach replaced it and is strictly less
-# invasive — a media request instead of a third-party player.)
+# frame-src allows only Whereby for the explicitly requested /training room.
+# The iframe has no src until the visitor presses Enter training room after
+# reading the local privacy/cookie notice. No SDK or preconnect is used.
+# Camera/microphone and the other room capabilities permit self plus that exact
+# origin: the parent must be allowed to delegate them to a child frame. The
+# iframe allow attribute grants them within the room; the browser still asks
+# the visitor for camera/microphone access. No Fleetlix script accesses either.
+# A global camera=()/microphone=() would block joining even with iframe allow.
+# Training's script imports lib/env.ts and emits an external /_astro/*.js file,
+# so it adds no inline-script hash.
 # One-liner that prints the unique hashes across EVERY built page (globs
 # dist so new pages like 404.html are always covered):
 #   pnpm build && node -e 'const fs=require("fs"),c=require("crypto"),
@@ -71,9 +77,9 @@
   X-Content-Type-Options: nosniff
   X-Frame-Options: DENY
   Referrer-Policy: strict-origin-when-cross-origin
-  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()
+  Permissions-Policy: camera=(self "https://whereby.com"), microphone=(self "https://whereby.com"), display-capture=(self "https://whereby.com"), fullscreen=(self "https://whereby.com"), autoplay=(self "https://whereby.com"), speaker-selection=(self "https://whereby.com"), compute-pressure=(self "https://whereby.com"), geolocation=(), payment=(), usb=(), interest-cohort=()
   Cross-Origin-Opener-Policy: same-origin
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'sha256-ZLLrZkbz5LFJDdGZ8xszg9i8iXWbnxlTYMl589PFEpk=' 'sha256-Q2BPg90ZMplYY+FSdApNErhpWafg2hcRRbndmvxuL/Q=' 'sha256-SaCkFfPruIdTXT8/97JArQmGxiJAL2o4bBDvSgJ5y3Q=' 'sha256-V6RqIaXcQX+/TzKqpHxsXUvnMWqiqZOyjQigMLwIuFg=' 'sha256-nnoaPpJkpAlvOma34DpNVZAKVWgOYA6+YfgrsCakEiI=' 'sha256-Uu5xv7Msgj+1kzRR4wJW0Jnli16ZeUqr90fnMSQi0o0=' 'sha256-v4nQQJRfqX3e3M6p2FrZ6wQxs+OBE0Tn2TtJjwu+iRI=' 'sha256-qZGS7FnS5xbz+l+3MHmGDFU8to+x+B9rla3AM38PUeg='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; media-src 'self' https://loguyonztvejrfjcaxxb.supabase.co; frame-ancestors 'none'; form-action 'self'; base-uri 'self'; object-src 'none'
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'sha256-ZLLrZkbz5LFJDdGZ8xszg9i8iXWbnxlTYMl589PFEpk=' 'sha256-Q2BPg90ZMplYY+FSdApNErhpWafg2hcRRbndmvxuL/Q=' 'sha256-SaCkFfPruIdTXT8/97JArQmGxiJAL2o4bBDvSgJ5y3Q=' 'sha256-V6RqIaXcQX+/TzKqpHxsXUvnMWqiqZOyjQigMLwIuFg=' 'sha256-nnoaPpJkpAlvOma34DpNVZAKVWgOYA6+YfgrsCakEiI=' 'sha256-Uu5xv7Msgj+1kzRR4wJW0Jnli16ZeUqr90fnMSQi0o0=' 'sha256-v4nQQJRfqX3e3M6p2FrZ6wQxs+OBE0Tn2TtJjwu+iRI=' 'sha256-qZGS7FnS5xbz+l+3MHmGDFU8to+x+B9rla3AM38PUeg='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; media-src 'self' https://loguyonztvejrfjcaxxb.supabase.co; frame-src 'self' https://whereby.com; frame-ancestors 'none'; form-action 'self'; base-uri 'self'; object-src 'none'
 
 /fleetlix.vcf
   Content-Type: text/vcard; charset=utf-8
