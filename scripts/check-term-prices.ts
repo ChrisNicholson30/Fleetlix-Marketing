@@ -10,7 +10,7 @@
 // the list prices or the discounts disagree. The app is the source of truth.
 //
 // NOT WIRED INTO `pnpm build`: this repo has no test step, and adding one is a
-// change to the Pages build that needs agreeing first (CLAUDE.md). Run it before
+// change to the Pages build that needs deliberate review (AGENTS.md). Run it before
 // changing a price on either side.
 
 import { resolve } from "node:path";

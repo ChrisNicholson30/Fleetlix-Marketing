@@ -6,7 +6,7 @@
 #
 # NOTE: this is a static mirror. The /api/register-interest Pages Function
 # and the public/_headers CSP are Cloudflare-only and do NOT run here, so
-# the interest form won't deliver from this container (see README/CLAUDE.md).
+# the interest form won't deliver from this container (see AGENTS.md).
 
 # ── Stage 1: build the static site ──────────────────────────────────────
 FROM node:22.13-slim AS build

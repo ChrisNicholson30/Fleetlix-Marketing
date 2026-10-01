@@ -2,18 +2,16 @@
 import Base from "../layouts/Base.astro";
 import Header from "../components/Header.astro";
 import SiteFooter from "../components/SiteFooter.astro";
+import { WHEREBY_PRIVACY_URL, WHEREBY_COOKIES_URL } from "../config/training";
 
-// Bumped for the /walkthrough video embed — the site's first and only
-// third-party content. Section 4 below is the load-bearing one: the reason
-// there is still no consent banner is that the embed is CLICK-TO-LOAD, so
-// pressing play IS the consent. If anyone ever makes that player load
-// automatically, this policy becomes false and a banner becomes mandatory.
-const lastUpdated = "10 August 2026";
+// Both optional external services are click-to-load. Keep this notice aligned
+// with their facades, src/scripts/training.ts and public/_headers.
+const lastUpdated = "1 October 2026";
 ---
 
 <Base
   title="Cookies Policy — Fleetlix"
-  description="Cookie use on fleetlix.com. UK GDPR and PECR compliant. No analytics, no advertising or behavioural-tracking cookies — only Cloudflare's strictly-necessary security cookies."
+  description="Cookie use on fleetlix.com, including Cloudflare security cookies and the optional, click-to-load walkthrough video and Whereby training room."
 >
   <Header />
   <main class="bg-[color:var(--color-offwhite)]">
@@ -42,10 +40,10 @@ const lastUpdated = "10 August 2026";
         <section>
           <h2 class="font-[family-name:var(--font-display)] font-bold text-2xl text-[color:var(--color-graphite)]">3. Cookies used on this website</h2>
           <p class="mt-3">
-            <strong>Fleetlix sets no first-party cookies on this marketing site.</strong> We do not use analytics, marketing, advertising, or behavioural-tracking cookies of any kind. There is no Google Analytics, no Meta Pixel, no LinkedIn Insight Tag, no advertising network, and no third-party widget, chat box, or social embed that loads on its own.
+            <strong>Fleetlix sets no first-party cookies on this marketing site.</strong> We do not install analytics, marketing, advertising, or behavioural-tracking cookies. There is no Google Analytics, no Meta Pixel, no LinkedIn Insight Tag, no advertising network, and no third-party widget, chat box, or social embed that loads on its own. The optional training service has its own cookie practices, described below.
           </p>
           <p class="mt-3">
-            The single exception is the walkthrough video, which is fetched from Supabase Storage <em>only if you press play</em>. It is covered in section 4 below.
+            Two optional features contact external providers: the walkthrough video, fetched from Supabase Storage <em>only if you press play</em>, and the Whereby training room, loaded <em>only if you choose to enter</em>. They are covered in sections 4 and 5 below.
           </p>
           <p class="mt-3">
             Our hosting provider, Cloudflare, may set a small number of <em>strictly necessary</em> cookies for site security and bot management when their protection services are active:
@@ -84,7 +82,7 @@ const lastUpdated = "10 August 2026";
         <section>
           <h2 class="font-[family-name:var(--font-display)] font-bold text-2xl text-[color:var(--color-graphite)]">4. The walkthrough video</h2>
           <p class="mt-3">
-            One file on this website is served from another address: the product walkthrough video on our <a href="/walkthrough" class="underline hover:text-[color:var(--color-graphite)]">walkthrough page</a>. It is a plain video file stored in <strong>Supabase Storage</strong>, which is the same infrastructure provider that runs the Fleetlix application. It is played by your browser's own built-in video player — there is <strong>no third-party video service, no embedded player, and no third-party JavaScript running on the page</strong>.
+            The product walkthrough video on our <a href="/walkthrough" class="underline hover:text-[color:var(--color-graphite)]">walkthrough page</a> is served from another address. It is a plain video file stored in <strong>Supabase Storage</strong>, which is the same infrastructure provider that runs the Fleetlix application. It is played by your browser's own built-in video player — there is <strong>no third-party video service, no embedded player, and no third-party JavaScript running on the walkthrough page</strong>.
           </p>
           <p class="mt-3">
             <strong>Nothing is requested until you press play.</strong> Until you do, the page shows a still image served from this website, and your browser does not contact Supabase at all — nothing is sent, nothing is stored, and no cookie is set. This is a deliberate design choice, not a side effect: pressing play is how you consent to loading it.
@@ -97,13 +95,26 @@ const lastUpdated = "10 August 2026";
           </p>
         </section>
 
-        <section>
-          <h2 class="font-[family-name:var(--font-display)] font-bold text-2xl text-[color:var(--color-graphite)]">5. Why we don't show a cookie banner</h2>
+        <section id="training">
+          <h2 class="font-[family-name:var(--font-display)] font-bold text-2xl text-[color:var(--color-graphite)]">5. Live training sessions</h2>
           <p class="mt-3">
-            UK law (PECR) only requires consent for cookies and similar storage that are <em>not</em> strictly necessary. This site uses no analytics, no marketing or advertising cookies, and no other non-essential storage, so in normal use there is nothing to ask consent for.
+            Our <a href="/training" class="underline hover:text-[color:var(--color-graphite)]">training page</a> offers an optional video room provided by <strong>Whereby</strong>. The room is blocked until you choose <strong>Enter training room</strong>, beside a notice explaining that you are loading Whereby's service and cookies. Visiting the page alone does not contact Whereby. You can also choose to open the room directly on Whereby's website.
           </p>
           <p class="mt-3">
-            The walkthrough video described above is the one case where another party could set anything on your device — and it is built so that <em>pressing play is the consent</em>. Nothing loads until you make that choice, which is exactly what a banner would otherwise be asking you. We think an explicit play button is clearer than a pop-up, and it means visitors who never watch the video are never asked about it. The cookie that is then set is strictly necessary for delivering the file, which is the category UK law does not require consent for in any case.
+            Once you choose to enter, Whereby receives technical information such as your IP address and browser details and runs its own service inside the room. It may use cookies and similar storage for service operation, preferences and its own analytics. Whereby's <a href={WHEREBY_COOKIES_URL} class="underline hover:text-[color:var(--color-graphite)]" target="_blank" rel="noopener noreferrer">Cookie Policy</a> describes its cookies, purposes, durations and available choices; its <a href={WHEREBY_PRIVACY_URL} class="underline hover:text-[color:var(--color-graphite)]" target="_blank" rel="noopener noreferrer">Privacy Policy</a> explains how it handles personal information. These practices are separate from Fleetlix's marketing website.
+          </p>
+          <p class="mt-3">
+            Your browser separately controls camera and microphone permission. Use <strong>Close room</strong> to unload the embedded service, or close the separate tab if you opened it directly. This stops the room loading further content; it does not remove cookies or information already sent to Whereby. You can manage stored cookies through your browser settings. To avoid the service entirely, leave the room unopened.
+          </p>
+        </section>
+
+        <section>
+          <h2 class="font-[family-name:var(--font-display)] font-bold text-2xl text-[color:var(--color-graphite)]">6. How we ask before loading optional content</h2>
+          <p class="mt-3">
+            The marketing pages do not automatically load analytics, marketing or advertising cookies. Optional external content stays unloaded until you make a choice on the relevant page.
+          </p>
+          <p class="mt-3">
+            The walkthrough uses an explicit play button. The training room uses an explicit entry button with a privacy and cookie notice. Neither choice is saved: if you revisit the page, the external content remains blocked until you choose again. Visitors who leave these features unopened do not contact either provider.
           </p>
           <p class="mt-3">
             If that changes — for example, if we add product analytics, or any embed that loads without being clicked — we will introduce a proper consent mechanism and update this page before anything is set.
@@ -111,7 +122,7 @@ const lastUpdated = "10 August 2026";
         </section>
 
         <section>
-          <h2 class="font-[family-name:var(--font-display)] font-bold text-2xl text-[color:var(--color-graphite)]">6. Managing cookies in your browser</h2>
+          <h2 class="font-[family-name:var(--font-display)] font-bold text-2xl text-[color:var(--color-graphite)]">7. Managing cookies in your browser</h2>
           <p class="mt-3">
             You can block or delete cookies through your browser settings. Blocking strictly necessary cookies may prevent parts of the site from working as intended — for example, you may be repeatedly shown a security challenge. Instructions for the major browsers:
           </p>
@@ -124,14 +135,14 @@ const lastUpdated = "10 August 2026";
         </section>
 
         <section>
-          <h2 class="font-[family-name:var(--font-display)] font-bold text-2xl text-[color:var(--color-graphite)]">7. Changes to this policy</h2>
+          <h2 class="font-[family-name:var(--font-display)] font-bold text-2xl text-[color:var(--color-graphite)]">8. Changes to this policy</h2>
           <p class="mt-3">
             We will update this page if our use of cookies changes. The "Last updated" date above always reflects the most recent revision.
           </p>
         </section>
 
         <section>
-          <h2 class="font-[family-name:var(--font-display)] font-bold text-2xl text-[color:var(--color-graphite)]">8. Contact</h2>
+          <h2 class="font-[family-name:var(--font-display)] font-bold text-2xl text-[color:var(--color-graphite)]">9. Contact</h2>
           <p class="mt-3">
             Questions about cookies or anything else in this policy? Email <a href="mailto:contact@fleetlix.com" class="underline hover:text-[color:var(--color-graphite)]">contact@fleetlix.com</a>.
           </p>
