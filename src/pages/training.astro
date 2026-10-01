@@ -1,0 +1,279 @@
+---
+import Base from "../layouts/Base.astro";
+import SiteFooter from "../components/SiteFooter.astro";
+import { TRAINING_ROOM_URL, WHEREBY_PRIVACY_URL, WHEREBY_COOKIES_URL, joiningSteps, trainingFaqs } from "../config/training";
+---
+
+<Base
+  title="Live Fleetlix Training — Join Your Session"
+  description="Join your Fleetlix training session from your phone, tablet or computer. Practical guidance, your questions, and a friendly face to help."
+>
+  <a class="training-skip" href="#training-room">Skip to training room</a>
+  <header class="training-header">
+    <div class="training-container flex items-center justify-between gap-4 py-5">
+      <a href="/" aria-label="Fleetlix home" class="training-home inline-flex min-h-11 items-center gap-5">
+        <img src="/fleetlix-logo-primary.svg" alt="Fleetlix" width="142" height="36" class="h-8 w-auto" />
+        <span class="hidden border-l border-mist pl-5 text-sm text-slate sm:block">Training</span>
+      </a>
+      <a href="/support" class="training-support inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-graphite">
+        Need a hand?
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10" /></svg>
+      </a>
+    </div>
+  </header>
+
+  <main class="training-main">
+    <div class="training-container">
+      <section class="training-intro" aria-labelledby="training-heading">
+        <div>
+          <p class="training-eyebrow"><span aria-hidden="true"></span> THE FLEETLIX TRAINING ROOM</p>
+          <h1 id="training-heading">Let’s make Fleetlix<br />feel <span>familiar.</span></h1>
+          <p class="training-lead">A friendly face. Practical guidance. Space for your questions.<br class="hidden sm:block" /> Join your session and we’ll work through it together.</p>
+        </div>
+        <div class="training-device-note">
+          <div class="training-devices" aria-hidden="true">
+            <svg width="46" height="40" viewBox="0 0 48 40" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="5" y="4" width="34" height="24" rx="3" /><path d="M2 33h40M17 28v5m10-5v5" /><rect x="32" y="16" width="13" height="22" rx="2.5" class="training-phone-fill" /><path d="M36 34h5" /></svg>
+          </div>
+          <p>Your desk. Your cab. Your sofa.<br /><strong>Join from wherever you are.</strong></p>
+        </div>
+      </section>
+
+      <div class="training-layout">
+        <div class="training-room-column">
+          <section id="training-room" class="training-room" aria-labelledby="room-heading" data-training-room data-room-url={TRAINING_ROOM_URL} data-state="ready">
+            <div class="training-room-bar">
+              <h2 id="room-heading"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="3" y="6" width="12" height="12" rx="3" /><path d="m15 10 6-3v10l-6-3" /></svg> Fleetlix training</h2>
+              <span class="training-provider">Powered by <strong>Whereby</strong></span>
+            </div>
+
+            <div class="training-room-stage">
+              <div class="training-room-facade" data-room-facade>
+                <div class="training-room-art" aria-hidden="true">
+                  <div class="training-orbit training-orbit-outer"></div>
+                  <div class="training-orbit training-orbit-inner"></div>
+                  <div class="training-art-mark"><img src="/fleetlix-logo-icon.svg" alt="" width="50" height="50" /></div>
+                  <span class="training-art-device training-art-camera"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="6" width="12" height="12" rx="3" /><path d="m15 10 6-3v10l-6-3" /></svg></span>
+                  <span class="training-art-device training-art-audio"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 14v-3a8 8 0 0 1 16 0v3" /><rect x="3" y="12" width="4" height="8" rx="2" /><rect x="17" y="12" width="4" height="8" rx="2" /></svg></span>
+                  <span class="training-art-dot"></span>
+                </div>
+                <p class="training-stage-eyebrow">A LITTLE HELP GOES A LONG WAY</p>
+                <h3>Your session starts here.</h3>
+                <p class="training-stage-description">Come as you are. Bring your questions.<br />Your trainer will take it from there.</p>
+                <button type="button" class="training-enter" data-enter-room hidden aria-describedby="training-consent">
+                  Enter training room
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6" /></svg>
+                </button>
+                <noscript><p class="training-noscript">Use <strong>Open room directly</strong> below to join your session.</p></noscript>
+                <p id="training-consent" class="training-consent">By entering, you load Whereby’s video service and cookies, which may include its own analytics. <a href={WHEREBY_PRIVACY_URL} target="_blank" rel="noopener noreferrer">Privacy</a> &amp; <a href={WHEREBY_COOKIES_URL} target="_blank" rel="noopener noreferrer">cookies</a>. You control camera and microphone access.</p>
+              </div>
+              <iframe
+                title="Fleetlix training session on Whereby"
+                data-room-frame
+                hidden
+                allow="camera; microphone; fullscreen; speaker-selection; display-capture; autoplay; compute-pressure"
+                allowfullscreen
+                referrerpolicy="strict-origin-when-cross-origin"
+              ></iframe>
+              <div class="training-loading" data-room-loading hidden role="status">
+                <div class="training-loading-lines" aria-hidden="true"><span></span><span></span><span></span></div>
+                <p>Opening your training room…</p>
+              </div>
+            </div>
+
+            <div class="training-room-footer">
+              <p data-room-status role="status">Join at your arranged time</p>
+              <button type="button" data-close-room hidden class="training-close">Close room</button>
+            </div>
+            <p class="training-slow" data-room-slow hidden role="status">The room is taking longer to load. Check your connection or <a href={TRAINING_ROOM_URL} target="_blank" rel="noopener noreferrer">open the room directly</a>.</p>
+          </section>
+          <div class="training-direct">
+            <p><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M12 11v6m0-10v1" /></svg> Prefer a separate tab, or having trouble joining?</p>
+            <a href={TRAINING_ROOM_URL} target="_blank" rel="noopener noreferrer">Open room directly <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10" /></svg></a>
+          </div>
+        </div>
+
+        <aside class="training-sidebar" aria-labelledby="before-heading">
+          <p class="training-eyebrow training-aside-eyebrow">MAKE YOURSELF AT HOME</p>
+          <h2 id="before-heading">Before you join</h2>
+          <ol class="training-checklist">
+            {joiningSteps.map((step, index) => (
+              <li><span class="training-step-number">0{index + 1}</span><div><h3>{step.title}</h3><p>{step.description}</p></div></li>
+            ))}
+          </ol>
+          <div class="training-mobile-tip">
+            <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="6" y="2" width="12" height="20" rx="3" /><path d="M10 18h4M10 5h4" /></svg>
+            <div><h3>Joining on your phone?</h3><p>Use Safari on iPhone or Chrome on Android. Headphones help you hear every detail.</p></div>
+          </div>
+        </aside>
+      </div>
+
+      <section class="training-help" aria-labelledby="help-heading">
+        <div class="training-help-heading"><p class="training-eyebrow">A GOOD PLACE TO START</p><h2 id="help-heading">A few quick answers.</h2><p>Less figuring things out.<br />More getting on with your session.</p><a href="/support">Visit Fleetlix support <span aria-hidden="true">→</span></a></div>
+        <div class="training-faqs">
+          {trainingFaqs.map((faq) => (
+            <details><summary>{faq.question}<span aria-hidden="true">+</span></summary><p>{faq.answer}</p></details>
+          ))}
+        </div>
+      </section>
+
+      <section class="training-resources" aria-labelledby="resources-heading">
+        <div><p class="training-eyebrow">IN YOUR OWN TIME</p><h2 id="resources-heading">Keep getting to know Fleetlix.</h2></div>
+        <a href="/walkthrough"><span><strong>Watch the walkthrough</strong><span>See a job go from booking to invoice.</span></span><span class="training-resource-arrow" aria-hidden="true">↗</span></a>
+        <a href="/install"><span><strong>Get Fleetlix on your device</strong><span>Your install guide, step by step.</span></span><span class="training-resource-arrow" aria-hidden="true">↗</span></a>
+      </section>
+      <p class="training-privacy-note">The room loads only when you choose to enter. <a href="/cookies#training">About training room privacy</a></p>
+    </div>
+  </main>
+  <SiteFooter />
+</Base>
+
+<script>
+  import "../scripts/training.ts";
+</script>
+
+<style>
+  .training-main { padding-bottom: 3rem; }
+  .training-container { width: 100%; max-width: 1400px; margin-inline: auto; padding-inline: max(1.25rem, env(safe-area-inset-left)) max(1.25rem, env(safe-area-inset-right)); }
+  .training-header { border-bottom: 1px solid var(--color-mist); }
+  .training-support:hover { color: var(--color-slate); }
+  .training-skip { position: absolute; top: 1rem; left: 1rem; z-index: 50; padding: 1rem; color: var(--color-graphite); background: var(--color-amber); transform: translateY(-200%); }
+  .training-skip:focus { transform: none; }
+  .training-intro { display: flex; align-items: flex-end; justify-content: space-between; gap: 2rem; padding-block: 3.25rem 2.75rem; }
+  .training-eyebrow { display: flex; align-items: center; gap: .65rem; color: var(--color-slate); font-size: .65rem; font-weight: 600; letter-spacing: .16em; }
+  .training-eyebrow > span { width: .45rem; height: .45rem; border-radius: 50%; background: var(--color-amber); }
+  .training-intro h1 { margin-top: 1.25rem; font-size: clamp(2.4rem, 4.5vw, 3.7rem); font-weight: 700; line-height: 1.08; letter-spacing: -.055em; }
+  .training-intro h1 > span { position: relative; isolation: isolate; }
+  .training-intro h1 > span::after { content: ""; position: absolute; z-index: -1; bottom: .05em; left: -.02em; right: -.03em; height: .15em; border-radius: 50%; background: var(--color-amber); transform: rotate(-2deg); }
+  .training-lead { margin-top: 1.35rem; font-size: .95rem; line-height: 1.8; }
+  .training-device-note { display: none; gap: 1rem; align-items: center; padding-bottom: .25rem; font-size: .8rem; line-height: 1.8; }
+  .training-device-note strong { font-weight: 500; color: var(--color-graphite); }
+  .training-devices { color: var(--color-slate); }
+  .training-phone-fill { fill: var(--color-offwhite); }
+  .training-layout { display: grid; gap: 2.5rem; align-items: start; }
+  .training-room-column { min-width: 0; }
+  .training-room { min-width: 0; border: 1px solid color-mix(in srgb, var(--color-graphite) 85%, var(--color-offwhite)); border-radius: 1.25rem; background: var(--color-graphite); overflow: hidden; color: var(--color-offwhite); box-shadow: 0 16px 36px -24px color-mix(in srgb, var(--color-graphite) 35%, transparent); scroll-margin-top: 1rem; }
+  .training-room-bar, .training-room-footer { display: flex; justify-content: space-between; gap: .75rem; align-items: center; padding: 1rem 1.35rem; }
+  .training-room-bar { border-bottom: 1px solid color-mix(in srgb, var(--color-mist) 12%, transparent); }
+  .training-room-bar h2 { display: inline-flex; align-items: center; gap: .65rem; color: var(--color-offwhite); font-family: var(--font-sans); font-size: .85rem; font-weight: 500; letter-spacing: -.015em; }
+  .training-room-bar h2 svg { color: var(--color-amber); }
+  .training-provider { font-size: .65rem; color: color-mix(in srgb, var(--color-mist) 80%, var(--color-graphite)); white-space: nowrap; }
+  .training-provider strong { margin-left: .2rem; color: var(--color-offwhite); font-weight: 500; }
+  .training-room-stage { position: relative; min-height: 530px; background: radial-gradient(ellipse at 50% 10%, color-mix(in srgb, var(--color-slate) 50%, var(--color-graphite)), var(--color-graphite) 70%); }
+  .training-room-facade { padding: 1.75rem 1.25rem 2rem; text-align: center; }
+  .training-room-art { position: relative; display: grid; place-items: center; width: 248px; height: 190px; margin: 0 auto 1.25rem; }
+  .training-orbit { position: absolute; border: 1px solid color-mix(in srgb, var(--color-mist) 12%, transparent); border-radius: 50%; }
+  .training-orbit-outer { width: 208px; height: 208px; }
+  .training-orbit-inner { width: 144px; height: 144px; border-style: dashed; border-color: color-mix(in srgb, var(--color-mist) 18%, transparent); }
+  .training-art-mark { display: grid; place-items: center; width: 88px; height: 88px; border: 1px solid color-mix(in srgb, var(--color-mist) 12%, transparent); border-radius: 1.5rem; background: var(--color-graphite); box-shadow: 0 10px 30px -12px color-mix(in srgb, var(--color-graphite) 85%, transparent); transform: rotate(-8deg); }
+  .training-art-mark img { transform: rotate(8deg); }
+  .training-art-device { position: absolute; display: grid; place-items: center; width: 46px; height: 46px; border-radius: .9rem; background: color-mix(in srgb, var(--color-slate) 75%, var(--color-graphite)); border: 1px solid color-mix(in srgb, var(--color-mist) 15%, transparent); color: var(--color-mist); }
+  .training-art-camera { top: 22px; right: 27px; transform: rotate(9deg); }
+  .training-art-audio { bottom: 10px; left: 23px; transform: rotate(-9deg); }
+  .training-art-dot { position: absolute; width: 8px; height: 8px; border-radius: 50%; background: var(--color-amber); top: 42px; left: 30px; box-shadow: 0 0 0 5px color-mix(in srgb, var(--color-amber) 8%, transparent); }
+  .training-stage-eyebrow { color: color-mix(in srgb, var(--color-mist) 70%, var(--color-graphite)); font-size: .6rem; letter-spacing: .14em; }
+  .training-room-facade h3 { margin-top: .7rem; color: var(--color-offwhite); font-size: clamp(1.55rem, 2.5vw, 2rem); font-weight: 600; letter-spacing: -.04em; line-height: 1.2; }
+  .training-stage-description { margin-top: .8rem; font-size: .85rem; line-height: 1.8; color: color-mix(in srgb, var(--color-mist) 85%, var(--color-graphite)); }
+  .training-enter { display: inline-flex; justify-content: center; align-items: center; gap: 1.6rem; min-height: 52px; margin-top: 1.5rem; border: 1px solid color-mix(in srgb, var(--color-amber) 75%, var(--color-offwhite)); border-radius: .75rem; padding: .8rem 1.25rem; color: var(--color-graphite); background: var(--color-amber); font-size: .9rem; font-weight: 600; cursor: pointer; transition: transform .2s, background .2s; }
+  .training-enter:hover { background: color-mix(in srgb, var(--color-amber) 85%, var(--color-offwhite)); transform: translateY(-2px); }
+  .training-enter:active { transform: scale(.98); }
+  .training-consent { max-width: 430px; margin: 1rem auto 0; font-size: .75rem; line-height: 1.8; color: color-mix(in srgb, var(--color-mist) 80%, var(--color-graphite)); }
+  .training-consent a { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; text-decoration: underline; text-underline-offset: 3px; }
+  .training-room-stage iframe { display: block; width: 100%; height: 640px; border: 0; background: var(--color-offwhite); }
+  .training-room-footer { min-height: 57px; border-top: 1px solid color-mix(in srgb, var(--color-mist) 12%, transparent); color: color-mix(in srgb, var(--color-mist) 85%, var(--color-graphite)); font-size: .7rem; }
+  .training-close { min-height: 44px; padding-inline: .6rem; font-size: .75rem; color: var(--color-offwhite); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; flex-shrink: 0; }
+  .training-loading { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 1.5rem; background: var(--color-graphite); color: var(--color-mist); font-size: .85rem; pointer-events: none; }
+  .training-loading-lines { display: grid; gap: .75rem; width: 200px; }
+  .training-loading-lines span { display: block; height: 12px; border-radius: 6px; background: var(--color-slate); }
+  .training-loading-lines span:nth-child(2) { width: 75%; }
+  .training-loading-lines span:nth-child(3) { width: 50%; }
+  .training-slow { padding: 1rem 1.35rem; font-size: .8rem; line-height: 1.7; border-top: 1px solid var(--color-slate); }
+  .training-slow a { text-decoration: underline; text-underline-offset: 3px; }
+  .training-noscript { margin-top: 1rem; font-size: .85rem; }
+  .training-room [hidden] { display: none !important; }
+  .training-sidebar { min-width: 0; padding-top: .5rem; }
+  .training-aside-eyebrow { font-size: .6rem; }
+  .training-sidebar h2 { margin-top: .7rem; font-size: 1.55rem; font-weight: 600; letter-spacing: -.04em; }
+  .training-checklist { margin-top: 1.8rem; }
+  .training-checklist li { display: flex; gap: 1rem; padding-bottom: 1.5rem; }
+  .training-checklist li + li { border-top: 1px solid var(--color-mist); padding-top: 1.5rem; }
+  .training-step-number { padding-top: .15rem; font-family: var(--font-mono); font-size: .65rem; color: var(--color-slate); }
+  .training-checklist h3, .training-mobile-tip h3 { font-family: var(--font-sans); font-size: .9rem; font-weight: 600; letter-spacing: -.02em; line-height: 1.5; }
+  .training-checklist p, .training-mobile-tip p { margin-top: .5rem; font-size: .875rem; line-height: 1.8; }
+  .training-mobile-tip { display: flex; align-items: flex-start; gap: .8rem; padding: 1.1rem; border-radius: .85rem; background: color-mix(in srgb, var(--color-mist) 45%, var(--color-offwhite)); }
+  .training-mobile-tip svg { flex-shrink: 0; margin-top: .15rem; }
+  .training-direct { display: flex; flex-direction: column; align-items: flex-start; gap: .25rem; margin-top: 1rem; font-size: .75rem; }
+  .training-direct p, .training-direct a { display: flex; align-items: center; gap: .5rem; }
+  .training-direct p { line-height: 1.7; }
+  .training-direct p svg { flex-shrink: 0; }
+  .training-direct a { min-height: 44px; font-weight: 600; color: var(--color-graphite); text-decoration: underline; text-underline-offset: 4px; }
+  .training-help { display: grid; gap: 1.75rem; margin-top: 3.5rem; padding-block: 2.75rem; border-top: 1px solid var(--color-mist); }
+  .training-help-heading h2 { margin-top: .75rem; font-size: 1.8rem; font-weight: 600; letter-spacing: -.045em; }
+  .training-help-heading > p:not(.training-eyebrow) { margin-top: .8rem; font-size: .85rem; line-height: 1.8; }
+  .training-help-heading a { display: inline-flex; align-items: center; gap: .8rem; min-height: 44px; margin-top: .85rem; font-size: .8rem; font-weight: 600; color: var(--color-graphite); }
+  .training-help-heading a:hover { text-decoration: underline; text-underline-offset: 4px; }
+  .training-faqs { border-top: 1px solid var(--color-mist); }
+  .training-faqs details { border-bottom: 1px solid var(--color-mist); }
+  .training-faqs summary { display: flex; justify-content: space-between; align-items: center; gap: 1rem; min-height: 66px; padding-block: 1rem; color: var(--color-graphite); font-size: .88rem; font-weight: 500; line-height: 1.6; cursor: pointer; list-style: none; }
+  .training-faqs summary::-webkit-details-marker { display: none; }
+  .training-faqs summary > span { flex-shrink: 0; font-size: 1.4rem; font-weight: 400; transition: transform .2s; }
+  .training-faqs details[open] summary > span { transform: rotate(45deg); }
+  .training-faqs details > p { max-width: 65ch; padding: 0 1.5rem 1.4rem 0; font-size: .85rem; line-height: 1.9; }
+  .training-resources { display: grid; gap: 1.5rem; padding-block: 2rem; border-top: 1px solid var(--color-mist); border-bottom: 1px solid var(--color-mist); }
+  .training-resources h2 { max-width: 18ch; margin-top: .7rem; font-size: 1.3rem; font-weight: 600; letter-spacing: -.035em; }
+  .training-resources > a { display: flex; justify-content: space-between; align-items: center; gap: 1rem; min-height: 76px; padding: .6rem 0; }
+  .training-resources strong { display: block; color: var(--color-graphite); font-size: .85rem; font-weight: 600; }
+  .training-resources a > span > span { display: block; margin-top: .4rem; font-size: .75rem; line-height: 1.7; }
+  .training-resource-arrow { display: grid; place-items: center; width: 44px; height: 44px; flex-shrink: 0; border: 1px solid var(--color-mist); border-radius: 50%; color: var(--color-graphite); transition: background .2s, transform .2s; }
+  .training-resources a:hover .training-resource-arrow { background: var(--color-amber); border-color: var(--color-amber); transform: rotate(6deg); }
+  .training-privacy-note { margin-top: 1.25rem; font-size: .7rem; line-height: 1.8; }
+  .training-privacy-note a { display: inline-block; min-height: 44px; padding-block: .65rem; text-decoration: underline; text-underline-offset: 3px; }
+  :is(a, button, summary, iframe):focus-visible { outline: 2px solid var(--color-amber); outline-offset: 4px; }
+  .training-enter:focus-visible { outline-color: var(--color-offwhite); }
+  @media (min-width: 640px) {
+    .training-container { padding-inline: max(2rem, env(safe-area-inset-left)) max(2rem, env(safe-area-inset-right)); }
+    .training-room-facade { padding: 2.5rem 2rem; }
+    .training-direct { flex-direction: row; align-items: center; justify-content: space-between; gap: 1rem; }
+    .training-resources { grid-template-columns: 1fr 1fr; column-gap: 2.5rem; }
+    .training-resources > div { grid-column: 1 / -1; }
+  }
+  @media (min-width: 1024px) {
+    .training-container { padding-inline: 3rem; }
+    .training-intro { padding-block: 3.75rem 3rem; }
+    .training-device-note { display: flex; }
+    .training-layout { grid-template-columns: minmax(0, 1fr) 280px; gap: 2.5rem; }
+    .training-room-stage { min-height: 535px; }
+    .training-help { grid-template-columns: 1fr 1.65fr; gap: 4rem; margin-top: 4.25rem; padding-block: 3.5rem; }
+    .training-resources { grid-template-columns: 1.05fr 1fr 1fr; gap: 3rem; padding-block: 2.5rem; }
+    .training-resources > div { grid-column: auto; }
+  }
+  @media (max-width: 639px) {
+    .training-intro { padding-block: 1.5rem; }
+    .training-room-art { width: 230px; height: 144px; margin-bottom: 1rem; }
+    .training-orbit-outer { width: 168px; height: 168px; }
+    .training-orbit-inner { width: 118px; height: 118px; }
+    .training-art-mark { width: 76px; height: 76px; }
+    .training-art-mark img { width: 44px; height: 44px; }
+    .training-art-camera { top: 6px; }
+    .training-art-audio { bottom: 1px; }
+    .training-art-dot { top: 28px; }
+    .training-room-stage { min-height: 490px; }
+    .training-provider { max-width: 70px; text-align: right; white-space: normal; line-height: 1.6; }
+    .training-room-bar, .training-room-footer { padding-inline: 1rem; }
+    .training-room-stage iframe { height: max(600px, 80svh); }
+    .training-layout { gap: 1.75rem; }
+    .training-sidebar { order: 1; }
+    .training-direct { margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--color-mist); }
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .training-intro { animation: training-rise .65s both; }
+    .training-layout { animation: training-rise .75s .1s both; }
+    .training-loading-lines span { animation: training-loading 1.5s ease-in-out infinite alternate; }
+    .training-loading-lines span:nth-child(2) { animation-delay: .15s; }
+    .training-loading-lines span:nth-child(3) { animation-delay: .3s; }
+    @keyframes training-rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+    @keyframes training-loading { from { opacity: .4; } to { opacity: 1; } }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { transition: none !important; }
+  }
+</style>
