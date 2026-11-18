@@ -58,8 +58,8 @@ export const SUPPORT = {
    * says plainly that there isn't one yet, which is the honest version.
    */
   phone: null as string | null,
-  lastUpdated: "27 September 2026",
-  lastUpdatedIso: "2026-09-27",
+  lastUpdated: "18 November 2026",
+  lastUpdatedIso: "2026-11-18",
 } as const;
 
 /* ------------------------------------------------------------------ *
@@ -232,7 +232,7 @@ export const checkoutIssues: CheckoutIssue[] = [
         kind: "behaviour",
         symptom: "The monthly plan buttons say Register interest",
         meaning:
-          "Monthly card subscriptions are paused while we change how we take payments. Every plan, Fleetlix Compliance included, can still be ordered on a fixed-term contract of 24, 36, 48 or 60 months, signed online and paid monthly by bank transfer. That is intended, not a fault.",
+          "We take payment by bank transfer only and no longer sell monthly card subscriptions. Every plan, Fleetlix Compliance included, is ordered on a fixed-term contract of 24, 36, 48 or 60 months, signed online and paid monthly by bank transfer. That is intended, not a fault.",
         fix: "Use \"Fix your price for longer\" on the pricing page, or \"Order Fleetlix Compliance\" on its card. You confirm your email, read and sign your Order Form online, and your account opens as soon as the first invoice is paid.",
       }
     : SALES_PAUSED
@@ -258,9 +258,12 @@ export const checkoutIssues: CheckoutIssue[] = [
         {
           kind: "message",
           symptom: "New subscriptions are paused for now.",
-          meaning:
-            "You pressed a buy button on a page that was opened before sign-up was paused. Nothing was charged: the payment page never opened.",
-          fix: "Reload the page. The button becomes an enquiry link, and registering your interest is how to hear when sign-up reopens.",
+          meaning: SHOW_TERM_CONTRACTS
+            ? "You pressed a card buy button on a page that was opened before we stopped taking card payments. Nothing was charged: the payment page never opened."
+            : "You pressed a buy button on a page that was opened before sign-up was paused. Nothing was charged: the payment page never opened.",
+          fix: SHOW_TERM_CONTRACTS
+            ? "Reload the page and order on a fixed-term contract instead, paid by bank transfer. Section 6 sets out the steps."
+            : "Reload the page. The button becomes an enquiry link, and registering your interest is how to hear when sign-up reopens.",
         } satisfies CheckoutIssue,
       ]
     : []),

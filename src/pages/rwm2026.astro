@@ -2,6 +2,7 @@
 import Base from "../layouts/Base.astro";
 import SiteFooter from "../components/SiteFooter.astro";
 import { CARD_PROMO_CODE, PROMOS, SALES_PAUSED } from "../config/checkout";
+import { SHOW_TERM_CONTRACTS } from "../config/featureFlags";
 import { TIERS, gbp } from "../config/pricing";
 
 // One canonical physical-channel endpoint, named for the show it's handed out
@@ -12,7 +13,9 @@ import { TIERS, gbp } from "../config/pricing";
 // While sales are paused (SALES_PAUSED in src/config/checkout.ts), job 1 becomes
 // a "sign-up paused" block with no code and no trial button. The code cannot be
 // redeemed, and showing it here would read as a live offer to whoever is
-// holding the card. Job 2 is unaffected.
+// holding the card. With term contracts on (SHOW_TERM_CONTRACTS), that block
+// says we take bank transfer only and links to the contract prices instead.
+// Job 2 is unaffected.
 // Renamed from /card on 12 Aug 2026 — public/_redirects 301s the old path so
 // anything already printed still lands here.
 // noindex: this is a card/QR entry point, not an SEO page (excluded from the
@@ -92,6 +95,40 @@ const contactQr = "/fleetlix-contact-qr.svg";
           <div
             class="mt-7 rounded-2xl border border-[color:var(--color-amber)]/30 bg-[color:var(--color-amber)]/[0.08] p-5"
           >
+            {SHOW_TERM_CONTRACTS ? (
+            <>
+            <p
+              class="text-[0.7rem] font-semibold uppercase tracking-[0.22em] text-[color:var(--color-amber)]"
+            >
+              Bank transfer only
+            </p>
+            <p class="mt-2 text-[14px] leading-relaxed text-white/70">
+              Every plan is ordered on a fixed-term contract, signed online and
+              paid monthly by bank transfer. The longer the term, the lower the
+              monthly price.
+            </p>
+            <a
+              href="/#terms"
+              class="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-[color:var(--color-amber)] px-6 py-3.5 text-base font-semibold text-[color:var(--color-graphite)] shadow transition hover:brightness-105"
+            >
+              See the contract prices
+              <svg
+                aria-hidden="true"
+                viewBox="0 0 24 24"
+                class="h-4 w-4"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M5 12h14" />
+                <path d="m13 6 6 6-6 6" />
+              </svg>
+            </a>
+            </>
+            ) : (
+            <>
             <p
               class="text-[0.7rem] font-semibold uppercase tracking-[0.22em] text-[color:var(--color-amber)]"
             >
@@ -121,6 +158,8 @@ const contactQr = "/fleetlix-contact-qr.svg";
                 <path d="m13 6 6 6-6 6" />
               </svg>
             </a>
+            </>
+            )}
           </div>
           ) : (
           <div

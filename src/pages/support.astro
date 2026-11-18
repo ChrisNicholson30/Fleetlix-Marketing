@@ -32,7 +32,9 @@
 //      on them.
 //
 // While SALES_PAUSED (src/config/checkout.ts) is on, sections 3, 5, 6 and 11
-// carry the paused wording instead of the buying instructions. Both versions
+// carry other wording instead of the card buying instructions: with term
+// contracts on (ON_CONTRACT) it is "bank transfer only, on contract", and
+// without them it is the paused wording. Both versions
 // live here, so reopening is the flag and nothing else. Broker Pro has its own
 // switch (BROKER_PRO_EARN_ONLY, read here as BROKER_PRO_OPEN), which sections 5,
 // 6 and 11 follow separately.
@@ -78,6 +80,10 @@ const promo = resolvePromo(PROMO_CODE);
 const operator = TIERS.find((t) => t.slug === "operator")!;
 // How Broker Pro is had, as things stand. Both versions of the section 5
 // callout use it, so the pause and the earn-only switch cannot disagree.
+// Card checkout is closed but every plan is sold on a fixed-term contract paid
+// by bank transfer. This is the live state; the plain SALES_PAUSED branches
+// below are the fallback if term contracts are ever switched off.
+const ON_CONTRACT = SALES_PAUSED && SHOW_TERM_CONTRACTS;
 const brokerProLine = BROKER_PRO_OPEN
   ? `Broker Pro can be bought outright at £${BROKER_PRO_MONTHLY} a month plus VAT, billed monthly with no free trial and no promotion code, or earned by introducing carriers.`
   : "Broker Pro is not sold: it is earned by introducing carriers.";
@@ -382,7 +388,14 @@ const brokerProLine = BROKER_PRO_OPEN
               plus VAT</strong> with {COMPLIANCE.users} users. It is billed
               monthly only, there is no free trial, and promotion codes do not
               apply to it.{" "}
-              {SALES_PAUSED ? (
+              {ON_CONTRACT ? (
+                <>
+                  Order it from the {" "}<a href="/#compliance-tier" class="policy-link">Compliance
+                  card on the pricing section</a> on a fixed-term contract, signed
+                  online and paid monthly by bank transfer. Section 6 sets out
+                  the steps.
+                </>
+              ) : SALES_PAUSED ? (
                 <>New subscriptions to it are paused for the moment; section 6 explains.</>
               ) : (
                 <>
@@ -441,6 +454,12 @@ const brokerProLine = BROKER_PRO_OPEN
                   card or sent an email, use that link as it stands.
                 </p>
               </>
+            ) : ON_CONTRACT ? (
+              <p>
+                We take payment by bank transfer only, on fixed-term contracts,
+                and there is no free trial or promotion code on a contract. If
+                you were given a code, ask us what we can offer instead.
+              </p>
             ) : SALES_PAUSED ? (
               <p>
                 Promotion codes cannot be used while new subscriptions are paused
@@ -455,6 +474,7 @@ const brokerProLine = BROKER_PRO_OPEN
               </p>
             )}
 
+            {!ON_CONTRACT && (<>
             <p class="policy-subhead">How the trial works</p>
             <ul class="policy-list">
               <li>
@@ -477,8 +497,23 @@ const brokerProLine = BROKER_PRO_OPEN
                 10 sets out how.
               </li>
             </ul>
+            </>)}
 
-            {SALES_PAUSED ? (
+            {ON_CONTRACT ? (
+            <PolicyCallout label="We take bank transfer only" tone="amber">
+              <p>
+                We no longer take card payments. Operator, {COMPLIANCE.name},
+                Workshop, Depot, Haulier and Network are each ordered on a
+                fixed-term contract of 24, 36, 48 or 60 months, signed online
+                and paid monthly by bank transfer. Section 6 sets out the steps.
+              </p>
+              <p>
+                The {" "}<a href="/brokers" class="policy-link">Broker Network</a>{" "}
+                is open to any intermediary. Broker Free needs no card and no
+                code. {brokerProLine}
+              </p>
+            </PolicyCallout>
+            ) : SALES_PAUSED ? (
             <PolicyCallout label={BROKER_PRO_OPEN ? "Only broker accounts are open right now" : "Only Broker Free is open right now"} tone="amber">
               <p>
                 New subscriptions to Operator, {COMPLIANCE.name}, Workshop, Depot,
@@ -516,6 +551,49 @@ const brokerProLine = BROKER_PRO_OPEN
           </PolicySection>
 
           <PolicySection id="signing-up" title="Signing up, step by step" contents={contents}>
+            {ON_CONTRACT ? (
+            <>
+              <p>
+                Every plan is ordered on a fixed-term contract and paid by bank
+                transfer. We no longer take card payments, so there is no
+                payment page to fill in.
+              </p>
+              <ol class="policy-list">
+                <li>
+                  <strong>Go to the pricing section</strong> and choose a term:
+                  24, 36, 48 or 60 months. The longer the term, the lower the
+                  monthly price.
+                </li>
+                <li>
+                  <strong>Press Order on the plan you want</strong>, or
+                  {" "}<strong>Order {COMPLIANCE.name}</strong> on its card.
+                </li>
+                <li>
+                  <strong>Confirm your email address.</strong>
+                </li>
+                <li>
+                  <strong>Read and sign your Order Form online.</strong> It sets
+                  out the plan, the term and the fixed monthly price.
+                </li>
+                <li>
+                  <strong>Pay the first invoice by bank transfer.</strong> Your
+                  account opens as soon as the payment arrives, and you land in
+                  it as the first Admin.
+                </li>
+                <li>
+                  <strong>Set the business up</strong> — vehicles, people,
+                  waste tracking credentials. Section 7 covers the order that
+                  works best.
+                </li>
+              </ol>
+              <p>
+                Each later month is invoiced and paid by bank transfer in the
+                same way. Broker Free is unaffected: start from the
+                {" "}<a href="/brokers" class="policy-link">Broker Network</a>.
+              </p>
+            </>
+            ) : (
+            <>
             {SALES_PAUSED && (
               <PolicyCallout label={BROKER_PRO_OPEN ? "Sign-up is paused, except for broker accounts" : "Sign-up is paused, except for Broker Free"} tone="amber">
                 <p>
@@ -599,6 +677,8 @@ const brokerProLine = BROKER_PRO_OPEN
                 it.
               </p>
             </PolicyCallout>
+            </>
+            )}
           </PolicySection>
 
           <PolicySection id="first-week" title="Your first week" contents={contents}>
