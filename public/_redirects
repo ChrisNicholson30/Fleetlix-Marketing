@@ -13,3 +13,8 @@
 # what a reviewer guesses, so it resolves rather than 404s.
 /terms              /terms-of-service    301
 /terms/             /terms-of-service    301
+
+# /marshal is the Marshal product page. "Marshall" is the common misspelling,
+# so it resolves rather than 404s.
+/marshall           /marshal             301
+/marshall/          /marshal             301

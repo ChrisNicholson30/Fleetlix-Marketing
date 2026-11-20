@@ -345,6 +345,19 @@
   #terms:has(#term-60:checked) [data-term="60"] { display: block; }
 }
 
+/* ---- Marshal term picker (/marshal) ----
+ * The same mechanism on Marshal's own terms, which run 12 to 60 months
+ * (src/config/marshal.ts). Separate ids and attribute so it can never pick up
+ * the Fleetlix picker's rules. Without :has(), every term simply shows. */
+@supports selector(:has(*)) {
+  #marshal-terms [data-mterm] { display: none; }
+  #marshal-terms:has(#mterm-12:checked) [data-mterm="12"],
+  #marshal-terms:has(#mterm-24:checked) [data-mterm="24"],
+  #marshal-terms:has(#mterm-36:checked) [data-mterm="36"],
+  #marshal-terms:has(#mterm-48:checked) [data-mterm="48"],
+  #marshal-terms:has(#mterm-60:checked) [data-mterm="60"] { display: block; }
+}
+
 /* ---- Install-guide platform tabs ----
  * Same mechanism and the same reasoning as the billing toggle above: one radio
  * per platform, every platform's instructions rendered into the DOM, :has()

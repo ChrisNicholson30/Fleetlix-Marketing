@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="512" height="512" role="img" aria-label="Marshal">
+<title>Marshal</title>
+<rect width="120" height="120" fill="#15171A"/>
+<g transform="translate(60 60) scale(0.8) translate(-60 -58.75)">
+<polygon points="22,82 22,42 44,62 44,82" fill="#FF8A00" stroke="#FF8A00" stroke-width="6" stroke-linejoin="round"/>
+<polygon points="98,82 98,42 76,62 76,82" fill="#FF8A00" stroke="#FF8A00" stroke-width="6" stroke-linejoin="round"/>
+<rect x="19" y="93" width="28" height="10" rx="5" fill="#0098C7"/>
+<rect x="73" y="93" width="28" height="10" rx="5" fill="#0098C7"/>
+<rect x="52.5" y="36" width="15" height="72" rx="7.5" fill="#FFFFFF"/>
+<circle cx="60" cy="19" r="9.5" fill="#FFFFFF"/>
+<circle cx="22" cy="27" r="7" fill="#FF8A00"/>
+<circle cx="98" cy="27" r="7" fill="#FF8A00"/>
+</g>
+</svg>

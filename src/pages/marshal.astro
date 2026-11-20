@@ -1,0 +1,451 @@
+---
+// /marshal — Marshal, powered by Fleetlix.
+//
+// Marshal is a SEPARATE product: HR and quality (QMS) for licensed transport
+// operators, with its own sign-in, its own database and its own billing. This
+// page sells it; the Marshal app at MARSHAL_APP_URL fulfils the order, the same
+// hand-off the Fleetlix plans use with fleetlix.app/subscribe. Every Order link
+// is a plain link with band and term preselected: no script, no third-party
+// request, nothing for the CSP to allow.
+//
+// PRICES ARE NOT TYPED HERE. They come from src/config/marshal.ts, which mirrors
+// the Marshal app's src/shared/pricing.ts (scripts/check-marshal-prices.ts
+// compares them). The term picker is radios + :has() in global.css (search
+// "Marshal term picker"); every term's price is server-rendered.
+//
+// Keep the copy honest:
+//   - every feature listed here exists in the Marshal app today;
+//   - the kiosk photo is evidence a person checks, NEVER face recognition;
+//   - no hosting-location claim: it has not been verified for Marshal.
+//   - the 12-month term is the list price, so it never renders "0% off" or "was £…".
+import Base from "../layouts/Base.astro";
+import Header from "../components/Header.astro";
+import SiteFooter from "../components/SiteFooter.astro";
+import PolicyCallout from "../components/PolicyCallout.astro";
+import {
+  FLEETLIX_CUSTOMER_DISCOUNT_BPS,
+  MARSHAL_BANDS,
+  MARSHAL_DEFAULT_TERM,
+  MARSHAL_TERMS,
+  marshalContractPence,
+  marshalMonthlyPence,
+  marshalOrderHref,
+  marshalSavingPence,
+  pounds,
+  termDiscountPercent,
+} from "../config/marshal";
+
+const tick = `<path d="M20 6 9 17l-5-5"/>`;
+const fleetlixPercent = FLEETLIX_CUSTOMER_DISCOUNT_BPS / 100;
+const pricedBands = MARSHAL_BANDS.filter((b) => b.monthlyPence !== null) as {
+  id: "up_to_50" | "up_to_100" | "up_to_250";
+  label: string;
+  staff: string;
+  monthlyPence: number;
+}[];
+const quotedBand = MARSHAL_BANDS.find((b) => b.monthlyPence === null)!;
+const fromPence = Math.min(...pricedBands.map((b) => b.monthlyPence));
+const quoteHref = "mailto:contact@fleetlix.com?subject=Marshal%20quote%20(over%20250%20staff)";
+
+// "£299" for a whole-pound figure, "£284.05" otherwise.
+const money = (pence: number) => (pence % 100 === 0 ? `£${(pence / 100).toLocaleString("en-GB")}` : pounds(pence));
+
+// The chain is the demo: one event, one record, from the road to the audit.
+const chain = [
+  { step: "Event", body: "A tachograph infringement, a complaint, a near miss or a failed check is logged once, against the person." },
+  { step: "Debrief", body: "The manager debriefs the driver and the signed record lands in their staff file." },
+  { step: "Non-conformance", body: "If it points to a process problem, it becomes a non-conformance with the event attached." },
+  { step: "Corrective action", body: "Someone owns the fix, with a due date, until it is closed and checked." },
+  { step: "Audit pack", body: "The whole trail is already in the pack when the auditor asks for it." },
+];
+
+const kiosk = [
+  { title: "PIN plus photo", body: "Staff type a PIN on an iPad on the wall and the kiosk takes a photo. A manager checks the photo. It is evidence, never face recognition." },
+  { title: "Works offline", body: "Yards have poor signal. Sign-ins queue on the iPad and sync when the connection returns." },
+  { title: "Visitors and fire roll", body: "Visitors sign in at the same kiosk, so the fire roll shows everyone on site, not just staff." },
+  { title: "Sign documents at the gate", body: "New policies and controlled documents are signed at the kiosk, and the signature is filed against the person." },
+];
+
+const people = [
+  { title: "Timesheets from real sign-ins", body: "Built from the kiosk, not paper sheets. Tacho card times are typed at sign-out, and hours export to payroll." },
+  { title: "Lateness, spotted for you", body: "Sign-ins are checked against the rota automatically, with lateness reports by person and site." },
+  { title: "Reports on people", body: "Hours, lateness, absence with the Bradford factor, and upcoming expiries. Every report exports to CSV." },
+  { title: "Staff files", body: "One file per person, so a training record or a licence check is held once and read by every audit." },
+  { title: "Training and Driver CPC", body: "Training records and Driver CPC hours per driver, so you can see who is due before the deadline." },
+  { title: "Holiday and absence", body: "Staff book holiday, and holiday and absence are recorded against the person." },
+  { title: "Hiring", body: "Candidates and new starters in the same app as the staff they join." },
+];
+
+const quality = [
+  { title: "Fit-to-drive gate", body: "Licence check, DQC, tacho card, D4 medical and driver declaration rolled into one status per driver, per day. Licence checks follow the FORS D1 intervals." },
+  { title: "Controlled documents", body: "Policies and procedures with versions, and signatures collected at the kiosk." },
+  { title: "Event to corrective action", body: "Events, debriefs, non-conformances and corrective actions in one chain, each linked to the last." },
+  { title: "Audit packs", body: "Pick DVSA, FORS or ISO 9001 and Marshal builds the evidence pack, with the gaps flagged before the auditor finds them." },
+];
+
+const security = [
+  { lead: "Two-step verification", detail: "for every manager and HR login." },
+  { lead: "Health and personal data encrypted", detail: "and visible to HR only." },
+  { lead: "Need-to-know by design.", detail: "A transport manager sees “fit to drive: yes or no”, not the medical detail behind it." },
+  { lead: "Every view of a confidential record is logged,", detail: "so you can see who looked at what, and when." },
+];
+
+const connector = [
+  { title: "An unfit driver cannot be scheduled", body: "Fleetlix will not let a planner put a driver on a job when Marshal has them as not fit to drive." },
+  { title: "Job problems become quality records", body: "A defect or complaint logged on a Fleetlix job opens a quality record in Marshal with the job attached." },
+  { title: "The fire roll matches the gate", body: "Sign-ins at the Marshal kiosk tell Fleetlix who is on site." },
+];
+---
+
+<Base
+  title="Marshal — HR and quality software for UK hauliers | Fleetlix"
+  description={`Marshal, powered by Fleetlix: clock-in kiosk, timesheets, staff files, fit-to-drive checks, training and audit packs for DVSA, FORS and ISO 9001. From ${money(fromPence)}/month + VAT, every member of staff included.`}
+>
+  <Header />
+
+  <main class="bg-[color:var(--color-offwhite)]">
+    <!-- Masthead. The lockup is the reversed (white wordmark) Marshal logo, so it
+         only ever sits on graphite. -->
+    <section class="relative overflow-clip bg-[color:var(--color-graphite)] text-white">
+      <div class="aurora" aria-hidden="true">
+        <div class="aurora-blob aurora-blob--amber absolute -left-28 -top-10 h-80 w-80 opacity-25"></div>
+        <div class="aurora-blob aurora-blob--cyan absolute -right-24 bottom-0 h-80 w-80 opacity-20"></div>
+      </div>
+
+      <div class="relative mx-auto max-w-5xl px-6 py-16 md:py-24">
+        <img
+          src="/marshal/marshal-logo-reversed.svg"
+          alt="Marshal, powered by Fleetlix"
+          width="1005"
+          height="312"
+          class="hero-fade h-14 w-auto sm:h-16"
+        />
+        <h1 class="hero-rise mt-8 max-w-3xl font-[family-name:var(--font-display)] text-3xl font-extrabold leading-[1.08] tracking-tight text-white sm:text-4xl lg:text-5xl text-balance">
+          Marshal your people. Marshal your proof.
+        </h1>
+        <p class="hero-rise mt-5 max-w-2xl text-lg leading-relaxed text-white/70">
+          HR and quality in one app for licensed transport operators, from 50 to
+          a few hundred staff. Sign-ins, timesheets, staff files, fit-to-drive
+          checks, training and audit evidence, held once against the person.
+        </p>
+
+        <div class="hero-fade mt-8 flex flex-wrap items-center gap-3">
+          <a
+            href="#marshal-pricing"
+            class="btn-sheen inline-flex min-h-11 items-center justify-center rounded-xl bg-[color:var(--color-amber)] px-5 py-3 text-sm font-semibold text-[color:var(--color-graphite)] transition hover:brightness-105"
+          >
+            See prices
+          </a>
+          <a
+            href="#how-it-works"
+            class="inline-flex min-h-11 items-center justify-center rounded-xl border border-white/25 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
+          >
+            How it works
+          </a>
+        </div>
+
+        <ul class="hero-fade mt-8 flex flex-wrap gap-x-6 gap-y-2 text-sm font-medium text-white/80">
+          <li class="flex items-center gap-2"><span class="h-1.5 w-1.5 rounded-full bg-[color:var(--color-amber)]" aria-hidden="true"></span>Everyone in order.</li>
+          <li class="flex items-center gap-2"><span class="h-1.5 w-1.5 rounded-full bg-[color:var(--color-cyan)]" aria-hidden="true"></span>Audit-ready, every day.</li>
+          <li class="flex items-center gap-2"><span class="h-1.5 w-1.5 rounded-full bg-[color:var(--color-success)]" aria-hidden="true"></span>Every member of staff gets a login</li>
+        </ul>
+      </div>
+    </section>
+
+    <article class="mx-auto max-w-5xl px-6 py-16 md:py-20">
+      <!-- The idea -->
+      <section id="how-it-works" class="scroll-mt-24">
+        <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[color:var(--color-cyan)]">One record, two auditors</p>
+        <h2 class="mt-3 font-[family-name:var(--font-display)] text-2xl font-bold text-[color:var(--color-graphite)] md:text-3xl">
+          Fleetlix runs the work. Marshal proves the people behind it are fit to do it.
+        </h2>
+        <p class="mt-4 max-w-3xl leading-relaxed text-[color:var(--color-slate)]">
+          The Traffic Commissioner, a DVSA examiner, a FORS auditor and an ISO 9001
+          assessor all ask the same question: can you show that competent,
+          licensed, trained people followed the procedure? For a licensed
+          operator an HR record and a quality record are the same evidence. Today
+          one infringement leaves four records in four places. In Marshal it is one
+          chain.
+        </p>
+
+        <ol class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+          {chain.map((s, i) => (
+            <li class="relative overflow-hidden rounded-2xl border border-[color:var(--color-mist)] bg-white p-5">
+              <span class="absolute inset-x-0 top-0 h-[3px] bg-[color:var(--color-amber)]" aria-hidden="true"></span>
+              <p class="font-[family-name:var(--font-display)] text-xs font-bold tabular-nums tracking-wider text-[color:var(--color-amber)]">
+                {String(i + 1).padStart(2, "0")}
+              </p>
+              <p class="mt-2 font-[family-name:var(--font-display)] font-bold text-[color:var(--color-graphite)]">{s.step}</p>
+              <p class="mt-2 text-sm leading-relaxed text-[color:var(--color-slate)]">{s.body}</p>
+            </li>
+          ))}
+        </ol>
+      </section>
+
+      <!-- The kiosk -->
+      <section class="mt-16">
+        <h2 class="font-[family-name:var(--font-display)] text-2xl font-bold text-[color:var(--color-graphite)]">
+          Everything starts at the gate
+        </h2>
+        <p class="mt-3 max-w-3xl leading-relaxed text-[color:var(--color-slate)]">
+          A digital clock-in kiosk is built in. An iPad on the wall runs Marshal,
+          and each sign-in reaches the manager's dashboard with the photo, the time
+          and that person's status for the day, so you know who is on site, who is
+          late and who must not drive before the first vehicle leaves.
+        </p>
+        <div class="mt-6 grid gap-4 sm:grid-cols-2">
+          {kiosk.map((k) => (
+            <div class="rounded-2xl border border-[color:var(--color-mist)] bg-white p-5">
+              <p class="font-[family-name:var(--font-display)] font-bold text-[color:var(--color-graphite)]">{k.title}</p>
+              <p class="mt-2 text-sm leading-relaxed text-[color:var(--color-slate)]">{k.body}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <!-- People and quality -->
+      <section class="mt-16 grid gap-6 lg:grid-cols-2">
+        <div class="min-w-0 rounded-2xl border border-[color:var(--color-mist)] bg-white p-6 md:p-7">
+          <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[color:var(--color-amber)]">People</p>
+          <h2 class="mt-2 font-[family-name:var(--font-display)] text-xl font-bold text-[color:var(--color-graphite)]">Run the business from the people's point of view</h2>
+          <ul class="mt-5 space-y-4">
+            {people.map((f) => (
+              <li class="flex items-start gap-3">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="mt-0.5 shrink-0 text-[color:var(--color-success)]" set:html={tick} />
+                <span class="text-sm leading-relaxed text-[color:var(--color-slate)]">
+                  <strong class="font-semibold text-[color:var(--color-graphite)]">{f.title}.</strong> {f.body}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div class="min-w-0 rounded-2xl border border-[color:var(--color-mist)] bg-white p-6 md:p-7">
+          <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[color:var(--color-cyan)]">Quality</p>
+          <h2 class="mt-2 font-[family-name:var(--font-display)] text-xl font-bold text-[color:var(--color-graphite)]">Audit-ready, every day</h2>
+          <ul class="mt-5 space-y-4">
+            {quality.map((f) => (
+              <li class="flex items-start gap-3">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="mt-0.5 shrink-0 text-[color:var(--color-success)]" set:html={tick} />
+                <span class="text-sm leading-relaxed text-[color:var(--color-slate)]">
+                  <strong class="font-semibold text-[color:var(--color-graphite)]">{f.title}.</strong> {f.body}
+                </span>
+              </li>
+            ))}
+          </ul>
+          <p class="mt-6 border-t border-[color:var(--color-mist)] pt-4 text-sm leading-relaxed text-[color:var(--color-slate)]">
+            A generic HR system does not know what a DQC, a tacho card or a D4
+            medical is. Marshal starts there.
+          </p>
+        </div>
+      </section>
+
+      <!-- Security -->
+      <section class="mt-16">
+        <h2 class="font-[family-name:var(--font-display)] text-2xl font-bold text-[color:var(--color-graphite)]">
+          Confidential by default
+        </h2>
+        <p class="mt-3 max-w-3xl leading-relaxed text-[color:var(--color-slate)]">
+          Marshal holds health, disciplinary and personal records, so security
+          comes first. It has its own sign-in and its own database, separate from
+          Fleetlix's jobs and weighbridge tickets.
+        </p>
+        <div class="mt-5">
+          <PolicyCallout label="How confidential records are protected" tone="cyan">
+            <ul class="policy-list">
+              {security.map((s) => (
+                <li><strong>{s.lead}</strong> {s.detail}</li>
+              ))}
+            </ul>
+          </PolicyCallout>
+        </div>
+        <div class="mt-4">
+          <PolicyCallout label="The kiosk photo" tone="amber">
+            <p>
+              The photo taken at sign-in is for a person to look at. Marshal does
+              not match faces and does not use biometrics. Tell your staff about
+              the kiosk before you switch it on.
+            </p>
+          </PolicyCallout>
+        </div>
+      </section>
+
+      <!-- Connector -->
+      <section class="mt-16 rounded-2xl bg-[color:var(--color-graphite)] p-6 text-white md:p-8">
+        <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[color:var(--color-cyan)]">Optional</p>
+        <h2 class="mt-2 font-[family-name:var(--font-display)] text-2xl font-bold text-white">
+          Already on Fleetlix? Switch on the connector.
+        </h2>
+        <p class="mt-3 max-w-3xl leading-relaxed text-white/70">
+          Marshal runs on its own, with no Fleetlix account needed. A Fleetlix
+          customer can connect the two, and gets {fleetlixPercent}% off Marshal.
+        </p>
+        <div class="mt-6 grid gap-4 md:grid-cols-3">
+          {connector.map((c) => (
+            <div class="rounded-xl border border-white/10 bg-white/5 p-5">
+              <p class="font-[family-name:var(--font-display)] font-bold text-white">{c.title}</p>
+              <p class="mt-2 text-sm leading-relaxed text-white/70">{c.body}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <!-- Pricing. #marshal-terms wraps the picker AND the cards: global.css
+           ("Marshal term picker") shows the chosen term's price and links. -->
+      <section id="marshal-pricing" class="mt-16 scroll-mt-24">
+        <div id="marshal-terms">
+          <div class="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+            <div class="max-w-2xl">
+              <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[color:var(--color-cyan)]">Pricing</p>
+              <h2 class="mt-2 font-[family-name:var(--font-display)] text-2xl font-bold text-[color:var(--color-graphite)] md:text-3xl">
+                Priced by headcount, not per user
+              </h2>
+              <p class="mt-3 leading-relaxed text-[color:var(--color-slate)]">
+                Every member of staff gets a login. On a fixed-term contract of 12,
+                24, 36, 48 or 60 months, billed monthly by bank transfer: each year
+                beyond the first takes 2.5% off. All prices in GBP and{" "}
+                <strong class="font-semibold text-[color:var(--color-graphite)]">exclude VAT</strong>.
+              </p>
+            </div>
+
+            {/* One radio per term; each label wraps its input and is py-3, so a 44px target. */}
+            <fieldset class="shrink-0">
+              <legend class="mb-2 text-xs font-semibold text-[color:var(--color-slate)]">Contract term</legend>
+              <div class="inline-flex flex-wrap rounded-xl border border-[color:var(--color-mist)] bg-white p-1 shadow-sm">
+                {MARSHAL_TERMS.map((term) => (
+                  <label class="cursor-pointer rounded-lg px-3 py-3 text-sm font-semibold text-[color:var(--color-slate)] transition has-[:checked]:bg-[color:var(--color-graphite)] has-[:checked]:text-white has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-[color:var(--color-cyan)]">
+                    <input type="radio" name="marshal-term" id={`mterm-${term}`} class="sr-only" checked={term === MARSHAL_DEFAULT_TERM} />
+                    {term} months
+                    {termDiscountPercent(term) > 0 && (
+                      <span class="ml-1 text-[11px] font-bold opacity-80">−{termDiscountPercent(term)}%</span>
+                    )}
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+          </div>
+
+          <div class="mt-8 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+            {pricedBands.map((band, i) => (
+              <article
+                class={`flex min-w-0 flex-col rounded-2xl border bg-white p-6 ${
+                  i === 0 ? "border-[color:var(--color-amber)]/40 shadow-lg shadow-[color:var(--color-amber)]/5" : "border-[color:var(--color-mist)]"
+                }`}
+                aria-labelledby={`band-${band.id}`}
+              >
+                <h3 id={`band-${band.id}`} class="font-[family-name:var(--font-display)] text-lg font-bold text-[color:var(--color-graphite)]">{band.label}</h3>
+                <p class="mt-1 text-sm text-[color:var(--color-slate)]">Every member of staff gets a login.</p>
+
+                <div class="mt-4">
+                  {MARSHAL_TERMS.map((term) => {
+                    const monthly = marshalMonthlyPence(band.monthlyPence, term, false);
+                    const fleetlix = marshalMonthlyPence(band.monthlyPence, term, true);
+                    const [whole, pence] = pounds(monthly).split(".");
+                    return (
+                      <div data-mterm={term}>
+                        <span class="font-[family-name:var(--font-display)] text-4xl font-extrabold tracking-tight text-[color:var(--color-graphite)]">
+                          {whole}<span class="text-[0.55em]">.{pence}</span>
+                        </span>
+                        <span class="ml-1 text-sm text-[color:var(--color-slate)]">/mo</span>
+                        <span class="ml-1 text-xs font-semibold text-[color:var(--color-slate)]/70">+VAT</span>
+                        <p class="mt-1 text-xs text-[color:var(--color-slate)]/80">
+                          {termDiscountPercent(term) > 0
+                            ? `${termDiscountPercent(term)}% off ${money(band.monthlyPence)}, saving ${pounds(marshalSavingPence(band.monthlyPence, term, false))}`
+                            : "List price"}
+                          {" · "}{term} payments, {pounds(marshalContractPence(band.monthlyPence, term, false))} in all
+                        </p>
+                        <p class="mt-3 rounded-lg bg-[color:var(--color-cyan)]/[0.08] px-3 py-2 text-sm text-[color:var(--color-graphite)]">
+                          <strong class="font-semibold">Fleetlix customers: {pounds(fleetlix)}</strong>/mo +VAT
+                          <span class="block text-xs text-[color:var(--color-slate)]">
+                            A further {fleetlixPercent}% off · {term} payments, {pounds(marshalContractPence(band.monthlyPence, term, true))} in all
+                          </span>
+                        </p>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <div class="mt-auto pt-5">
+                  {MARSHAL_TERMS.map((term) => (
+                    <div data-mterm={term} class="space-y-2">
+                      <a
+                        href={marshalOrderHref(band.id, term)}
+                        aria-label={`Order Marshal, ${band.label.toLowerCase()}, on a ${term}-month contract`}
+                        class={`btn-sheen flex min-h-11 items-center justify-center rounded-xl px-4 py-3 text-center text-sm font-semibold transition ${
+                          i === 0
+                            ? "bg-[color:var(--color-amber)] text-[color:var(--color-graphite)] ring-1 ring-[color:var(--color-amber)]/40 hover:brightness-105"
+                            : "bg-[color:var(--color-graphite)] text-white hover:bg-[color:var(--color-graphite)]/90"
+                        }`}
+                      >
+                        Order for {term} months
+                      </a>
+                      <a
+                        href={marshalOrderHref(band.id, term, true)}
+                        aria-label={`Order Marshal as a Fleetlix customer, ${band.label.toLowerCase()}, on a ${term}-month contract`}
+                        class="flex min-h-11 items-center justify-center rounded-xl border border-[color:var(--color-graphite)]/25 px-4 py-3 text-center text-sm font-semibold text-[color:var(--color-graphite)] transition hover:bg-[color:var(--color-graphite)] hover:text-white"
+                      >
+                        Order as a Fleetlix customer
+                      </a>
+                    </div>
+                  ))}
+                </div>
+              </article>
+            ))}
+
+            <article class="flex min-w-0 flex-col rounded-2xl border border-[color:var(--color-mist)] bg-white p-6" aria-labelledby="band-over_250">
+              <h3 id="band-over_250" class="font-[family-name:var(--font-display)] text-lg font-bold text-[color:var(--color-graphite)]">{quotedBand.label}</h3>
+              <p class="mt-1 text-sm text-[color:var(--color-slate)]">Every member of staff gets a login.</p>
+              <p class="mt-4 font-[family-name:var(--font-display)] text-4xl font-extrabold tracking-tight text-[color:var(--color-graphite)]">Quoted</p>
+              <p class="mt-1 text-xs text-[color:var(--color-slate)]/80">
+                For larger operators and groups of companies. Tell us your headcount
+                and we will quote.
+              </p>
+              <div class="mt-auto pt-5">
+                <a
+                  href={quoteHref}
+                  class="flex min-h-11 items-center justify-center rounded-xl border border-[color:var(--color-graphite)]/25 px-4 py-3 text-center text-sm font-semibold text-[color:var(--color-graphite)] transition hover:bg-[color:var(--color-graphite)] hover:text-white"
+                >
+                  Ask for a quote
+                </a>
+                <p class="mt-2 text-center text-xs text-[color:var(--color-slate)]/80">contact@fleetlix.com</p>
+              </div>
+            </article>
+          </div>
+        </div>
+
+        <div class="mt-6">
+          <PolicyCallout label="We take bank transfer only" tone="amber">
+            <p>
+              Marshal is ordered on a fixed-term contract of 12, 24, 36, 48 or 60
+              months, signed online and paid monthly by bank transfer. We do not
+              take card payments.
+            </p>
+            <p>
+              The Fleetlix-customer price is confirmed against your Fleetlix
+              account before your Marshal account is activated. A contract runs for
+              its full term, and VAT is added to each invoice.
+            </p>
+          </PolicyCallout>
+        </div>
+      </section>
+
+      <div class="mt-14 flex flex-wrap items-center gap-3 border-t border-[color:var(--color-mist)] pt-8">
+        <img src="/marshal/marshal-icon.svg" alt="" width="44" height="44" class="h-11 w-11 rounded-xl" />
+        <p class="mr-auto font-[family-name:var(--font-display)] text-lg font-bold text-[color:var(--color-graphite)]">Everyone in order.</p>
+        <a
+          href="#marshal-pricing"
+          class="btn-sheen inline-flex min-h-11 items-center justify-center rounded-xl bg-[color:var(--color-amber)] px-5 py-3 text-sm font-semibold text-[color:var(--color-graphite)] ring-1 ring-[color:var(--color-amber)]/40 transition hover:brightness-105"
+        >
+          See prices
+        </a>
+        <a
+          href="/"
+          class="inline-flex min-h-11 items-center justify-center rounded-xl border border-[color:var(--color-graphite)]/25 px-5 py-3 text-sm font-semibold text-[color:var(--color-graphite)] transition hover:bg-[color:var(--color-graphite)] hover:text-white"
+        >
+          About Fleetlix
+        </a>
+      </div>
+    </article>
+  </main>
+
+  <SiteFooter />
+</Base>
