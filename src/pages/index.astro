@@ -12,6 +12,7 @@ import WhyPwa from "../components/WhyPwa.astro";
 import WhoFor from "../components/WhoFor.astro";
 import DwtsTimeline from "../components/DwtsTimeline.astro";
 import Faq from "../components/Faq.astro";
+import MarshalCallout from "../components/MarshalCallout.astro";
 import PricingSection from "../components/PricingSection.astro";
 import BrokerNetwork from "../components/BrokerNetwork.astro";
 import InterestForm from "../components/InterestForm";
@@ -127,6 +128,7 @@ const homepageJsonLd = {
     <DwtsTimeline />
     {SHOW_PRICING && <PricingSection />}
     {SHOW_BROKERS && <BrokerNetwork />}
+    <MarshalCallout />
     <Faq />
     <InterestForm client:visible />
     {SHOW_CONTACT && <CtaFooter />}
