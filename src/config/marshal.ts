@@ -25,6 +25,17 @@
 export const pounds = (pence: number): string =>
   `£${Math.floor(pence / 100).toLocaleString("en-GB")}.${String(pence % 100).padStart(2, "0")}`;
 
+/**
+ * Marshal is not on sale yet. While true, /marshal and the homepage say "Coming soon",
+ * prices show as launch prices and every Order button becomes "Register interest"
+ * (an email to contact@fleetlix.com). Set false once MARSHAL_APP_URL is live.
+ */
+export const MARSHAL_COMING_SOON = true;
+
+/** Email link for "tell me when Marshal launches", with the band named when known. */
+export const marshalInterestHref = (bandLabel?: string): string =>
+  `mailto:contact@fleetlix.com?subject=${encodeURIComponent(`Marshal: tell me when it launches${bandLabel ? ` (${bandLabel.toLowerCase()})` : ""}`)}`;
+
 /** The Marshal app's origin. Its /order route fulfils the Order Form. */
 export const MARSHAL_APP_URL = "https://marshal.fleetlix.com";
 
