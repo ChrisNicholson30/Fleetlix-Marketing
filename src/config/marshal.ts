@@ -36,7 +36,7 @@ export const BPS_PER_EXTRA_YEAR = 250;
 export const MAX_TERM_DISCOUNT_BPS = 1000;
 export const FLEETLIX_CUSTOMER_DISCOUNT_BPS = 1500;
 
-export type MarshalBandId = "up_to_100" | "up_to_250" | "over_250";
+export type MarshalBandId = "up_to_50" | "up_to_100" | "up_to_250" | "over_250";
 
 export interface MarshalBand {
   id: MarshalBandId;
@@ -47,8 +47,9 @@ export interface MarshalBand {
 }
 
 export const MARSHAL_BANDS: readonly MarshalBand[] = [
-  { id: "up_to_100", label: "Up to 100 staff", staff: "1 to 100", monthlyPence: 29_900 },
-  { id: "up_to_250", label: "101 to 250 staff", staff: "101 to 250", monthlyPence: 54_900 },
+  { id: "up_to_50", label: "Up to 50 staff", staff: "1 to 50", monthlyPence: 25_000 },
+  { id: "up_to_100", label: "51 to 100 staff", staff: "51 to 100", monthlyPence: 39_900 },
+  { id: "up_to_250", label: "101 to 250 staff", staff: "101 to 250", monthlyPence: 52_000 },
   { id: "over_250", label: "Over 250 staff or groups", staff: "251+", monthlyPence: null },
 ];
 

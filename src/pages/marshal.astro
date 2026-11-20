@@ -38,7 +38,7 @@ import {
 const tick = `<path d="M20 6 9 17l-5-5"/>`;
 const fleetlixPercent = FLEETLIX_CUSTOMER_DISCOUNT_BPS / 100;
 const pricedBands = MARSHAL_BANDS.filter((b) => b.monthlyPence !== null) as {
-  id: "up_to_100" | "up_to_250";
+  id: "up_to_50" | "up_to_100" | "up_to_250";
   label: string;
   staff: string;
   monthlyPence: number;
@@ -324,7 +324,7 @@ const connector = [
             </fieldset>
           </div>
 
-          <div class="mt-8 grid gap-5 lg:grid-cols-3">
+          <div class="mt-8 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
             {pricedBands.map((band, i) => (
               <article
                 class={`flex min-w-0 flex-col rounded-2xl border bg-white p-6 ${
