@@ -182,6 +182,124 @@ const connector = [
         </ol>
       </section>
 
+      <!-- See it working: real screens from the Marshal app with demo data -->
+      <section id="see-it-working" class="mt-16 scroll-mt-24" aria-labelledby="see-it-working-title">
+        <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[color:var(--color-cyan)]">See it working</p>
+        <h2 id="see-it-working-title" class="mt-3 font-[family-name:var(--font-display)] text-2xl font-bold text-[color:var(--color-graphite)] md:text-3xl">
+          From the gate to the audit, one day in Marshal
+        </h2>
+        <p class="mt-4 max-w-3xl leading-relaxed text-[color:var(--color-slate)]">
+          These are real Marshal screens, shown with a demo company.
+        </p>
+
+        <figure class="mt-8">
+          <div class="rounded-[28px] bg-[color:var(--color-graphite)] p-2 shadow-xl shadow-black/10 sm:p-3">
+            <img
+              src="/marshal/screens/kiosk-signed-in.webp"
+              alt="The Marshal kiosk after a driver signs in with a PIN: his photo, Clear to drive, two policies to sign and today's shift."
+              width="1600"
+              height="1118"
+              loading="lazy"
+              decoding="async"
+              class="block h-auto w-full rounded-[20px]"
+            />
+          </div>
+          <figcaption class="mt-4 grid gap-1 sm:grid-cols-[auto_1fr] sm:gap-4">
+            <span class="font-[family-name:var(--font-display)] text-xs font-bold tracking-wider text-[color:var(--color-amber)]">01 · AT THE GATE</span>
+            <span class="text-sm leading-relaxed text-[color:var(--color-slate)]">
+              A PIN and a photo on the iPad by the door. Marshal answers at once: clear to drive or not, any policy waiting to be signed, and today's shift.
+            </span>
+          </figcaption>
+        </figure>
+
+        <div class="mt-10 grid items-start gap-8 md:grid-cols-[minmax(0,5fr)_minmax(0,12fr)]">
+          <figure class="mx-auto w-full max-w-[300px] md:max-w-none">
+            <div class="rounded-[36px] bg-[color:var(--color-graphite)] p-2 shadow-xl shadow-black/10">
+              <img
+                src="/marshal/screens/phone-clock-in.webp"
+                alt="Marshal on a phone: You are clocked in, with a Clock out button. It works only at Main Yard, and the location is stamped once when you tap."
+                width="585"
+                height="1050"
+                loading="lazy"
+                decoding="async"
+                class="block h-auto w-full rounded-[28px]"
+              />
+            </div>
+            <figcaption class="mt-4">
+              <span class="block font-[family-name:var(--font-display)] text-xs font-bold tracking-wider text-[color:var(--color-amber)]">02 · ON THEIR OWN PHONE</span>
+              <span class="mt-1 block text-sm leading-relaxed text-[color:var(--color-slate)]">
+                Staff you allow can clock in on their own phone, but only inside the yard. A GPS stamp is taken at the moment they tap, never in between.
+              </span>
+            </figcaption>
+          </figure>
+          <figure>
+            <div class="overflow-hidden rounded-2xl border border-[color:var(--color-mist)] bg-white shadow-xl shadow-black/10">
+              <div class="flex items-center gap-1.5 border-b border-[color:var(--color-mist)] px-4 py-2.5" aria-hidden="true">
+                <span class="h-2.5 w-2.5 rounded-full bg-[color:var(--color-mist)]"></span>
+                <span class="h-2.5 w-2.5 rounded-full bg-[color:var(--color-mist)]"></span>
+                <span class="h-2.5 w-2.5 rounded-full bg-[color:var(--color-mist)]"></span>
+              </div>
+              <img
+                src="/marshal/screens/today.webp"
+                alt="The Marshal Today page: who is on site, who is late, who is absent and who is not cleared to drive, every sign-in, and phone clock-ins on a map of the yard."
+                width="1600"
+                height="1000"
+                loading="lazy"
+                decoding="async"
+                class="block h-auto w-full"
+              />
+            </div>
+            <figcaption class="mt-4">
+              <span class="block font-[family-name:var(--font-display)] text-xs font-bold tracking-wider text-[color:var(--color-amber)]">03 · IN THE OFFICE</span>
+              <span class="mt-1 block text-sm leading-relaxed text-[color:var(--color-slate)]">
+                Today shows the whole site in one screen: who is in, who is late against the rota, who is off, who must not drive, and where each phone clock-in was made.
+              </span>
+            </figcaption>
+          </figure>
+        </div>
+
+        <div class="mt-10 grid items-start gap-8 md:grid-cols-2">
+          <figure>
+            <div class="rounded-[24px] bg-[color:var(--color-graphite)] p-2 shadow-xl shadow-black/10">
+              <img
+                src="/marshal/screens/kiosk-sign-out.webp"
+                alt="Signing out at the kiosk: today's time card and the driver's tacho card times."
+                width="1600"
+                height="1118"
+                loading="lazy"
+                decoding="async"
+                class="block h-auto w-full rounded-[18px]"
+              />
+            </div>
+            <figcaption class="mt-4">
+              <span class="block font-[family-name:var(--font-display)] text-xs font-bold tracking-wider text-[color:var(--color-amber)]">04 · AT THE END OF THE SHIFT</span>
+              <span class="mt-1 block text-sm leading-relaxed text-[color:var(--color-slate)]">
+                Drivers add their tacho card times as they sign out. Everyone else signs out with one tap, and the time card fills itself in.
+              </span>
+            </figcaption>
+          </figure>
+          <figure>
+            <div class="overflow-hidden rounded-2xl border border-[color:var(--color-mist)] bg-white shadow-xl shadow-black/10">
+              <img
+                src="/marshal/screens/audit-pack.webp"
+                alt="A DVSA evidence pack in Marshal with the gaps to close before the audit: driver checks due, unsigned policies, an overdue non-conformance."
+                width="1600"
+                height="1000"
+                loading="lazy"
+                decoding="async"
+                class="block h-auto w-full"
+              />
+            </div>
+            <figcaption class="mt-4">
+              <span class="block font-[family-name:var(--font-display)] text-xs font-bold tracking-wider text-[color:var(--color-amber)]">05 · BEFORE THE AUDITOR ARRIVES</span>
+              <span class="mt-1 block text-sm leading-relaxed text-[color:var(--color-slate)]">
+                One button builds the DVSA, FORS or ISO 9001 pack from the same records, with every gap listed so you can close it first.
+              </span>
+            </figcaption>
+          </figure>
+        </div>
+      </section>
+
       <!-- The kiosk -->
       <section class="mt-16">
         <h2 class="font-[family-name:var(--font-display)] text-2xl font-bold text-[color:var(--color-graphite)]">
