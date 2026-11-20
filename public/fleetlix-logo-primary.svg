@@ -1,5 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 120" role="img" aria-label="Fleetlix wordmark logo">
-  <title>Fleetlix</title>
-  <desc>Fleetlix wordmark with signal amber and deep cyan L letters on a graphite base.</desc>
-  <text x="20" y="92" font-family="Inter, system-ui, -apple-system, 'Segoe UI', sans-serif" font-weight="800" font-size="96" letter-spacing="-4" fill="#1A1D21">F<tspan fill="#FF8A00">l</tspan>eet<tspan fill="#0098C7">l</tspan>ix</text>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 3707.37 400" width="3707.37" height="400" role="img" aria-label="Fleetlix"><title>Fleetlix</title><path fill="#1A1D21" d="M0 400V-0H260.45V62.26H76.99V169.32H224.36V229.77H76.99V400Z"/><path fill="#FF8A00" d="M498.05 400V-0H575.34V339.85H750.68V400Z"/><path fill="#1A1D21" d="M997.29 400V-0H1260.45V62.26H1074.59V166.92H1243.31V227.07H1074.59V337.74H1260.45V400ZM1510.98 400V-0H1774.14V62.26H1588.27V166.92H1756.99V227.07H1588.27V337.74H1774.14V400ZM2117.59 400V62.26H2000.9V-0H2311.28V62.26H2194.59V400Z"/><path fill="#0098C7" d="M2546.17 400V-0H2623.46V339.85H2798.8V400Z"/><path fill="#1A1D21" d="M3045.41 400V-0H3122.71V400ZM3361.2 400 3487.22 197.29 3359.4 -0H3448.72L3536.54 136.54L3616.84 -0H3704.06L3578.65 200.6L3707.37 400H3618.35L3529.32 261.35L3448.72 400Z"/></svg>

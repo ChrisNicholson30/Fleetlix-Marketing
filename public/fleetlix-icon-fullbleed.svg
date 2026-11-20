@@ -1,9 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Fleetlix icon">
-  <title>Fleetlix icon</title>
-  <desc>Fleetlix full-bleed app icon: graphite background with stacked amber and cyan L letters.</desc>
-  <rect x="0" y="0" width="200" height="200" fill="#1A1D21"/>
-  <rect x="38" y="28" width="26" height="103" fill="#FF8A00"/>
-  <rect x="38" y="105" width="67" height="26" fill="#FF8A00"/>
-  <rect x="136" y="69" width="26" height="103" fill="#0098C7"/>
-  <rect x="95" y="146" width="67" height="26" fill="#0098C7"/>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024" role="img" aria-label="Fleetlix"><title>Fleetlix</title><rect width="1024" height="1024" fill="#1A1D21"/><path fill="#FF8A00" d="M300.03 300.03H375.81V664.58H605.18V723.97H300.03Z"/><path fill="#0098C7" d="M723.97 723.97H648.19V359.42H418.82V300.03H723.97Z"/></svg>
